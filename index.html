@@ -792,6 +792,8 @@ label.btn.disabled{opacity:.55;pointer-events:none}
   firebase.initializeApp(CFG);
   auth=firebase.auth();fs=firebase.firestore();
   try{fs.settings({ignoreUndefinedProperties:true,merge:true})}catch(e){}
+  /* keep a copy of your data on this device so the page opens fast and shows data instantly, then refreshes from online */
+  try{if(fs.enablePersistence)fs.enablePersistence({synchronizeTabs:true}).catch(function(){})}catch(e){}
   auth.onAuthStateChanged(function(u){
     if(u&&ALLOWED.indexOf((u.email||'').toLowerCase())>-1){authUser=u;hide();resolveReady(u)}
     else if(u){show((u.email||'This account')+' is not allowed to open this dashboard.',false,true)}
@@ -1456,8 +1458,8 @@ label.btn.disabled{opacity:.55;pointer-events:none}
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 (function(){
 'use strict';

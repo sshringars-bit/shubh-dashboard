@@ -241,6 +241,9 @@ tfoot td{font-weight:700;border-bottom:0;padding-top:16px;font-variant-numeric:t
 
 /* products */
 .ptools{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:18px 22px}
+.p-export-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.p-export-status{flex:1 0 100%;min-height:1em;margin:0;font-size:.78rem}
+.p-export-status:empty{display:none}
 .ptools h3{margin:0;font-family:var(--font-display);font-weight:400;font-size:1.3rem}
 .ptools p{margin:0;font-size:.82rem;color:var(--ink-3);margin-right:auto}
 .ptools .search{flex:1 1 240px;max-width:380px}
@@ -759,7 +762,7 @@ label.btn.disabled{opacity:.55;pointer-events:none}
 .t10-img{width:60px;height:60px;object-fit:cover;border-radius:12px;border:1px solid var(--stroke-2);background:var(--field);display:block}
 .t10-noimg{width:60px;height:60px;border-radius:12px;border:1px dashed var(--stroke-2);display:grid;place-items:center;font-size:.62rem;color:var(--ink-3);text-align:center;line-height:1.2}
 .t10-none{padding:26px 8px;text-align:center;color:var(--ink-3)}
-</style><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+</style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Shubh Dashboard"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png"><script>if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
@@ -864,9 +867,11 @@ label.btn.disabled{opacity:.55;pointer-events:none}
     return b.commit().then(function(){cloudN[k]=n;return true},function(){delete sync[k];ws();return false});
   }
   function flush(){
-    timer=null;var keys=Object.keys(pend);
-    keys.forEach(function(k){var v=pend[k];delete pend[k];if(sync[k]===h(v))return;push(k,v).then(function(ok){if(!ok){pend[k]=v;if(!timer)timer=setTimeout(flush,15000)}})});
+    timer=null;var keys=Object.keys(pend),ps=[];
+    keys.forEach(function(k){var v=pend[k];delete pend[k];if(sync[k]===h(v))return;ps.push(push(k,v).then(function(ok){if(!ok){pend[k]=v;if(!timer)timer=setTimeout(flush,15000)}})) });
+    return Promise.all(ps);
   }
+  window.__fbFlushAll=function(){if(timer){clearTimeout(timer)}return flush()};
   function note(k,v){if(!hydrated)return;pend[k]=v;if(timer)clearTimeout(timer);timer=setTimeout(flush,1500)}
   Storage.prototype.setItem=function(k,v){origSet.apply(this,arguments);try{if(this===LS&&!applying&&ELIG(k))note(k,String(v))}catch(e){}};
   var op=IDBObjectStore.prototype.put;
@@ -1007,6 +1012,11 @@ label.btn.disabled{opacity:.55;pointer-events:none}
       <h3>All products</h3>
       <p id="pNote"></p>
       <input class="field-in search" id="pq" type="search" placeholder="Search name, SKU, batch or marketplace SKU" aria-label="Search products" autocomplete="off">
+      <div class="p-export-actions" aria-label="Export product catalogue">
+        <button class="btn small primary" id="pExportExcel" type="button">⇩ Download Excel</button>
+        <button class="btn small" id="pExportPdf" type="button">⇩ Download PDF</button>
+      </div>
+      <span class="muted p-export-status" id="pExportStatus" role="status" aria-live="polite"></span>
     </section>
     <div id="pBanner"></div>
     <section class="pgrid" id="pGrid" aria-label="Products"></section>
@@ -1437,11 +1447,11 @@ label.btn.disabled{opacity:.55;pointer-events:none}
 <div class="scrim" id="dataStudio" hidden>
   <section class="fx-panel" role="dialog" aria-modal="true" aria-labelledby="dataTitle">
     <div class="fx-head">
-      <div><h3 id="dataTitle">Backup</h3><p>Export all your data to a file, or import a backup file.</p></div>
+      <div><h3 id="dataTitle">Backup</h3><p>Save a full backup of all your data to a file, or restore from one.</p></div>
       <button class="fx-close" id="dataClose" type="button" aria-label="Close backup">×</button>
     </div>
-    <div class="data-card"><h4>Export data</h4><p class="muted" id="expInfo"></p><button class="btn primary small" id="expBtn" type="button">Export backup (.json)</button></div>
-    <div class="data-card"><h4>Import data</h4><p class="muted">Choose a backup file that was exported from this dashboard.</p><label class="btn small" id="impPick" for="imp-file">Choose backup file</label><input class="sr-only" id="imp-file" type="file" accept=".json,application/json"><div id="impPanel"></div></div>
+    <div class="data-card"><h4>Backup</h4><p class="muted" id="expInfo"></p><button class="btn primary small" id="expBtn" type="button">Download full backup (.json)</button></div>
+    <div class="data-card"><h4>Restore</h4><p class="muted">Choose a backup file downloaded from this dashboard. Older backups still work.</p><label class="btn small" id="impPick" for="imp-file">Choose backup file</label><input class="sr-only" id="imp-file" type="file" accept=".json,application/json"><div id="impPanel"></div></div>
     <p class="status" id="dataStatus" role="status" aria-live="polite"></p>
     <div class="fx-actions"><span class="spacer"></span><button class="btn primary small" id="dataDone" type="button">Done</button></div>
   </section>
@@ -1885,23 +1895,72 @@ function bindZoom(){
 function dStatus(m){$('#dataStatus').textContent=m||''}
 function openData(){
   var n=function(a){return a.filter(function(x){return !x.sample}).length};
-  $('#expInfo').textContent='Saves '+n(state.orders)+' orders, '+n(state.products)+' products (with their photos), '+n(state.sales)+' sale entries and '+state.cflags.filter(function(f){return f.blacklisted}).length+' blacklisted customers into one file.';
+  $('#expInfo').textContent='Saves everything in this dashboard into one file: '+n(state.orders)+' orders, '+n(state.products)+' products (with photos), '+n(state.sales)+' sale entries, blacklisted customers, trackers, expenses, staff, payments, returns, purchases, platform sheets, notes, user accounts and settings.';
   $('#impPanel').innerHTML='';state.imp=null;dStatus('');
   $('#impPick').classList.toggle('disabled',!state.canWrite);
   if(!state.canWrite)$('#impPanel').innerHTML='<p class="muted">You have view-only access, so importing is turned off.</p>';
   $('#dataStudio').hidden=false;setTimeout(function(){$('#dataClose').focus()},30);
 }
 function closeData(){$('#dataStudio').hidden=true}
+/* ---- full snapshot: every localStorage key + every IndexedDB store this dashboard uses ---- */
+var RAW_DBS=['ssc-dashboard','ssc-returns','ssc-purchases','ssc-users'];
+function idbDump(name){return new Promise(function(res){
+  try{
+    var q=indexedDB.open(name);
+    q.onupgradeneeded=function(){try{q.transaction.abort()}catch(e){}};
+    q.onerror=function(){res(null)};q.onblocked=function(){res(null)};
+    q.onsuccess=function(){
+      var d=q.result;
+      if(!d.objectStoreNames.contains('kv')){d.close();res(null);return}
+      var out={},tx=d.transaction('kv'),c=tx.objectStore('kv').openCursor();
+      c.onsuccess=function(){var cu=c.result;if(cu){out[cu.key]=cu.value;cu.continue()}};
+      tx.oncomplete=function(){d.close();res(out)};tx.onerror=tx.onabort=function(){d.close();res(null)};
+    };
+  }catch(e){res(null)}
+})}
+function rawDump(){
+  var ls={};
+  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('__fb')===0)continue;ls[k]=localStorage.getItem(k)}}catch(e){}
+  var idbOut={};
+  return Promise.all(RAW_DBS.map(function(n){return idbDump(n).then(function(o){if(o)idbOut[n]=o})})).then(function(){return {ls:ls,idb:idbOut}});
+}
+function idbRestore(name,obj){return new Promise(function(res,rej){
+  try{
+    var q=indexedDB.open(name,1);
+    q.onupgradeneeded=function(){if(!q.result.objectStoreNames.contains('kv'))q.result.createObjectStore('kv')};
+    q.onerror=function(){rej(q.error)};q.onblocked=function(){rej(new Error('blocked'))};
+    q.onsuccess=function(){
+      var d=q.result,tx=d.transaction('kv','readwrite'),st=tx.objectStore('kv');
+      st.clear();Object.keys(obj).forEach(function(k){st.put(obj[k],k)});
+      tx.oncomplete=function(){d.close();res(true)};tx.onerror=tx.onabort=function(){d.close();rej(tx.error)};
+    };
+  }catch(e){rej(e)}
+})}
+function rawRestore(raw){
+  var failed=0;
+  try{
+    var keys=[];for(var i=0;i<localStorage.length;i++)keys.push(localStorage.key(i));
+    keys.forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
+  }catch(e){}
+  Object.keys(raw.ls).forEach(function(k){try{localStorage.setItem(k,raw.ls[k])}catch(e){failed++}});
+  return Promise.all(RAW_DBS.map(function(n){
+    return idbRestore(n,raw.idb[n]||{}).catch(function(){failed++});
+  })).then(function(){return failed});
+}
 function exportData(){
   if(!canSave()){dStatus('Saving files is not available here.');return}
-  var data={app:'shubh-shringar-dashboard',version:1,exportedAt:new Date().toISOString(),
+  dStatus('Collecting all your data…');
+  rawDump().then(function(raw){doExport(raw)},function(){doExport(null)});
+}
+function doExport(raw){
+  var data={app:'shubh-shringar-dashboard',version:2,full:!!raw,exportedAt:new Date().toISOString(),
     orders:state.orders.map(norm).filter(function(o){return !o.sample}).map(function(o){delete o.sample;return o}),
     products:state.products.map(normP).filter(function(p){return !p.sample}).map(function(p){return {id:p.id,name:p.name,sku:p.sku,batch:p.batch,orig:p.orig,paste:p.paste,karigar:p.karigar,pack:p.pack,amz:p.amz,fk:p.fk,meesho:p.meesho,myntra:p.myntra,created:p.created,images:p.images}}),
     sales:state.sales.map(normS).filter(function(e){return !e.sample}).map(function(e){delete e.sample;delete e.paymentPending;return e}),
     customers:state.cflags.map(normFlag).filter(function(f){return f.blacklisted}),
-    tracker:(window.mfGetRows?window.mfGetRows():[]),expenses:(window.exGet?window.exGet():[])};
+    tracker:(window.mfGetRows?window.mfGetRows():[]),expenses:(window.exGet?window.exGet():[]),raw:raw||undefined};
   var name='shubh-shringar-backup-'+todayISO()+'.json';
-  saveFile(name,JSON.stringify(data),'application/json').then(function(){dStatus('Backup saved as '+name+'.')},function(e){if(!(e&&e.code==='declined'))dStatus('Could not save the backup file.')});
+  saveFile(name,JSON.stringify(data),'application/json').then(function(){dStatus('Full backup saved as '+name+'.')},function(e){if(!(e&&e.code==='declined'))dStatus('Could not save the backup file.')});
 }
 function parseBackup(txt){
   var d;try{d=JSON.parse(txt)}catch(e){throw new Error('This file is not a valid backup (it is not JSON).')}
@@ -1909,7 +1968,13 @@ function parseBackup(txt){
   var arr=function(x){return Array.isArray(x)?x:[]},rid=function(){return 'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
   var id=function(x){return String(x&&x.id||rid()).replace(/[\/\s]+/g,'_').slice(0,100)};
   var nm=function(v){return Math.max(0,+v||0)},tx=function(v){return String(v==null?'':v).slice(0,200)};
-  var out={orders:[],products:[],sales:[],customers:[],tracker:[],expenses:[],images:0};
+  var out={orders:[],products:[],sales:[],customers:[],tracker:[],expenses:[],images:0,raw:null};
+  if(d.raw&&typeof d.raw==='object'){
+    var rl={},ri={},nl=0,ni=0;
+    if(d.raw.ls&&typeof d.raw.ls==='object')Object.keys(d.raw.ls).forEach(function(k){if(typeof d.raw.ls[k]==='string'){rl[k]=d.raw.ls[k];nl++}});
+    if(d.raw.idb&&typeof d.raw.idb==='object')RAW_DBS.forEach(function(n){var o=d.raw.idb[n];if(o&&typeof o==='object'){ri[n]={};Object.keys(o).forEach(function(k){if(typeof o[k]==='string'){ri[n][k]=o[k];ni++}})}});
+    if(nl||ni)out.raw={ls:rl,idb:ri,nl:nl,ni:ni};
+  }
   arr(d.expenses).forEach(function(x){if(x&&typeof x==='object'&&+x.amount>0)out.expenses.push({id:String(x.id||rid()).slice(0,40),date:tx(x.date),cat:tx(x.cat),plat:tx(x.plat),amount:+x.amount,desc:tx(x.desc)})});
   arr(d.orders).forEach(function(o){if(!o||typeof o!=='object')return;var n=norm(o);n.id=id(o);n.sample=false;out.orders.push(n)});
   arr(d.products).forEach(function(p){
@@ -1952,7 +2017,8 @@ function applyImport(d,mode){
 function showImportChoice(d){
   state.imp=d;
   $('#impPanel').innerHTML='<p class="imp-sum">Found <b>'+d.orders.length+'</b> orders, <b>'+d.products.length+'</b> products ('+d.images+' photos), <b>'+d.sales.length+'</b> sale entries and <b>'+d.customers.length+'</b> blacklisted customers.</p>'+
-    '<p class="muted"><b>Merge</b> keeps what you have and adds or updates records from the backup. <b>Replace</b> deletes everything currently here first.</p>'+
+    (d.raw?'<p class="imp-sum"><b>Full backup:</b> also contains every other saved sheet and setting ('+d.raw.nl+' settings/sheets, '+d.raw.ni+' saved records such as staff, payments, returns, purchases, Amazon/Myntra/Flipkart/Meesho sheets and user accounts).</p><p class="muted"><b>Restore everything</b> puts this device back exactly as it was when the backup was made (current data is replaced) and then reloads the page.</p><div class="imp-actions"><button class="btn primary small" type="button" data-imp="full">Restore everything</button></div>':'')+
+    '<p class="muted"><b>Merge</b> keeps what you have and adds or updates records from the backup. <b>Replace</b> deletes the orders, products, sales and blacklist currently here first.</p>'+
     '<div class="imp-actions"><button class="btn primary small" type="button" data-imp="merge">Merge into current data</button><button class="btn small danger" type="button" data-imp="replace">Replace everything</button><button class="btn small" type="button" data-imp="cancel">Cancel</button></div>';
 }
 var impArm=null;
@@ -1972,8 +2038,16 @@ function bindData(){
     var b=e.target.closest('[data-imp]');if(!b||!state.imp)return;
     var m=b.dataset.imp;
     if(m==='cancel'){state.imp=null;$('#impPanel').innerHTML='';dStatus('');return}
-    if(m==='replace'&&!impArm){impArm=setTimeout(function(){impArm=null;if(b.isConnected)b.textContent='Replace everything'},4000);b.textContent='Tap again to replace everything';return}
+    if((m==='replace'||m==='full')&&!impArm){var lbl=b.textContent;impArm=setTimeout(function(){impArm=null;if(b.isConnected)b.textContent=lbl},4000);b.textContent='Tap again to confirm';return}
     clearTimeout(impArm);impArm=null;
+    if(m==='full'){
+      var fd=state.imp;state.imp=null;$('#impPanel').innerHTML='';dStatus('Restoring everything…');
+      (db?applyImport(fd,'replace'):Promise.resolve()).then(function(){return rawRestore(fd.raw)}).then(function(failed){
+        dStatus('Restore finished'+(failed?' ('+failed+' item(s) could not be saved by this browser)':'')+'. Reloading…');toast('Restore finished');
+        (window.__fbFlushAll?window.__fbFlushAll():Promise.resolve()).then(function(){setTimeout(function(){location.reload()},800)});
+      }).catch(function(err){dStatus('Restore stopped. '+(err&&err.code?saveErr(err):'Some data may not have been restored.'))});
+      return;
+    }
     var d=state.imp;state.imp=null;$('#impPanel').innerHTML='';dStatus('Importing…');
     applyImport(d,m).then(function(){dStatus('Import finished: '+d.orders.length+' orders, '+d.products.length+' products, '+d.sales.length+' sale entries, '+d.customers.length+' blacklisted customers.');toast('Import finished')})
       .catch(function(err){dStatus('Import stopped. '+(err&&err.code?saveErr(err):'Some records may not have been saved.'))});
@@ -2410,6 +2484,156 @@ function normP(p){
     sample:!!p.sample,created:+p.created||0};
 }
 function pTotal(p){return p.orig+p.paste+p.karigar+p.pack}
+
+/* ---------- Product catalogue export (Excel + PDF) ---------- */
+function productExportRows(){
+  var all=state.products.map(normP).sort(function(a,b){return (b.created-a.created)||a.name.localeCompare(b.name)});
+  var q=String($('#pq').value||'').trim().toLowerCase();
+  return all.filter(function(p){return !q||[p.name,p.sku,p.batch,p.amz,p.fk,p.meesho,p.myntra].join(' ').toLowerCase().indexOf(q)>-1});
+}
+function productMarketSku(p){
+  var out=[];
+  if(p.amz)out.push('Amazon: '+p.amz);
+  if(p.fk)out.push('Flipkart: '+p.fk);
+  if(p.meesho)out.push('Meesho: '+p.meesho);
+  if(p.myntra)out.push('Myntra: '+p.myntra);
+  return out.join('\n')||'—';
+}
+function productExportLogo(){var el=document.querySelector('img.logo');return el?(el.currentSrc||el.src||''):'';}
+function productExportStatus(message){var el=$('#pExportStatus');if(el)el.textContent=message||'';}
+function productLoadExportScript(src,test){
+  return new Promise(function(resolve,reject){
+    try{if(test())return resolve();}catch(e){}
+    var old=document.querySelector('script[data-product-export-lib="'+src+'"]');
+    if(old){
+      if(old.dataset.loaded==='1'){try{if(test())return resolve();}catch(e){}return reject(new Error('Export library loaded but unavailable'));}
+      old.addEventListener('load',function(){try{test()?resolve():reject(new Error('Export library unavailable'));}catch(e){reject(e)}},{once:true});
+      old.addEventListener('error',function(){reject(new Error('Could not load export library'))},{once:true});
+      return;
+    }
+    var sc=document.createElement('script');sc.src=src;sc.dataset.productExportLib=src;
+    sc.onload=function(){sc.dataset.loaded='1';try{test()?resolve():reject(new Error('Export library unavailable'));}catch(e){reject(e)}};
+    sc.onerror=function(){sc.dataset.loaded='1';reject(new Error('Could not load export library'))};
+    document.head.appendChild(sc);
+  });
+}
+function productImageExtension(data){
+  var m=/^data:image\/(png|jpe?g|gif);base64,/i.exec(String(data||''));
+  if(!m)return '';
+  return m[1].toLowerCase().replace('jpg','jpeg');
+}
+function productExportMoney(n){return (Number(n)||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function productExportExcel(){
+  if(!state.pLoaded){productExportStatus('Products are still loading. Please try again in a moment.');return;}
+  var rows=productExportRows();
+  if(!rows.length){productExportStatus('No products match the current search. Clear the search or add products first.');return;}
+  var button=$('#pExportExcel');if(button)button.disabled=true;
+  productExportStatus('Preparing your formatted Excel product catalogue…');
+  productLoadExportScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',function(){return !!window.ExcelJS}).then(function(){
+    var ExcelJS=window.ExcelJS,wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('Product Cost Master',{properties:{tabColor:{argb:'FF9B4F45'}}});
+    var brand='SHUBH SHRINGAR CREATIONS';
+    wb.creator=brand;wb.subject='Product-wise cost master';wb.title='Shubh Shringar Creations - Product Cost Master';wb.created=new Date();wb.modified=new Date();
+    /* Column A is Serial No. and column B is the product image. Do not prepend a blank value to row.values: ExcelJS arrays map from column A. */
+    ws.columns=[
+      {key:'serial',width:10},{key:'image',width:16},{key:'name',width:30},{key:'sku',width:17},{key:'batch',width:15},
+      {key:'material',width:17},{key:'paste',width:23},{key:'karigar',width:21},{key:'packaging',width:16},
+      {key:'amazonSku',width:19},{key:'flipkartSku',width:19},{key:'meeshoSku',width:19},{key:'myntraSku',width:19},{key:'total',width:21}
+    ];
+    ws.mergeCells('A1:B3');ws.mergeCells('C1:N1');ws.mergeCells('C2:N2');ws.mergeCells('C3:N3');
+    ws.getCell('C1').value=brand;ws.getCell('C2').value='PRODUCT COST MASTER';
+    ws.getCell('C3').value='Generated on '+todayISO()+'  |  '+rows.length+' product'+(rows.length===1?'':'s');
+    ws.getCell('C1').font={name:'Aptos Display',size:20,bold:true,color:{argb:'FF7A3934'}};
+    ws.getCell('C1').alignment={vertical:'middle',horizontal:'left'};
+    ws.getCell('C2').font={name:'Aptos',size:12,bold:true,color:{argb:'FFC9965A'}};
+    ws.getCell('C2').alignment={vertical:'middle',horizontal:'left'};
+    ws.getCell('C3').font={name:'Aptos',size:10,color:{argb:'FF625650'}};
+    ws.getCell('C3').alignment={vertical:'middle',horizontal:'left'};
+    ws.getRow(1).height=34;ws.getRow(2).height=25;ws.getRow(3).height=24;ws.getRow(4).height=10;
+    var logo=productExportLogo(),logoExt=productImageExtension(logo);
+    if(logo&&logoExt){try{var logoId=wb.addImage({base64:logo,extension:logoExt});ws.addImage(logoId,{tl:{col:0.08,row:0.08},ext:{width:112,height:78}});}catch(e){}}
+    var headers=['Serial No.','Image of Product','Product Name','SKU','Batch Id','Material Cost (INR)','Pasting / Decoration Cost (INR)','Making / Karigar Cost (INR)','Packaging (INR)','Amazon SKU','Flipkart SKU','Meesho SKU','Myntra SKU','Total Cost per Piece (INR)'];
+    var headerRow=ws.getRow(5);headerRow.values=headers;headerRow.height=44;
+    headerRow.eachCell(function(cell){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF9B4F45'}};cell.font={name:'Aptos',size:10,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={vertical:'middle',horizontal:'center',wrapText:true};cell.border={top:{style:'thin',color:{argb:'FF9B4F45'}},bottom:{style:'medium',color:{argb:'FFC9965A'}},left:{style:'thin',color:{argb:'FFFFFFFF'}},right:{style:'thin',color:{argb:'FFFFFFFF'}}};});
+    rows.forEach(function(p,i){
+      var rn=i+6,row=ws.getRow(rn);
+      row.values=[i+1,'',p.name||'—',p.sku||'—',p.batch||'—',p.orig,p.paste,p.karigar,p.pack,p.amz||'—',p.fk||'—',p.meesho||'—',p.myntra||'—',null];
+      row.height=62;
+      row.eachCell(function(cell,col){
+        cell.font={name:'Aptos',size:10,color:{argb:'FF292421'}};
+        cell.alignment={vertical:'middle',horizontal:([1,6,7,8,9,14].indexOf(col)>=0?'right':([2].indexOf(col)>=0?'center':'left')),wrapText:true};
+        cell.border={bottom:{style:'thin',color:{argb:'FFE5DCD5'}},left:{style:'thin',color:{argb:'FFF0E8E2'}},right:{style:'thin',color:{argb:'FFF0E8E2'}}};
+        if(i%2===1)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFAF6'}};
+      });
+      row.getCell(1).alignment={vertical:'middle',horizontal:'center'};
+      row.getCell(2).alignment={vertical:'middle',horizontal:'center'};
+      row.getCell(3).font={name:'Aptos',size:10,bold:true,color:{argb:'FF7A3934'}};
+      [6,7,8,9,14].forEach(function(col){row.getCell(col).numFmt='₹#,##0.00;[Red]-₹#,##0.00';row.getCell(col).alignment={vertical:'middle',horizontal:'right'};});
+      [10,11,12,13].forEach(function(col){row.getCell(col).alignment={vertical:'middle',horizontal:'left',wrapText:true};});
+      row.getCell(14).value={formula:'F'+rn+'+G'+rn+'+H'+rn+'+I'+rn,result:pTotal(p)};
+      row.getCell(14).font={name:'Aptos',size:10,bold:true,color:{argb:'FF7A3934'}};
+      row.getCell(14).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF0E0'}};
+      var im=p.image,ext=productImageExtension(im);
+      /* ExcelJS image anchors are zero-based: col 1 is B, the Image of Product column. */
+      if(im&&ext){try{var imageId=wb.addImage({base64:im,extension:ext});ws.addImage(imageId,{tl:{col:1.08,row:rn-1+0.05},br:{col:1.92,row:rn-1+0.95}});}catch(e){}}
+    });
+    ws.autoFilter={from:{row:5,column:1},to:{row:Math.max(5,rows.length+5),column:14}};
+    ws.views=[{state:'frozen',xSplit:0,ySplit:5,showGridLines:false}];
+    var noteRow=rows.length+7;ws.mergeCells('A'+noteRow+':N'+noteRow);
+    ws.getCell('A'+noteRow).value='Note: Total Cost per Piece = Material Cost + Pasting / Decoration Cost + Making / Karigar Cost + Packaging. All costs are per piece and in INR.';
+    ws.getCell('A'+noteRow).font={name:'Aptos',size:9,italic:true,color:{argb:'FF625650'}};
+    ws.getCell('A'+noteRow).alignment={vertical:'middle',horizontal:'left',wrapText:true};ws.getRow(noteRow).height=24;
+    return wb.xlsx.writeBuffer().then(function(buffer){return saveFile('Shubh_Shringar_Product_Cost_Master_'+todayISO()+'.xlsx',new Uint8Array(buffer),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')});
+  }).then(function(){productExportStatus('Excel downloaded successfully with separate marketplace SKU columns, product photos, logo and the per-piece total formula.');toast('Product Excel downloaded');})
+    .catch(function(){productExportStatus('Excel export failed. Check your internet connection and try again.');toast('Could not export Product Excel');})
+    .then(function(){if(button)button.disabled=false;});
+}
+function productExportPdf(){
+  if(!state.pLoaded){productExportStatus('Products are still loading. Please try again in a moment.');return;}
+  var rows=productExportRows();
+  if(!rows.length){productExportStatus('No products match the current search. Clear the search or add products first.');return;}
+  var button=$('#pExportPdf');if(button)button.disabled=true;
+  productExportStatus('Preparing your branded PDF catalogue…');
+  productLoadExportScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',function(){return !!(window.jspdf&&window.jspdf.jsPDF)}).then(function(){
+    return productLoadExportScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',function(){return !!(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API.autoTable)});
+  }).then(function(){
+    var J=window.jspdf.jsPDF,doc=new J({orientation:'landscape',unit:'pt',format:'a3',compress:true});
+    var logo=productExportLogo(),pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight();
+    var cols=[
+      {header:'Serial No.',dataKey:'serial'},{header:'Image of Product',dataKey:'image'},{header:'Product Name',dataKey:'name'},
+      {header:'SKU',dataKey:'sku'},{header:'Batch Id',dataKey:'batch'},{header:'Material Cost (INR)',dataKey:'material'},
+      {header:'Pasting / Decoration Cost (INR)',dataKey:'paste'},{header:'Making / Karigar Cost (INR)',dataKey:'karigar'},
+      {header:'Packaging (INR)',dataKey:'packaging'},{header:'Amazon SKU',dataKey:'amazonSku'},
+      {header:'Flipkart SKU',dataKey:'flipkartSku'},{header:'Meesho SKU',dataKey:'meeshoSku'},
+      {header:'Myntra SKU',dataKey:'myntraSku'},{header:'Total Cost per Piece (INR)',dataKey:'total'}
+    ];
+    var body=rows.map(function(p,i){return {serial:i+1,image:'',name:p.name||'—',sku:p.sku||'—',batch:p.batch||'—',material:productExportMoney(p.orig),paste:productExportMoney(p.paste),karigar:productExportMoney(p.karigar),packaging:productExportMoney(p.pack),amazonSku:p.amz||'—',flipkartSku:p.fk||'—',meeshoSku:p.meesho||'—',myntraSku:p.myntra||'—',total:productExportMoney(pTotal(p)),productImage:p.image||''};});
+    doc.autoTable({columns:cols,body:body,startY:94,margin:{top:92,bottom:28,left:24,right:24},tableWidth:'auto',
+      styles:{font:'helvetica',fontSize:7.1,cellPadding:4,overflow:'linebreak',valign:'middle',textColor:[43,38,35],lineColor:[229,220,213],lineWidth:0.5,minCellHeight:54},
+      headStyles:{fillColor:[155,79,69],textColor:[255,255,255],fontStyle:'bold',fontSize:7,halign:'center',valign:'middle',minCellHeight:36},
+      alternateRowStyles:{fillColor:[255,250,246]},
+      columnStyles:{serial:{cellWidth:43,halign:'center'},image:{cellWidth:62,halign:'center'},name:{cellWidth:130},sku:{cellWidth:63},batch:{cellWidth:55},material:{cellWidth:67,halign:'right'},paste:{cellWidth:82,halign:'right'},karigar:{cellWidth:79,halign:'right'},packaging:{cellWidth:59,halign:'right'},amazonSku:{cellWidth:70},flipkartSku:{cellWidth:70},meeshoSku:{cellWidth:70},myntraSku:{cellWidth:70},total:{cellWidth:83,halign:'right',fontStyle:'bold'}},
+      willDrawPage:function(){
+        doc.setFillColor(250,246,241);doc.rect(0,0,pageW,82,'F');
+        if(logo&&/^data:image\/(png|jpe?g);base64,/i.test(logo)){try{var m=/^data:image\/(png|jpe?g)/i.exec(logo);doc.addImage(logo,m[1].toLowerCase().indexOf('png')>=0?'PNG':'JPEG',24,10,72,54);}catch(e){}}
+        doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(122,57,52);doc.text('SHUBH SHRINGAR CREATIONS',110,29);
+        doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(201,150,90);doc.text('PRODUCT COST MASTER',110,47);
+        doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(90,80,74);doc.text('Generated: '+todayISO()+'  |  Products: '+rows.length+'  |  Costs shown per piece in INR',110,64);
+        doc.setDrawColor(201,150,90);doc.setLineWidth(1);doc.line(24,81,pageW-24,81);
+      },
+      didDrawCell:function(data){
+        if(data.section!=='body'||data.column.dataKey!=='image')return;
+        var raw=data.row.raw||{},im=raw.productImage;
+        if(!im||!/^data:image\/(png|jpe?g);base64,/i.test(im))return;
+        try{var mm=/^data:image\/(png|jpe?g)/i.exec(im),fmt=mm[1].toLowerCase().indexOf('png')>=0?'PNG':'JPEG',sz=Math.min(48,data.cell.width-8,data.cell.height-8);doc.addImage(im,fmt,data.cell.x+(data.cell.width-sz)/2,data.cell.y+(data.cell.height-sz)/2,sz,sz);}catch(e){}
+      }
+    });
+    var pages=doc.internal.getNumberOfPages();
+    for(var pg=1;pg<=pages;pg++){doc.setPage(pg);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,92,88);doc.text('Page '+pg+' of '+pages,pageW-24,pageH-12,{align:'right'});}
+    return saveFile('Shubh_Shringar_Product_Cost_Master_'+todayISO()+'.pdf',new Uint8Array(doc.output('arraybuffer')),'application/pdf');
+  }).then(function(){productExportStatus('PDF downloaded successfully with separate marketplace SKU columns, dashboard logo, product photos and aligned costs.');toast('Product PDF downloaded');})
+    .catch(function(){productExportStatus('PDF export failed. Check your internet connection and try again.');toast('Could not export Product PDF');})
+    .then(function(){if(button)button.disabled=false;});
+}
 var PH_SVG=(function(){
   var e='';for(var i=0;i<8;i++)e+='<ellipse cx="24" cy="11" rx="4.4" ry="9" transform="rotate('+(i*45)+' 24 24)"/>';
   return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">'+e+'<circle cx="24" cy="24" r="3.2" fill="currentColor"/></svg>';
@@ -3263,7 +3487,9 @@ function bindProducts(){
     var order=['orders','products','sales'],i=order.indexOf(state.tab);
     var t=order[(i+(e.key==='ArrowRight'?1:2))%3];setTab(t);$('#tab-'+t).focus();
   });
-  $('#pq').addEventListener('input',function(e){state.pq=e.target.value;renderProducts()});
+  $('#pq').addEventListener('input',function(e){state.pq=e.target.value;productExportStatus('');renderProducts()});
+  $('#pExportExcel').addEventListener('click',productExportExcel);
+  $('#pExportPdf').addEventListener('click',productExportPdf);
   $('#pGrid').addEventListener('click',function(e){
     var ed=e.target.closest('[data-pedit]');if(ed){openProduct(ed.dataset.pedit);return}
     if(e.target.closest('[data-pact="add"]')){openProduct(null);return}

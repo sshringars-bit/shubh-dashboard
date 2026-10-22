@@ -762,186 +762,7 @@ label.btn.disabled{opacity:.55;pointer-events:none}
 .t10-img{width:60px;height:60px;object-fit:cover;border-radius:12px;border:1px solid var(--stroke-2);background:var(--field);display:block}
 .t10-noimg{width:60px;height:60px;border-radius:12px;border:1px dashed var(--stroke-2);display:grid;place-items:center;font-size:.62rem;color:var(--ink-3);text-align:center;line-height:1.2}
 .t10-none{padding:26px 8px;text-align:center;color:var(--ink-3)}
-</style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Shubh Dashboard"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png"><script>if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>
-/* ===== Online storage (Firebase) + Google sign-in ===== */
-(function(){
-  var CFG={apiKey:"AIzaSyClf5toDpZ3FYSjLfmmbS2ZHsAbV876yKA",authDomain:"shubh-dashboard.firebaseapp.com",projectId:"shubh-dashboard",storageBucket:"shubh-dashboard.firebasestorage.app",messagingSenderId:"462690574558",appId:"1:462690574558:web:d976c03cf9151ae94ee24f"};
-  /* Only these Google accounts may open the dashboard (also enforced by Firestore rules) */
-  var ALLOWED=["sshringars@gmail.com"];
-  var gate=null,msg=null,btn=null,out=null;
-  function mkGate(){
-    if(gate||!document.body)return;
-    gate=document.createElement('div');
-    gate.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1ec;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;padding:16px';
-    gate.innerHTML='<div style="max-width:340px;width:100%;background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.12);text-align:center"><h2 style="margin:0 0 8px;font-size:1.25rem">Shubh Shringar Dashboard</h2><p id="gmsg" style="margin:0 0 18px;color:#555;font-size:.92rem">Loading…</p><button id="gbtn" type="button" style="display:none;width:100%;padding:12px;border:0;border-radius:10px;background:#1a73e8;color:#fff;font-size:1rem;cursor:pointer">Sign in with Google</button><button id="gout" type="button" style="display:none;margin-top:10px;width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;background:#fff;font-size:.95rem;cursor:pointer">Use a different account</button></div>';
-    document.body.appendChild(gate);
-    msg=gate.querySelector('#gmsg');btn=gate.querySelector('#gbtn');out=gate.querySelector('#gout');
-  }
-  function show(text,signin,signout){
-    function go(){mkGate();if(!gate){return}gate.style.display='flex';msg.textContent=text;btn.style.display=signin?'block':'none';out.style.display=signout?'block':'none'}
-    if(document.body)go();else document.addEventListener('DOMContentLoaded',go);
-  }
-  function hide(){function go(){if(gate)gate.style.display='none'}if(document.body)go();else document.addEventListener('DOMContentLoaded',go)}
-  var resolveReady,ready=new Promise(function(r){resolveReady=r});
-  var fs=null,auth=null,authUser=null;
-  if(typeof firebase==='undefined'){
-    show('Could not load the online service. Check your internet connection and reload.',false,false);
-    window.claude={use:function(){return Promise.resolve(null)}};
-    return;
-  }
-  firebase.initializeApp(CFG);
-  auth=firebase.auth();fs=firebase.firestore();
-  try{fs.settings({ignoreUndefinedProperties:true,merge:true})}catch(e){}
-  /* keep a copy of your data on this device so the page opens fast and shows data instantly, then refreshes from online */
-  try{if(fs.enablePersistence)fs.enablePersistence({synchronizeTabs:true}).catch(function(){})}catch(e){}
-  auth.onAuthStateChanged(function(u){
-    if(u&&ALLOWED.indexOf((u.email||'').toLowerCase())>-1){authUser=u;hide();resolveReady(u)}
-    else if(u){show((u.email||'This account')+' is not allowed to open this dashboard.',false,true)}
-    else{show('Sign in to open your dashboard.',true,false)}
-  });
-  function wire(){
-    mkGate();if(!gate)return;
-    btn.onclick=function(){
-      msg.textContent='Opening Google sign-in…';
-      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){
-        msg.textContent='Sign-in failed: '+(e&&e.code?e.code:'error')+'. Allow pop-ups for this page and try again.';
-      });
-    };
-    out.onclick=function(){auth.signOut()};
-  }
-  if(document.body)wire();else document.addEventListener('DOMContentLoaded',wire);
-  var userApi={can:function(){return true},isOwner:function(){return true},canEdit:function(){return true},id:function(){return Promise.resolve(authUser&&authUser.uid)}};
-  var dlApi={save:function(o){
-    return new Promise(function(res,rej){try{
-      var d=o.data,blob=(d instanceof Blob)?d:new Blob([d]);
-      var url=URL.createObjectURL(blob),a=document.createElement('a');
-      a.href=url;a.download=o.filename||'download';document.body.appendChild(a);a.click();
-      setTimeout(function(){URL.revokeObjectURL(url);a.remove();res()},1500);
-    }catch(e){rej(e)}});
-  }};
-  window.__fb={fs:fs,ready:ready};
-  window.claude={use:function(name){
-    if(name==='db')return ready.then(function(){return fs});
-    if(name==='user')return ready.then(function(){return userApi});
-    if(name==='downloads')return Promise.resolve(dlApi);
-    return Promise.resolve(null);
-  }};
-})();
-</script>
-<script>
-/* ===== Mirror of browser-stored tabs (Returns, Purchases, Staff, Payments, Expenses, Amazon, users...) to the online database ===== */
-(function(){
-  if(!window.__fb)return;
-  var fs=window.__fb.fs,LS;try{LS=window.localStorage;LS.getItem('x')}catch(e){return}
-  var EXC=/^ssc-(theme|zoom|tab|tab-order|fx|fx-speed|session-v1|last-user|orders-v1|products-v1|sales-v1|customers-v1)$/;
-  function ELIG(k){return /^(ssc-|shubhAmazon)/.test(k)&&!EXC.test(k)}
-  var IDBMAP={'ssc-returns-v1':'ssc-returns','ssc-purchases-v1':'ssc-purchases','ssc-users-v1':'ssc-users'};
-  var IDBDBS={'ssc-returns':1,'ssc-purchases':1,'ssc-users':1};
-  var SYNC='__fbsync',CH=300000,applying=false,hydrated=false,pend={},timer=null,cloudN={},remote={};
-  function h(s){var x=5381;for(var i=0;i<s.length;i++)x=((x<<5)+x+s.charCodeAt(i))|0;return x+':'+s.length}
-  function isEmpty(s){return s==null||/^\s*(\[\]|\{\}|null|"")?\s*$/.test(s)}
-  var origSet=Storage.prototype.setItem;
-  function rs(){try{return JSON.parse(LS.getItem(SYNC)||'{}')}catch(e){return {}}}
-  var sync=rs();
-  function ws(){try{origSet.call(LS,SYNC,JSON.stringify(sync))}catch(e){}}
-  function lsw(k,v){applying=true;try{origSet.call(LS,k,v)}catch(e){}applying=false}
-  function idbPut(k,v){
-    return new Promise(function(res){
-      try{
-        var r=indexedDB.open(IDBMAP[k],1);
-        r.onupgradeneeded=function(){r.result.createObjectStore('kv')};
-        r.onsuccess=function(){try{applying=true;var tx=r.result.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);applying=false;tx.oncomplete=function(){res()};tx.onerror=tx.onabort=function(){res()}}catch(e){applying=false;res()}};
-        r.onerror=function(){res()};
-      }catch(e){res()}
-    });
-  }
-  function writeLocal(k,v){lsw(k,v);return IDBMAP[k]?idbPut(k,v):Promise.resolve()}
-  function push(k,v){
-    sync[k]=h(v);ws();
-    var n=Math.max(1,Math.ceil(v.length/CH)),b=fs.batch(),t=Date.now();
-    for(var i=0;i<n;i++)b.set(fs.collection('kv').doc(k+'__'+i),{k:k,i:i,n:n,s:v.slice(i*CH,(i+1)*CH),t:t});
-    for(var j=n;j<(cloudN[k]||0);j++)b.delete(fs.collection('kv').doc(k+'__'+j));
-    return b.commit().then(function(){cloudN[k]=n;return true},function(){delete sync[k];ws();return false});
-  }
-  function flush(){
-    timer=null;var keys=Object.keys(pend),ps=[];
-    keys.forEach(function(k){var v=pend[k];delete pend[k];if(sync[k]===h(v))return;ps.push(push(k,v).then(function(ok){if(!ok){pend[k]=v;if(!timer)timer=setTimeout(flush,15000)}})) });
-    return Promise.all(ps);
-  }
-  window.__fbFlushAll=function(){if(timer){clearTimeout(timer)}return flush()};
-  function note(k,v){if(!hydrated)return;pend[k]=v;if(timer)clearTimeout(timer);timer=setTimeout(flush,1500)}
-  Storage.prototype.setItem=function(k,v){origSet.apply(this,arguments);try{if(this===LS&&!applying&&ELIG(k))note(k,String(v))}catch(e){}};
-  var op=IDBObjectStore.prototype.put;
-  IDBObjectStore.prototype.put=function(v,k){try{if(!applying&&typeof v==='string'&&typeof k==='string'&&IDBDBS[this.transaction.db.name]&&IDBMAP[k])note(k,v)}catch(e){}return op.apply(this,arguments)};
-  window.addEventListener('pagehide',function(){if(timer){clearTimeout(timer);flush()}});
-  function assemble(snap){
-    var g={},out={};
-    snap.docs.forEach(function(d){var x=d.data();if(!x||typeof x.k!=='string'||!Number.isInteger(x.i))return;var o=g[x.k]||(g[x.k]={n:x.n,p:[]});o.n=x.n;o.p[x.i]=x.s});
-    Object.keys(g).forEach(function(k){var o=g[k],s='',ok=true;for(var i=0;i<o.n;i++){if(typeof o.p[i]!=='string'){ok=false;break}s+=o.p[i]}if(ok){out[k]=s;cloudN[k]=o.n}});
-    return out;
-  }
-  function banner(){
-    if(document.getElementById('fbNew')||!document.body)return;
-    var d=document.createElement('div');d.id='fbNew';
-    d.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:99998;background:#1a73e8;color:#fff;border-radius:12px;padding:12px 14px;font:600 .9rem system-ui,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 6px 20px rgba(0,0,0,.25)';
-    d.innerHTML='<span>Newer data was saved from another device.</span><button type="button" style="border:0;border-radius:8px;padding:8px 14px;background:#fff;color:#1a73e8;font-weight:700;cursor:pointer">Refresh</button>';
-    d.querySelector('button').onclick=function(){
-      var ps=[];Object.keys(remote).forEach(function(k){if(pend[k]!==undefined)return;sync[k]=h(remote[k]);ps.push(writeLocal(k,remote[k]))});ws();
-      Promise.all(ps).then(function(){location.reload()});
-    };
-    document.body.appendChild(d);
-  }
-  function hydrate(){
-    return fs.collection('kv').get().then(function(snap){
-      var cloud=assemble(snap),keys={},apply={},pushes=[],conflicts=[];
-      Object.keys(cloud).forEach(function(k){if(ELIG(k))keys[k]=1});
-      try{for(var i=0;i<LS.length;i++){var k=LS.key(i);if(k&&ELIG(k))keys[k]=1}}catch(e){}
-      Object.keys(keys).forEach(function(k){
-        var L=null;try{L=LS.getItem(k)}catch(e){}
-        var C=cloud[k],emptyL=isEmpty(L),emptyC=isEmpty(C),rec=sync[k];
-        if(!emptyC){
-          if(L===C)sync[k]=h(C);
-          else if(emptyL)apply[k]=C;
-          else if(rec&&rec===h(L))apply[k]=C;
-          else if(rec&&rec===h(C))pushes.push(k);
-          else conflicts.push(k);
-        }else if(!emptyL)pushes.push(k);
-      });
-      if(conflicts.length){
-        var useCloud=confirm('Some saved data on this browser is different from the online copy.\n\nOK = use the ONLINE copy (recommended if you already use the dashboard on another device).\nCancel = replace the online copy with the data on THIS browser.');
-        conflicts.forEach(function(k){if(useCloud)apply[k]=cloud[k];else pushes.push(k)});
-      }
-      hydrated=true;
-      var ks=Object.keys(apply),ps=[];
-      ks.forEach(function(k){sync[k]=h(apply[k]);ps.push(writeLocal(k,apply[k]))});
-      ws();
-      pushes.forEach(function(k){var L=LS.getItem(k);if(!isEmpty(L))ps.push(push(k,L))});
-      return Promise.all(ps).then(function(){
-        if(ks.length){
-          var last=+sessionStorage.getItem('__fbrl')||0;
-          if(Date.now()-last>30000){try{sessionStorage.setItem('__fbrl',String(Date.now()))}catch(e){}location.reload();return}
-        }
-        fs.collection('kv').onSnapshot(function(sn){
-          if(sn.metadata.hasPendingWrites)return;
-          var c=assemble(sn),any=false;
-          Object.keys(c).forEach(function(k){
-            if(!ELIG(k)||sync[k]===h(c[k]))return;
-            var L=null;try{L=LS.getItem(k)}catch(e){}
-            if(L===c[k]){sync[k]=h(c[k]);return}
-            remote[k]=c[k];any=true;
-          });
-          if(any){if(document.body)banner();else document.addEventListener('DOMContentLoaded',banner)}
-        },function(){});
-      });
-    });
-  }
-  window.__fb.ready.then(function(){hydrate().catch(function(){hydrated=true})});
-})();
-</script>
-</head><body>
+</style></head><body>
 <div id="sscLock" role="dialog" aria-modal="true" aria-label="Sign in"><div class="ssc-card" id="sscCard"></div></div>
 <div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><div class="ssc-bar"><i></i></div></div></div>
 
@@ -1468,8 +1289,8 @@ label.btn.disabled{opacity:.55;pointer-events:none}
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script async src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 (function(){
 'use strict';
@@ -1920,7 +1741,7 @@ function idbDump(name){return new Promise(function(res){
 })}
 function rawDump(){
   var ls={};
-  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('__fb')===0)continue;ls[k]=localStorage.getItem(k)}}catch(e){}
+  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);ls[k]=localStorage.getItem(k)}}catch(e){}
   var idbOut={};
   return Promise.all(RAW_DBS.map(function(n){return idbDump(n).then(function(o){if(o)idbOut[n]=o})})).then(function(){return {ls:ls,idb:idbOut}});
 }
@@ -2044,7 +1865,7 @@ function bindData(){
       var fd=state.imp;state.imp=null;$('#impPanel').innerHTML='';dStatus('Restoring everything…');
       (db?applyImport(fd,'replace'):Promise.resolve()).then(function(){return rawRestore(fd.raw)}).then(function(failed){
         dStatus('Restore finished'+(failed?' ('+failed+' item(s) could not be saved by this browser)':'')+'. Reloading…');toast('Restore finished');
-        (window.__fbFlushAll?window.__fbFlushAll():Promise.resolve()).then(function(){setTimeout(function(){location.reload()},800)});
+        setTimeout(function(){location.reload()},1400);
       }).catch(function(err){dStatus('Restore stopped. '+(err&&err.code?saveErr(err):'Some data may not have been restored.'))});
       return;
     }
@@ -4454,28 +4275,27 @@ function init(){
   var cab=$('#clearAllBtn');if(cab)cab.addEventListener('click',clearAllData);
 }
 /* Tracker storage: same local copy (IndexedDB + localStorage) as the rest of the dashboard, or the shared db when published */
-var MF_CHUNK=150000,mfPrevN={};
+var MF_CHUNK=150000,mfPrevN=0;
 function mfLoadHook(){if(window.mfLoad)window.mfLoad();else window.__mfWantLoad=true}
 window.sscStore={
   put:function(key,val){
     if(!db)return kvPut(key,val);
     if(!state.canWrite)return Promise.resolve(false);
-    var pf=key+'__',str=JSON.stringify(val),n=Math.max(1,Math.ceil(str.length/MF_CHUNK)),ch=Promise.resolve(),prev=mfPrevN[key]||0;
-    for(var i=0;i<n;i++){(function(i){ch=ch.then(function(){return db.collection('mftracker').doc(pf+'c'+i).set({k:key,i:i,s:str.slice(i*MF_CHUNK,(i+1)*MF_CHUNK)})})})(i)}
-    ch=ch.then(function(){return db.collection('mftracker').doc(pf+'meta').set({k:key,n:n})});
-    for(var j=n;j<prev;j++){(function(j){ch=ch.then(function(){return db.doc('mftracker/'+pf+'c'+j).delete()})})(j)}
-    return ch.then(function(){mfPrevN[key]=n;return true},function(){return false});
+    var str=JSON.stringify(val),n=Math.max(1,Math.ceil(str.length/MF_CHUNK)),ch=Promise.resolve();
+    for(var i=0;i<n;i++){(function(i){ch=ch.then(function(){return db.collection('mftracker').doc('c'+i).set({i:i,s:str.slice(i*MF_CHUNK,(i+1)*MF_CHUNK)})})})(i)}
+    ch=ch.then(function(){return db.collection('mftracker').doc('meta').set({n:n})});
+    for(var j=n;j<mfPrevN;j++){(function(j){ch=ch.then(function(){return db.doc('mftracker/c'+j).delete()})})(j)}
+    return ch.then(function(){mfPrevN=n;return true},function(){return false});
   },
   get:function(key){
     if(!db)return kvGet(key);
-    var pf=key+'__';
     return new Promise(function(res){
       var done=false;
       db.collection('mftracker').onSnapshot(function(snap){
         if(done)return;done=true;
         var parts=[],meta=0;
-        snap.docs.forEach(function(d){if(d.id.indexOf(pf)!==0)return;var x=d.data()||{};if(d.id===pf+'meta')meta=+x.n||0;else if(typeof x.s==='string'&&Number.isInteger(x.i))parts[x.i]=x.s});
-        mfPrevN[key]=meta;
+        snap.docs.forEach(function(d){var x=d.data()||{};if(d.id==='meta')meta=+x.n||0;else if(typeof x.s==='string'&&Number.isInteger(x.i))parts[x.i]=x.s});
+        mfPrevN=meta;
         var str=(meta?parts.slice(0,meta):parts).join('');
         try{res(str?JSON.parse(str):null)}catch(e){res(null)}
       },function(){if(!done){done=true;res(null)}});
@@ -4621,7 +4441,7 @@ init();
   if(!shown.length)$('mfTable').innerHTML=cg()+head+'<tbody><tr><td colspan="'+(columns.length+1)+'" class="mf-empty">'+(rows.length?'No matching order rows.':'No orders yet. Click Import Order Excel/CSV to add your sheet.')+'</td></tr></tbody>';
  }
  window.mfRefresh=render;window.sscTrk=window.sscTrk||{};window.sscTrk.Meesho=function(){const look=(window.sscProductCostLookup?window.sscProductCostLookup():()=>null);return rows.map(r=>{const p=ymOf(r.date),t=String(r.status||''),e=payEntries(r)[1],v=e?e.a:null;return {mp:'Meesho',date:String(r.date||''),sttext:t,sku:String(r.sku||'').trim(),qty:(parseFloat(r.qty)>0?parseFloat(r.qty):1),state:String(r.state||''),id:String(r.orderId||'').trim(),ym:p?p.y+'-'+String(p.m).padStart(2,'0'):'',st:/cancel/i.test(t)?'cancel':/rto/i.test(t)?'rto':/return|retrun/i.test(t)?'return':'ok',other:false,cost:costOf(r,look).final||0,recv:v!=null?v:0,settled:v!=null}})};
- async function importFile(file){if(!file) return;let parsed;if(/\.csv$/i.test(file.name)){parsed=parseCSV(await file.text())}else{if(!window.XLSX)throw Error('Excel reader library could not load. Please connect to the internet and reopen this dashboard, or upload CSV.');const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:false});parsed=XLSX.utils.sheet_to_json(wb,{defval:'',raw:false})}if(!parsed.length)throw Error('No data rows found.');const mapped=parsed.map(mapRow).filter(r=>Object.values(r).some(v=>String(v).trim()));if(!mapped.length)throw Error('No order rows found. Check the file headers.');/* add only new orders: skip anything already saved (same Order ID + SKU). Repeated lines of one order inside a single file are still kept, up to the number already saved. */
+ async function importFile(file){if(!file) return;let parsed;if(/\.csv$/i.test(file.name)){parsed=parseCSV(await file.text())}else{const sheets=await readSheets(file);const aoa=sheets.find(a=>Array.isArray(a)&&a.length)||[];if(!aoa.length)throw Error('No data rows found in the Excel workbook.');const headers=(aoa[0]||[]).map((h,i)=>String(h==null||h===''?'Column '+(i+1):h).trim());parsed=aoa.slice(1).filter(row=>row&&row.some(v=>String(v??'').trim())).map(row=>{const obj={};headers.forEach((h,i)=>{obj[h]=row[i]??''});return obj})}if(!parsed.length)throw Error('No data rows found.');const mapped=parsed.map(mapRow).filter(r=>Object.values(r).some(v=>String(v).trim()));if(!mapped.length)throw Error('No order rows found. Check the file headers.');/* add only new orders: skip anything already saved (same Order ID + SKU). Repeated lines of one order inside a single file are still kept, up to the number already saved. */
 const mk=r=>[r.orderId,r.sku].join('|'),have=new Map();rows.forEach(x=>{const k=mk(x);have.set(k,(have.get(k)||0)+1)});const seen=new Map();let added=0,dup=0;
 mapped.forEach(r=>{const k=mk(r),n=(seen.get(k)||0)+1;seen.set(k,n);if(n<=(have.get(k)||0)){dup++}else{rows.push(r);added++}});
 mfFile=file.name;mfSave();$('mfInfo').textContent=`Imported "${file.name}": ${mapped.length} rows read, ${added} added`+(dup?`, ${dup} skipped as duplicates`:'')+'.';render()}

@@ -762,6 +762,23 @@ label.btn.disabled{opacity:.55;pointer-events:none}
 .t10-img{width:60px;height:60px;object-fit:cover;border-radius:12px;border:1px solid var(--stroke-2);background:var(--field);display:block}
 .t10-noimg{width:60px;height:60px;border-radius:12px;border:1px dashed var(--stroke-2);display:grid;place-items:center;font-size:.62rem;color:var(--ink-3);text-align:center;line-height:1.2}
 .t10-none{padding:26px 8px;text-align:center;color:var(--ink-3)}
+</style><style id="mobileFix">/* ===== phone layout: fit the screen width, no sideways zoom ===== */
+html,body{max-width:100%;overflow-x:hidden}
+@media (max-width:760px){
+  main.page{grid-template-columns:minmax(0,1fr)}
+  main.page>*{min-width:0;max-width:100%}
+  .tabs{display:flex;flex-wrap:wrap;justify-content:center;width:100%;border-radius:22px;gap:4px}
+  .tabs button{flex:1 1 auto;padding:9px 12px;white-space:nowrap}
+  .top .brand{flex:1 1 100%}
+  img,video,canvas{max-width:100%}
+}
+@media (max-width:760px){
+  .tracker-subtabs{flex-wrap:wrap!important;width:100%}
+  .tracker-subtabs>*{flex:1 1 auto;min-width:0}
+  .brand-addr .ba-cols{grid-template-columns:minmax(0,1fr)!important}
+  .brand-addr .ba-line,.brand-addr .ba-line span{white-space:normal!important;min-width:0;overflow-wrap:anywhere}
+  .brand-addr .ba-head{flex-wrap:wrap}
+}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Shubh Dashboard"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png"><script>if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script><script>(function(){var U=["https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js","https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js","https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"],pr=null;
 function one(i,ok){if(window.XLSX)return ok();if(i>=U.length)return ok();var s=document.createElement("script");s.src=U[i];s.onload=function(){ok()};s.onerror=function(){one(i+1,ok)};document.head.appendChild(s)}
 window.__loadXlsx=function(){if(window.XLSX)return Promise.resolve();return pr||(pr=new Promise(function(r){one(0,r)}))};
@@ -774,7 +791,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
   var CFG={apiKey:"AIzaSyClf5toDpZ3FYSjLfmmbS2ZHsAbV876yKA",authDomain:"shubh-dashboard.firebaseapp.com",projectId:"shubh-dashboard",storageBucket:"shubh-dashboard.firebasestorage.app",messagingSenderId:"462690574558",appId:"1:462690574558:web:d976c03cf9151ae94ee24f"};
   /* Only these Google accounts may open the dashboard (also enforced by Firestore rules) */
   var ALLOWED=["sshringars@gmail.com"];
-  var gate=null,msg=null,btn=null,out=null;
+  var gate=null,msg=null,btn=null,out=null,okShown=false;
   function mkGate(){
     if(gate||!document.body)return;
     gate=document.createElement('div');
@@ -782,6 +799,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
     gate.innerHTML='<div style="max-width:340px;width:100%;background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.12);text-align:center"><h2 style="margin:0 0 8px;font-size:1.25rem">Shubh Shringar Dashboard</h2><p id="gmsg" style="margin:0 0 18px;color:#555;font-size:.92rem">Loading…</p><button id="gbtn" type="button" style="display:none;width:100%;padding:12px;border:0;border-radius:10px;background:#1a73e8;color:#fff;font-size:1rem;cursor:pointer">Sign in with Google</button><button id="gout" type="button" style="display:none;margin-top:10px;width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;background:#fff;font-size:.95rem;cursor:pointer">Use a different account</button></div>';
     document.body.appendChild(gate);
     msg=gate.querySelector('#gmsg');btn=gate.querySelector('#gbtn');out=gate.querySelector('#gout');
+    if(okShown)gate.style.display='none';
   }
   function show(text,signin,signout){
     function go(){mkGate();if(!gate){return}gate.style.display='flex';msg.textContent=text;btn.style.display=signin?'block':'none';out.style.display=signout?'block':'none'}
@@ -801,7 +819,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
   /* keep a copy of your data on this device so the page opens fast and shows data instantly, then refreshes from online */
   try{if(fs.enablePersistence)fs.enablePersistence({synchronizeTabs:true}).catch(function(){})}catch(e){}
   auth.onAuthStateChanged(function(u){
-    if(u&&ALLOWED.indexOf((u.email||'').toLowerCase())>-1){authUser=u;hide();resolveReady(u)}
+    if(u&&ALLOWED.indexOf((u.email||'').toLowerCase())>-1){authUser=u;okShown=true;hide();resolveReady(u)}
     else if(u){show((u.email||'This account')+' is not allowed to open this dashboard.',false,true)}
     else{show('Sign in to open your dashboard.',true,false)}
   });

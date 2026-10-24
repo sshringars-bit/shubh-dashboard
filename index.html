@@ -1012,14 +1012,14 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
     function step(){
       if(i>=pending.length){finish();return}
       var q=pending[i];
-      ov.innerHTML='<div class="gst-card"><div class="gst-facets"></div>'+sparks()+'<div class="gst-gem">'+GEM+'</div><span class="gst-tag">GST reminder · '+mo+'</span><h2 id="gstTitle">Have you filed '+q.name+'?</h2><p>It’s the 10th of the month. Please confirm your '+q.name+' filing for this month.</p><div class="gst-btns"><button type="button" class="gst-btn gst-yes" data-a="yes">Yes</button><button type="button" class="gst-btn gst-no" data-a="no">No</button></div><div class="gst-step">Reminder '+(i+1)+' of '+pending.length+'<span class="gst-dots">'+pending.map(function(_,n){return '<i class="'+(n<=i?'on':'')+'"></i>'}).join('')+'</span></div><div id="gstMsg"></div></div>';
+      ov.innerHTML='<div class="gst-card"><div class="gst-facets"></div>'+sparks()+'<div class="gst-gem">'+GEM+'</div><span class="gst-tag">GST reminder · '+mo+'</span><h2 id="gstTitle">Have you filed '+q.name+'?</h2><p>'+(new Date().getDate()===DAY?'It’s the 10th of the month. ':'The 10th has passed. ')+'Please confirm your '+q.name+' filing for '+MN[+ym.slice(5)-1]+'.</p><div class="gst-btns"><button type="button" class="gst-btn gst-yes" data-a="yes">Yes</button><button type="button" class="gst-btn gst-no" data-a="no">No</button></div><div class="gst-step">Reminder '+(i+1)+' of '+pending.length+'<span class="gst-dots">'+pending.map(function(_,n){return '<i class="'+(n<=i?'on':'')+'"></i>'}).join('')+'</span></div><div id="gstMsg"></div></div>';
       var btns=ov.querySelectorAll('.gst-btn');btns[0].focus();
       btns.forEach(function(b){b.addEventListener('click',function(){
         var yes=b.getAttribute('data-a')==='yes';
         if(yes){state[q.k]='yes';var all=load();all[ym]=state;save(all)}
         btns.forEach(function(x){x.disabled=true});
         var m=ov.querySelector('#gstMsg');
-        m.innerHTML='<div class="gst-note'+(yes?' ok':'')+'" role="status">'+(yes?'Noted — '+q.name+' is marked as filed for '+mo+'.':'Please file '+q.name+' soon. We’ll ask again when you next open the dashboard today.')+'</div>';
+        m.innerHTML='<div class="gst-note'+(yes?' ok':'')+'" role="status">'+(yes?'Noted — '+q.name+' is marked as filed for '+mo+'.':'Please file '+q.name+' soon. We’ll keep asking each time you open the dashboard until the month ends.')+'</div>';
         setTimeout(function(){i++;step()},yes?900:1700);
       })});
     }
@@ -1036,7 +1036,7 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
   }
   function tick(){
     if(shown)return;
-    var d=new Date();if(d.getDate()!==DAY){shown=true;clearInterval(iv);return}
+    var d=new Date();if(d.getDate()<DAY){shown=true;clearInterval(iv);return}
     if(!dashReady())return;
     var ym=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),st=(load()[ym])||{};
     shown=true;clearInterval(iv);
@@ -4697,13 +4697,13 @@ init();
   const ordIds=new Set(pr.map(r=>String(r.orderId||'').trim()).filter(Boolean));
   const qtyAll=pr.reduce((a,r)=>a+(parseFloat(r.qty)||0),0);
   let recv=0,recvN=0,netAll=0,netN=0;
-  pr.forEach(r=>{const v=pay2(r);if(v!=null){recv+=v;recvN++}const n=netOf(r,costLook);if(n!=null){netAll+=n;netN++}});
+  pr.forEach(r=>{const v=pay2(r);if(v!=null){recv+=v;recvN++}const n=(stOf(r)==='other'&&v==null)?null:netOf(r,costLook);if(n!=null){netAll+=n;netN++}});
   const settlePending=pr.filter(r=>stOf(r)==='other'&&pay2(r)==null).length;
   $('mfStats').innerHTML=[['Total Orders',ordIds.size],['Cancelled',pr.filter(r=>stOf(r)==='cancel').length],['Return',pr.filter(r=>stOf(r)==='return').length],['RTO',pr.filter(r=>stOf(r)==='rto').length],['Total Quantity',qtyAll],['Total cost invested',inr(allFinal)],['Total Payment Received',recvN?sgn(Math.round(recv*100)/100):'—'],['Net Profit',netN?sgn(Math.round(netAll*100)/100):'—'],['Order Settle Pending',settlePending]].map(x=>`<div class="mpay-stat${x[0]==='Order Settle Pending'?(+x[1]>0?' settle-red':' settle-green'):''}"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');
-  {const sh=shown,payT=sh.reduce((a,r)=>a+(payTot(r)||0),0),costT=sh.reduce((a,r)=>a+(costOf(r,costLook).final||0),0),net=Math.round((payT-costT)*100)/100,top=Math.max(Math.abs(payT),costT,1),cw=Math.min(costT,Math.max(payT,costT))/top*100;
+  {const sh=shown.filter(r=>!(stOf(r)==='other'&&pay2(r)==null)),payT=sh.reduce((a,r)=>a+(payTot(r)||0),0),costT=sh.reduce((a,r)=>a+(costOf(r,costLook).final||0),0),net=Math.round((payT-costT)*100)/100,top=Math.max(Math.abs(payT),costT,1),cw=Math.min(costT,Math.max(payT,costT))/top*100;
    const lab=($('mfMonth').value==='all'?'All months':$('mfMonth').selectedOptions[0].text)+' · '+($('mfYear').value==='all'?'All years':$('mfYear').value);
    const seg=net>=0?'<i class="pf-cost" style="width:'+(costT/top*100).toFixed(2)+'%"></i><i class="pf-gain" style="width:'+(net/top*100).toFixed(2)+'%"></i>':'<i class="pf-pay" style="width:'+(Math.max(payT,0)/top*100).toFixed(2)+'%"></i><i class="pf-loss" style="width:'+(-net/top*100).toFixed(2)+'%"></i>';
-   $('mfProfit').innerHTML='<div class="pf-head"><b>Net Profit</b><span>'+esc(lab)+' · '+sh.length+' orders · Net Profit = (Payment 1 + 2 + 3 + Package charges) − Cost Invested</span></div><div class="pf-nums"><div><small>Total Payment (after package charges)</small><strong class="'+(payT>=0?'pf-g':'pf-r')+'">'+sgn(payT)+'</strong></div><div><small>Cost Invested</small><strong class="pf-o">'+sgn(costT)+'</strong></div><div class="pf-net"><small>Net Profit</small><strong class="'+(net>=0?'pf-g':'pf-r')+'">'+sgn(net)+'</strong></div></div><div class="pf-bar" title="'+(net>=0?'Cost invested + profit = total payment':'Payment + loss = cost invested')+'">'+seg+'</div><div class="pf-leg">'+(net>=0?'<span><i class="pf-cost"></i>Cost invested</span><span><i class="pf-gain"></i>Profit</span>':'<span><i class="pf-pay"></i>Payment received</span><span><i class="pf-loss"></i>Loss</span>')+'</div>'}
+   $('mfProfit').innerHTML='<div class="pf-head"><b>Net Profit</b><span>'+esc(lab)+' · '+sh.length+' orders · Net Profit = (Payment 1 + 2 + 3 + Package charges) − Cost Invested · settled orders only (pending settlement left out)</span></div><div class="pf-nums"><div><small>Total Payment (after package charges)</small><strong class="'+(payT>=0?'pf-g':'pf-r')+'">'+sgn(payT)+'</strong></div><div><small>Cost Invested</small><strong class="pf-o">'+sgn(costT)+'</strong></div><div class="pf-net"><small>Net Profit</small><strong class="'+(net>=0?'pf-g':'pf-r')+'">'+sgn(net)+'</strong></div></div><div class="pf-bar" title="'+(net>=0?'Cost invested + profit = total payment':'Payment + loss = cost invested')+'">'+seg+'</div><div class="pf-leg">'+(net>=0?'<span><i class="pf-cost"></i>Cost invested</span><span><i class="pf-gain"></i>Profit</span>':'<span><i class="pf-pay"></i>Payment received</span><span><i class="pf-loss"></i>Loss</span>')+'</div>'}
   const cnt=$('mfCount');if(cnt)cnt.textContent=rows.length?('Showing '+shown.length+' of '+rows.length+' orders'):'';
   const head='<thead><tr><th class="mf-rn">#</th>'+columns.map(c=>'<th'+(/^pay/.test(c[0])?' class="mf-pcol"':'')+'>'+c[1]+'</th>').join('')+'</tr></thead>';
   const kind=v=>/deliver/i.test(v)?'ok':/rto|return|retrun/i.test(v)?'warn':/cancel/i.test(v)?'bad':'neu';

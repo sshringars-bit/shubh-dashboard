@@ -819,7 +819,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
   /* keep a copy of your data on this device so the page opens fast and shows data instantly, then refreshes from online */
   try{if(fs.enablePersistence)fs.enablePersistence({synchronizeTabs:true}).catch(function(){})}catch(e){}
   auth.onAuthStateChanged(function(u){
-    if(u&&ALLOWED.indexOf((u.email||'').toLowerCase())>-1){authUser=u;okShown=true;hide();resolveReady(u)}
+    if(u&&ALLOWED.indexOf((u.email||'').toLowerCase())>-1){authUser=u;okShown=true;window.__fbOk=true;hide();resolveReady(u)}
     else if(u){show((u.email||'This account')+' is not allowed to open this dashboard.',false,true)}
     else{show('Sign in to open your dashboard.',true,false)}
   });
@@ -962,7 +962,91 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
   window.__fb.ready.then(function(){hydrate().catch(function(){hydrated=true})});
 })();
 </script>
-</head><body>
+<script>(function(){
+  var KEY='ssc-gst-reminder-v1',DAY=10,shown=false;
+  var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return {}}}
+  function save(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+  var css='\
+#gstOv{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(60% 60% at 50% 40%,rgba(120,170,255,.28),rgba(20,16,40,.62));backdrop-filter:blur(10px) saturate(1.3);-webkit-backdrop-filter:blur(10px) saturate(1.3);animation:gstFade .35s ease both}\
+#gstOv[hidden]{display:none}\
+@keyframes gstFade{from{opacity:0}to{opacity:1}}\
+@keyframes gstPop{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}\
+@keyframes gstShine{0%{transform:translateX(-120%) skewX(-18deg)}60%,100%{transform:translateX(220%) skewX(-18deg)}}\
+@keyframes gstSpark{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1.15)}}\
+@keyframes gstFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}\
+.gst-card{position:relative;width:min(420px,100%);padding:30px 26px 24px;border-radius:30px;text-align:center;color:#1c2140;overflow:hidden;\
+background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(214,232,255,.52) 38%,rgba(255,226,248,.5) 70%,rgba(255,255,255,.7));\
+border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.45),0 0 0 1px rgba(140,170,255,.35),inset 0 2px 0 rgba(255,255,255,.95),inset 0 -22px 50px rgba(150,180,255,.22);animation:gstPop .5s cubic-bezier(.2,.9,.25,1.1) both}\
+.gst-card::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.75) 46%,rgba(255,255,255,0) 58%);width:45%;animation:gstShine 4.2s ease-in-out infinite;pointer-events:none}\
+.gst-facets{position:absolute;inset:0;pointer-events:none;opacity:.55;background:conic-gradient(from 210deg at 50% -10%,rgba(255,255,255,.0),rgba(160,200,255,.35),rgba(255,255,255,0),rgba(255,180,230,.3),rgba(255,255,255,0) 75%)}\
+.gst-spark{position:absolute;width:10px;height:10px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);filter:drop-shadow(0 0 6px #9cc4ff);animation:gstSpark 2.6s ease-in-out infinite}\
+.gst-gem{position:relative;width:74px;height:74px;margin:0 auto 10px;animation:gstFloat 3.4s ease-in-out infinite;filter:drop-shadow(0 10px 16px rgba(80,110,255,.45))}\
+.gst-tag{position:relative;display:inline-block;padding:5px 14px;border-radius:999px;font:700 .72rem/1 system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#4a5bd6;background:rgba(255,255,255,.7);border:1px solid rgba(120,150,255,.4)}\
+.gst-card h2{position:relative;margin:14px 0 6px;font:800 1.55rem/1.2 system-ui,sans-serif;letter-spacing:-.01em;background:linear-gradient(120deg,#2b3fb8,#7a4ae0 55%,#d04aa8);-webkit-background-clip:text;background-clip:text;color:transparent}\
+.gst-card p{position:relative;margin:0 0 20px;font:500 .95rem/1.45 system-ui,sans-serif;color:#4a5073}\
+.gst-btns{position:relative;display:flex;gap:12px}\
+.gst-btn{flex:1;border:0;cursor:pointer;padding:14px 10px;border-radius:16px;font:800 1.05rem system-ui,sans-serif;letter-spacing:.02em;color:#fff;position:relative;overflow:hidden;transition:transform .15s,box-shadow .2s;box-shadow:0 10px 22px rgba(0,0,0,.18),inset 0 1.5px 0 rgba(255,255,255,.65),inset 0 -8px 16px rgba(0,0,0,.14)}\
+.gst-btn:active{transform:scale(.96)}\
+.gst-btn:hover{transform:translateY(-2px)}\
+.gst-yes{background:linear-gradient(135deg,#2ad0a0,#12a37a 60%,#0e8a68)}\
+.gst-no{background:linear-gradient(135deg,#ff7a9a,#e04573 60%,#c42e5c)}\
+.gst-btn:focus-visible{outline:3px solid #7aa2ff;outline-offset:3px}\
+.gst-step{position:relative;margin-top:16px;font:600 .74rem system-ui,sans-serif;letter-spacing:.1em;color:#6b7197}\
+.gst-dots{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}\
+.gst-dots i{width:7px;height:7px;border-radius:50%;background:rgba(90,110,220,.25)}\
+.gst-dots i.on{background:#5a6ee6;box-shadow:0 0 8px rgba(90,110,230,.7)}\
+.gst-note{position:relative;margin:14px 0 0;padding:10px 12px;border-radius:14px;font:600 .85rem/1.4 system-ui,sans-serif;color:#9a2a52;background:rgba(255,215,230,.6);border:1px solid rgba(224,69,115,.3)}\
+.gst-note.ok{color:#0c6f55;background:rgba(190,255,235,.6);border-color:rgba(18,163,122,.35)}\
+@media (prefers-reduced-motion:reduce){.gst-card,.gst-card::before,.gst-gem,.gst-spark,#gstOv{animation:none}}';
+  var GEM='<svg viewBox="0 0 80 80" width="74" height="74" aria-hidden="true"><defs><linearGradient id="gg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9f4ff"/><stop offset=".5" stop-color="#8fb8ff"/><stop offset="1" stop-color="#6a4be0"/></linearGradient><linearGradient id="gg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#b9d4ff" stop-opacity=".25"/></linearGradient></defs><polygon points="40,6 68,28 40,74 12,28" fill="url(#gg1)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><polygon points="40,6 54,28 40,28 26,28" fill="url(#gg2)"/><polygon points="12,28 26,28 40,74" fill="#7aa0ff" opacity=".55"/><polygon points="68,28 54,28 40,74" fill="#b46cff" opacity=".5"/><polygon points="26,28 40,28 40,74" fill="#fff" opacity=".18"/></svg>';
+  var Q=[{k:'r1',name:'GST R1'},{k:'r3',name:'GST R3'}];
+  function build(ym,state){
+    var st=document.createElement('style');st.id='gstCss';st.textContent=css;document.head.appendChild(st);
+    var ov=document.createElement('div');ov.id='gstOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-labelledby','gstTitle');
+    document.body.appendChild(ov);
+    var pending=Q.filter(function(q){return state[q.k]!=='yes'}),i=0;
+    var mo=MN[+ym.slice(5)-1]+' '+ym.slice(0,4);
+    function sparks(){return '<i class="gst-spark" style="top:14%;left:10%;animation-delay:.2s"></i><i class="gst-spark" style="top:22%;right:12%;animation-delay:1.1s;width:7px;height:7px"></i><i class="gst-spark" style="bottom:20%;left:16%;animation-delay:1.7s;width:8px;height:8px"></i><i class="gst-spark" style="bottom:14%;right:10%;animation-delay:.7s"></i>'}
+    function finish(){ov.style.opacity='0';ov.style.transition='opacity .3s';setTimeout(function(){ov.remove();var c=document.getElementById('gstCss');if(c)c.remove()},320)}
+    function step(){
+      if(i>=pending.length){finish();return}
+      var q=pending[i];
+      ov.innerHTML='<div class="gst-card"><div class="gst-facets"></div>'+sparks()+'<div class="gst-gem">'+GEM+'</div><span class="gst-tag">GST reminder · '+mo+'</span><h2 id="gstTitle">Have you filed '+q.name+'?</h2><p>It’s the 10th of the month. Please confirm your '+q.name+' filing for this month.</p><div class="gst-btns"><button type="button" class="gst-btn gst-yes" data-a="yes">Yes</button><button type="button" class="gst-btn gst-no" data-a="no">No</button></div><div class="gst-step">Reminder '+(i+1)+' of '+pending.length+'<span class="gst-dots">'+pending.map(function(_,n){return '<i class="'+(n<=i?'on':'')+'"></i>'}).join('')+'</span></div><div id="gstMsg"></div></div>';
+      var btns=ov.querySelectorAll('.gst-btn');btns[0].focus();
+      btns.forEach(function(b){b.addEventListener('click',function(){
+        var yes=b.getAttribute('data-a')==='yes';
+        if(yes){state[q.k]='yes';var all=load();all[ym]=state;save(all)}
+        btns.forEach(function(x){x.disabled=true});
+        var m=ov.querySelector('#gstMsg');
+        m.innerHTML='<div class="gst-note'+(yes?' ok':'')+'" role="status">'+(yes?'Noted — '+q.name+' is marked as filed for '+mo+'.':'Please file '+q.name+' soon. We’ll ask again when you next open the dashboard today.')+'</div>';
+        setTimeout(function(){i++;step()},yes?900:1700);
+      })});
+    }
+    step();
+  }
+  function dashReady(){
+    if(!document.body||!window.__fbOk)return false;
+    var m=document.querySelector('main.page');if(!m||m.inert)return false;
+    var l=document.getElementById('sscLock');
+    if(l&&!l.hidden&&getComputedStyle(l).display!=='none')return false;
+    var w=document.getElementById('sscWelcome');
+    if(w&&!w.hidden&&getComputedStyle(w).display!=='none')return false;
+    return true;
+  }
+  function tick(){
+    if(shown)return;
+    var d=new Date();if(d.getDate()!==DAY){shown=true;clearInterval(iv);return}
+    if(!dashReady())return;
+    var ym=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),st=(load()[ym])||{};
+    shown=true;clearInterval(iv);
+    if(Q.every(function(q){return st[q.k]==='yes'}))return;
+    build(ym,st);
+  }
+  var iv=setInterval(tick,600);
+  window.__gstCheck=tick;
+})();
+</script></head><body>
 <div id="sscLock" role="dialog" aria-modal="true" aria-label="Sign in"><div class="ssc-card" id="sscCard"></div></div>
 <div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><div class="ssc-bar"><i></i></div></div></div>
 
@@ -2256,7 +2340,7 @@ function renderBusinessDashboard(){
       stYO='<option value="all"'+(stY==='all'?' selected':'')+'>All years</option>'+stYL.map(function(y){return '<option value="'+y+'"'+(y===stY?' selected':'')+'>'+y+'</option>'}).join(''),
       stMO='<option value="all"'+(stM==='all'?' selected':'')+'>Whole year</option>'+stMN.slice(1).map(function(n,k){var v=String(k+1).padStart(2,'0');return '<option value="'+v+'"'+(v===stM?' selected':'')+'>'+n+'</option>'}).join(''),
       stPl=['Meesho','Amazon','Myntra','Flipkart','Manual'].map(function(k){var v=Math.round((stBy[k]||0)*100)/100;return '<div><small>'+(k==='Manual'?'Website &amp; Offline':k)+'</small><strong>'+(v<0?'− ':'')+money(Math.abs(v))+'</strong></div>'}).join('')+'<div><small>Expenses</small><strong>− '+money(stExp)+'</strong></div><div><small>Staff payments</small><strong>− '+money(stStaff)+'</strong></div>',
-      stBox='<article class="stand-box '+(stProfit?'profit':'loss')+'" role="status"><div class="st-top"><span>Where you stand · '+stLab+'</span><span class="st-filters"><select id="stYear" aria-label="Year">'+stYO+'</select><select id="stMonth" aria-label="Month">'+stMO+'</select><span class="st-badge">'+(stProfit?'▲ PROFIT':'▼ LOSS')+'</span></span></div><div class="st-amt">'+(stProfit?'+ ':'− ')+money(Math.abs(stNet))+'</div><div class="st-row">'+stPl+'<div><small>Payment pending (orders)</small><strong>'+stPend+'</strong></div></div><div class="st-note">Result = Net Profit of Meesho + Amazon + Myntra + Flipkart + Website &amp; Offline (the same Net Profit each tab shows) − Expenses − Staff payments, for the period selected above. Pending settlements are not counted yet.</div></article>';
+      stBox='<article class="stand-box '+(stProfit?'profit':'loss')+'" role="status"><div class="st-top"><span>Where you stand · '+stLab+'</span><span class="st-filters"><select id="stYear" aria-label="Year">'+stYO+'</select><select id="stMonth" aria-label="Month">'+stMO+'</select><span class="st-badge">'+(stProfit?'▲ PROFIT':'▼ LOSS')+'</span></span></div><div class="st-amt">'+(stProfit?'+ ':'− ')+money(Math.abs(stNet))+'</div><div class="st-row">'+stPl+'<div><small>Payment pending (orders)</small><strong>'+stPend+'</strong></div></div><div class="st-note">Result = Net Profit of Meesho + Amazon + Myntra + Flipkart + Website &amp; Offline — settled orders only (orders whose payment is still pending are left out) − Expenses − Staff payments, for the period selected above.</div></article>';
   $('#metricGrid').innerHTML=[
     stBox,
     metricCard('Total Order',d.orders.month,d.orders.year,d.orders.monthMP,d.orders.yearMP,false,'↗'),
@@ -4643,7 +4727,7 @@ init();
   $('mfTable').innerHTML=cg()+head+'<tbody>'+body+'</tbody>'+foot;
   if(!shown.length)$('mfTable').innerHTML=cg()+head+'<tbody><tr><td colspan="'+(columns.length+1)+'" class="mf-empty">'+(rows.length?'No matching order rows.':'No orders yet. Click Import Order Excel/CSV to add your sheet.')+'</td></tr></tbody>';
  }
- window.mfRefresh=render;window.sscTrk=window.sscTrk||{};window.sscTrk.Meesho=function(){const look=(window.sscProductCostLookup?window.sscProductCostLookup():()=>null);return rows.map(r=>{const p=ymOf(r.date),t=String(r.status||''),e=payEntries(r)[1],v=e?e.a:null;return {mp:'Meesho',date:String(r.date||''),sttext:t,sku:String(r.sku||'').trim(),qty:(parseFloat(r.qty)>0?parseFloat(r.qty):1),state:String(r.state||''),id:String(r.orderId||'').trim(),ym:p?p.y+'-'+String(p.m).padStart(2,'0'):'',st:/cancel/i.test(t)?'cancel':/rto/i.test(t)?'rto':/return|retrun/i.test(t)?'return':'ok',other:false,cost:costOf(r,look).final||0,recv:v!=null?v:0,settled:v!=null,fin:netOf(r,look)}})};
+ window.mfRefresh=render;window.sscTrk=window.sscTrk||{};window.sscTrk.Meesho=function(){const look=(window.sscProductCostLookup?window.sscProductCostLookup():()=>null);return rows.map(r=>{const p=ymOf(r.date),t=String(r.status||''),e=payEntries(r)[1],v=e?e.a:null;return {mp:'Meesho',date:String(r.date||''),sttext:t,sku:String(r.sku||'').trim(),qty:(parseFloat(r.qty)>0?parseFloat(r.qty):1),state:String(r.state||''),id:String(r.orderId||'').trim(),ym:p?p.y+'-'+String(p.m).padStart(2,'0'):'',st:/cancel/i.test(t)?'cancel':/rto/i.test(t)?'rto':/return|retrun/i.test(t)?'return':'ok',other:false,cost:costOf(r,look).final||0,recv:v!=null?v:0,settled:v!=null,fin:((/cancel|rto|return|retrun/i.test(t)||v!=null)?netOf(r,look):null)}})};
  async function importFile(file){if(!file) return;let parsed;if(/\.csv$/i.test(file.name)){parsed=parseCSV(await file.text())}else{if(!window.XLSX&&window.__loadXlsx)await window.__loadXlsx();if(!window.XLSX)throw Error('Excel reader library could not load. Please connect to the internet and reopen this dashboard, or upload CSV.');const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:false});parsed=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false})}if(!parsed.length)throw Error('No data rows found.');const mapped=parsed.map(mapRow).filter(r=>Object.values(r).some(v=>String(v).trim()));if(!mapped.length)throw Error('No order rows found. Check the file headers.');/* add only new orders: skip anything already saved (same Order ID + SKU). Repeated lines of one order inside a single file are still kept, up to the number already saved. */
 const mk=r=>[r.orderId,r.sku].join('|'),have=new Map();rows.forEach(x=>{const k=mk(x);have.set(k,(have.get(k)||0)+1)});const seen=new Map();let added=0,dup=0;
 mapped.forEach(r=>{const k=mk(r),n=(seen.get(k)||0)+1;seen.set(k,n);if(n<=(have.get(k)||0)){dup++}else{rows.push(r);added++}});

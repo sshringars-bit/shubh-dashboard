@@ -875,6 +875,29 @@ html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-values strong,html[d
 html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-values>div:last-child strong{color:color-mix(in srgb,var(--mc) 60%,#fff)!important}
 html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-wise p span{background:rgba(255,255,255,.08);color:#bcd3c9!important}
 html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-icon{background:color-mix(in srgb,var(--mc) 22%,transparent)!important}
+
+/* ===== Step 4: cards, forms, buttons, tables on all other tabs ===== */
+html:not([data-theme*="dark"]) body.ssc-shell{--accent:#12775a;--accent-ink:#fff}
+html:not([data-theme*="dark"]) body.ssc-shell .view:not(#view-orders) .glass:not(.tabmove){background:rgba(255,255,255,.95)!important;border:1px solid rgba(15,60,45,.08)!important;border-radius:20px!important;
+  box-shadow:0 10px 30px -16px rgba(10,60,45,.28)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html:not([data-theme*="dark"]) body.ssc-shell .view:not(#view-orders) h3{color:#12342a}
+html body.ssc-shell .btn{border-radius:12px!important;font-weight:650;box-shadow:none!important}
+html body.ssc-shell .btn.primary{background:linear-gradient(135deg,#17956f,#0f6b50)!important;color:#fff!important;box-shadow:0 8px 18px -8px rgba(15,107,80,.7)!important}
+html:not([data-theme*="dark"]) body.ssc-shell .btn:not(.primary):not(.danger){background:#fff;border:1px solid rgba(15,60,45,.18);color:#1d4a3c}
+html:not([data-theme*="dark"]) body.ssc-shell .btn:not(.primary):not(.danger):hover{background:#eef6f2}
+html:not([data-theme*="dark"]) body.ssc-shell .btn.danger:not(.armed){background:#fff;border:1px solid rgba(214,69,61,.35);color:#c0352d}
+html:not([data-theme*="dark"]) body.ssc-shell .view:not(#view-orders) .field-in{background:#f6faf8;border:1px solid rgba(15,60,45,.16);border-radius:12px;color:#12342a}
+html body.ssc-shell .field-in:focus{outline:0;border-color:#17956f;box-shadow:0 0 0 3px rgba(23,149,111,.22)}
+html:not([data-theme*="dark"]) body.ssc-shell .view:not(#view-orders) label{color:#3b5a4e}
+/* tables */
+html body.ssc-shell .view:not(#view-orders) table{border-collapse:separate;border-spacing:0;width:100%}
+html:not([data-theme*="dark"]) body.ssc-shell .view:not(#view-orders) thead th,html:not([data-theme*="dark"]) body.ssc-shell .view:not(#view-orders) table th{background:#e8f3ee!important;color:#1d4a3c!important;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;font-weight:750;border-bottom:1px solid rgba(15,60,45,.12)!important;padding:11px 12px}
+html:not([data-theme*="dark"]) body.ssc-shell .view:not(#view-orders) table td{border-bottom:1px solid rgba(15,60,45,.08)!important;padding:10px 12px}
+html:not([data-theme*="dark"]) body.ssc-shell .view:not(#view-orders) table tbody tr:hover td{background:#f3f9f6}
+html body.ssc-shell .tablewrap{border:1px solid rgba(15,60,45,.1);border-radius:16px}
+/* marketplace sub-tabs in Tracker */
+html:not([data-theme*="dark"]) body.ssc-shell .tracker-subtabs{background:rgba(255,255,255,.95)!important;border-radius:18px!important;backdrop-filter:none!important}
+html body.ssc-shell .tracker-subtabs button[aria-selected="true"]{box-shadow:0 0 0 2px #17956f inset!important;background:#e8f3ee!important;color:#0f4a38!important}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Shubh Dashboard"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png"><script>if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script><script>(function(){var U=["https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js","https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js","https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"],pr=null;
 function one(i,ok){if(window.XLSX)return ok();if(i>=U.length)return ok();var s=document.createElement("script");s.src=U[i];s.onload=function(){ok()};s.onerror=function(){one(i+1,ok)};document.head.appendChild(s)}
 window.__loadXlsx=function(){if(window.XLSX)return Promise.resolve();return pr||(pr=new Promise(function(r){one(0,r)}))};

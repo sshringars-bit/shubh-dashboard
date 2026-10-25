@@ -779,6 +779,52 @@ html,body{max-width:100%;overflow-x:hidden}
   .brand-addr .ba-line,.brand-addr .ba-line span{white-space:normal!important;min-width:0;overflow-wrap:anywhere}
   .brand-addr .ba-head{flex-wrap:wrap}
 }
+</style><style id="shellCss">/* ===== STEP 1: sidebar shell (dark emerald + gold) ===== */
+:root{--sbw:272px;--sb-bg1:#0e3329;--sb-bg2:#071f19;--sb-ink:#cfe0d8;--sb-ink2:#8fb0a2;--sb-gold1:#9a8238;--sb-gold2:#6f5a25}
+@media (min-width:901px){
+  html body.ssc-shell main.page{margin:0 0 0 var(--sbw)!important;max-width:none!important;width:auto!important;padding:0 clamp(16px,2.6vw,38px) 40px!important}
+  html body.ssc-shell .tabrow{position:fixed!important;left:0;top:0;bottom:0;width:var(--sbw);z-index:60;margin:0!important}
+}
+html body.ssc-shell .tabrow{display:flex!important;flex-direction:column;gap:6px;align-items:stretch;flex-wrap:nowrap;padding:18px 14px 14px;overflow-y:auto;overflow-x:hidden;
+  background:linear-gradient(180deg,var(--sb-bg1),var(--sb-bg2));color:var(--sb-ink);border-right:1px solid rgba(255,255,255,.06);box-shadow:8px 0 30px rgba(3,20,15,.28);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
+.sb-brand{display:flex;align-items:center;gap:11px;padding:4px 6px 16px;border-bottom:1px solid rgba(255,255,255,.09);margin-bottom:8px}
+.sb-brand img{width:46px;height:46px;object-fit:contain;background:#fff;border-radius:13px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.sb-brand b{display:block;font:800 1.02rem/1.15 system-ui,sans-serif;color:#fff;letter-spacing:.01em}
+.sb-brand small{display:block;margin-top:2px;font:600 .68rem system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--sb-ink2)}
+.sb-x{display:none;margin-left:auto;border:0;background:rgba(255,255,255,.1);color:#fff;width:34px;height:34px;border-radius:10px;font-size:1rem;cursor:pointer}
+.sb-label{padding:10px 10px 4px;font:700 .68rem system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--sb-ink2)}
+html body.ssc-shell .tabrow .tabs{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;gap:4px!important;width:100%!important;max-width:100%!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;justify-content:flex-start!important}
+html body.ssc-shell .tabrow .tabs button{display:flex!important;align-items:center;gap:12px;flex:none!important;width:100%;text-align:left;padding:11px 14px!important;border-radius:13px!important;border:0;background:transparent!important;color:var(--sb-ink)!important;font:600 .93rem/1.2 system-ui,sans-serif;white-space:nowrap;box-shadow:none!important;transition:background .18s,color .18s,transform .18s}
+html body.ssc-shell .tabrow .tabs button:hover{background:rgba(255,255,255,.08)!important;color:#fff!important}
+html body.ssc-shell .tabrow .tabs button[aria-selected="true"]{background:linear-gradient(90deg,var(--sb-gold1),var(--sb-gold2))!important;color:#fff!important;box-shadow:0 6px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.18)!important}
+html body.ssc-shell .tabrow .tabs button:focus-visible{outline:2px solid #e9d28a;outline-offset:2px}
+.tabs button svg.sb-i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.95}
+html body.ssc-shell .tabrow>#tabMove{align-self:flex-start;margin:8px 4px 0;background:rgba(255,255,255,.08)!important;color:var(--sb-ink)!important;border:1px solid rgba(255,255,255,.14)!important;box-shadow:none!important}
+html body.ssc-shell .tabrow>.tabmove{background:rgba(255,255,255,.08)!important;color:var(--sb-ink)!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:14px;padding:8px;display:flex;flex-wrap:wrap;gap:6px}
+html body.ssc-shell .tabrow>.tabmove[hidden]{display:none!important}
+html body.ssc-shell .tabrow #sscUserBar{margin:auto 0 0!important;width:100%;box-sizing:border-box;background:rgba(255,255,255,.07)!important;color:#e9f3ee!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:16px;box-shadow:none!important;padding:12px!important;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+html body.ssc-shell .tabrow #sscUserBar *{color:inherit}
+html body.ssc-shell .tabrow #sscUserBar button{background:rgba(255,255,255,.1)!important;border:1px solid rgba(255,255,255,.16)!important;color:#fff!important;border-radius:10px}
+html body.ssc-shell .tabrow #sscUserBar[hidden]{display:none!important}
+/* top bar = the page heading row */
+html body.ssc-shell .headline{order:-2;position:sticky;top:0;z-index:40;display:flex!important;align-items:center;justify-content:space-between;gap:12px;margin:0 calc(-1*clamp(16px,2.6vw,38px))!important;padding:14px clamp(16px,2.6vw,38px)!important;
+  background:rgba(247,249,248,.82);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border-bottom:1px solid rgba(20,50,40,.08)}
+html body.ssc-shell .headline h2{margin:0!important;font:800 1.35rem/1.2 system-ui,sans-serif!important;color:#12342a!important;letter-spacing:-.01em}
+html body.ssc-shell .headline p{margin:0!important;font:600 .85rem system-ui,sans-serif;color:#5d7a6e!important}
+.sb-burger{display:none;border:0;background:#0e3329;color:#fff;width:42px;height:42px;border-radius:12px;font-size:1.25rem;cursor:pointer;flex:none;box-shadow:0 4px 12px rgba(7,31,25,.3)}
+.sb-scrim{position:fixed;inset:0;z-index:55;background:rgba(4,20,15,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s}
+@media (max-width:900px){
+  html body.ssc-shell main.page{margin:0!important;max-width:100%!important;padding-inline:14px!important}
+  html body.ssc-shell .tabrow{position:fixed!important;left:0;top:0;bottom:0;width:min(84vw,310px);z-index:70;transform:translateX(-105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);margin:0!important}
+  html body.ssc-shell.sb-open .tabrow{transform:none}
+  html body.ssc-shell.sb-open .sb-scrim{opacity:1;pointer-events:auto}
+  .sb-burger{display:inline-flex;align-items:center;justify-content:center}
+  .sb-x{display:inline-flex;align-items:center;justify-content:center}
+  html body.ssc-shell .headline{margin:0 -14px!important;padding:10px 14px!important;justify-content:flex-start}
+  html body.ssc-shell .headline>div,html body.ssc-shell .headline{gap:12px}
+  html body.ssc-shell .headline h2{font-size:1.1rem!important}
+}
+@media (prefers-reduced-motion:reduce){html body.ssc-shell .tabrow,.sb-scrim{transition:none}}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Shubh Dashboard"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png"><script>if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script><script>(function(){var U=["https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js","https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js","https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"],pr=null;
 function one(i,ok){if(window.XLSX)return ok();if(i>=U.length)return ok();var s=document.createElement("script");s.src=U[i];s.onload=function(){ok()};s.onerror=function(){one(i+1,ok)};document.head.appendChild(s)}
 window.__loadXlsx=function(){if(window.XLSX)return Promise.resolve();return pr||(pr=new Promise(function(r){one(0,r)}))};
@@ -6631,6 +6677,49 @@ var started=false;function go(){if(started)return;started=true;start()}
 idbRead().then(function(x){if(x.length)users=x;else if(users.length)save();go()});
 setTimeout(go,2500);
 window.sscAuth={signOut:function(){signOut('You have been signed out.')}};
+})();
+</script>
+<script>(function(){
+  var ICON={
+    orders:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+    tracker:'<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>',
+    products:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+    sales:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+    customers:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3 3 0 010 5.6M18 14.8c1.9.7 3 2.4 3 5.2"/>',
+    staff:'<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16 14.5h2"/>',
+    recon:'<path d="M12 3v18M5 7h14"/><path d="M5 7l-3 7a3.2 3.2 0 006 0zM19 7l-3 7a3.2 3.2 0 006 0z"/>',
+    expenses:'<circle cx="12" cy="12" r="9"/><path d="M9 8.5h5.2a2.3 2.3 0 010 4.6H9m0 0h5.6M9 8.5v7"/>',
+    states:'<path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/>',
+    returns:'<path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8"/><path d="M3 3v5h5"/>',
+    purchases:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
+    topten:'<path d="M8 4h8v5a4 4 0 01-8 0z"/><path d="M8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8.5 20h7"/>'
+  };
+  function init(){
+    var page=document.querySelector('main.page'),row=document.querySelector('.tabrow'),nav=document.getElementById('tabs');
+    if(!page||!row||!nav||document.body.classList.contains('ssc-shell'))return;
+    document.body.classList.add('ssc-shell');
+    var logo=document.querySelector('img.logo');
+    var b=document.createElement('div');b.className='sb-brand';
+    b.innerHTML=(logo?'<img alt="" src="'+logo.src+'">':'')+'<div><b>Shubh Shringar</b><small>Business dashboard</small></div><button type="button" class="sb-x" aria-label="Close menu">✕</button>';
+    row.insertBefore(b,row.firstChild);
+    var lab=document.createElement('div');lab.className='sb-label';lab.textContent='Main menu';row.insertBefore(lab,nav);
+    nav.querySelectorAll('button[data-tab]').forEach(function(btn){
+      if(btn.querySelector('svg.sb-i'))return;
+      var p=ICON[btn.getAttribute('data-tab')]||'<circle cx="12" cy="12" r="3"/>';
+      btn.insertAdjacentHTML('afterbegin','<svg class="sb-i" viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg>');
+    });
+    var head=document.querySelector('.headline');
+    var burger=document.createElement('button');burger.type='button';burger.className='sb-burger';burger.setAttribute('aria-label','Open menu');burger.innerHTML='☰';
+    if(head)head.insertBefore(burger,head.firstChild);
+    var scrim=document.createElement('div');scrim.className='sb-scrim';(document.querySelector('main.page')||document.body).appendChild(scrim);
+    function open(on){document.body.classList.toggle('sb-open',on)}
+    burger.addEventListener('click',function(){open(true)});
+    scrim.addEventListener('click',function(){open(false)});
+    b.querySelector('.sb-x').addEventListener('click',function(){open(false)});
+    nav.addEventListener('click',function(e){if(e.target.closest('button[data-tab]'))setTimeout(function(){open(false);window.scrollTo(0,0)},60)});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')open(false)});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
 <div id="appVer" style="text-align:center;font:11px system-ui,sans-serif;opacity:.5;padding:4px 0 16px">App version: 24 Oct 2026 · build 7 (GST reminders on)</div>

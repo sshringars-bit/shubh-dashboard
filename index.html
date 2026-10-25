@@ -820,11 +820,24 @@ html body.ssc-shell .headline p{margin:0!important;font:600 .85rem system-ui,san
   html body.ssc-shell.sb-open .sb-scrim{opacity:1;pointer-events:auto}
   .sb-burger{display:inline-flex;align-items:center;justify-content:center}
   .sb-x{display:inline-flex;align-items:center;justify-content:center}
-  html body.ssc-shell .headline{margin:0 -14px!important;padding:10px 14px!important;justify-content:flex-start}
+  html body.ssc-shell .headline{margin:0 -14px!important;width:calc(100% + 28px)!important;max-width:none!important;box-sizing:border-box;flex-wrap:wrap;padding:10px 14px!important;justify-content:flex-start}
   html body.ssc-shell .headline>div,html body.ssc-shell .headline{gap:12px}
   html body.ssc-shell .headline h2{font-size:1.1rem!important}
 }
 @media (prefers-reduced-motion:reduce){html body.ssc-shell .tabrow,.sb-scrim{transition:none}}
+
+/* ===== Step 2: welcome hero banner on Dashboard ===== */
+html body.ssc-shell #view-orders .metric-head{position:relative;overflow:hidden;isolation:isolate;border:0!important;border-radius:24px!important;padding:30px 34px!important;color:#fff!important;
+  background:linear-gradient(115deg,#0b4a38 0%,#12775a 55%,#1b9a70 100%)!important;box-shadow:0 18px 40px -16px rgba(9,70,52,.55),inset 0 1px 0 rgba(255,255,255,.18)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html body.ssc-shell #view-orders .metric-head::before{content:"";position:absolute;z-index:-1;right:-70px;top:-90px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(233,210,138,.45),rgba(233,210,138,0) 68%)}
+html body.ssc-shell #view-orders .metric-head::after{content:"";position:absolute;z-index:-1;right:130px;bottom:-110px;width:240px;height:240px;border-radius:50%;border:34px solid rgba(255,255,255,.07)}
+html body.ssc-shell #view-orders .metric-head .hero-hi{display:block;font:600 .8rem/1 system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#e9d28a;margin-bottom:10px}
+html body.ssc-shell #view-orders .metric-head h2{color:#fff!important;font-size:clamp(1.5rem,3vw,2.1rem)!important;margin:0 0 6px!important;letter-spacing:-.01em}
+html body.ssc-shell #view-orders .metric-head p{color:rgba(255,255,255,.82)!important;margin:0}
+html body.ssc-shell #view-orders .metric-head .metric-live{background:rgba(255,255,255,.14)!important;color:#d9ffe9!important;border:1px solid rgba(255,255,255,.25)!important;padding:7px 14px;border-radius:999px}
+html body.ssc-shell #view-orders .metric-head .btn.danger{background:rgba(255,255,255,.12)!important;color:#fff!important;border:1px solid rgba(255,255,255,.3)!important;box-shadow:none!important}
+html body.ssc-shell #view-orders .metric-head .btn.danger:hover{background:rgba(220,60,60,.75)!important}
+@media (max-width:900px){html body.ssc-shell #view-orders .metric-head{padding:22px 20px!important;border-radius:20px!important}}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Shubh Dashboard"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png"><script>if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script><script>(function(){var U=["https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js","https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js","https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"],pr=null;
 function one(i,ok){if(window.XLSX)return ok();if(i>=U.length)return ok();var s=document.createElement("script");s.src=U[i];s.onload=function(){ok()};s.onerror=function(){one(i+1,ok)};document.head.appendChild(s)}
 window.__loadXlsx=function(){if(window.XLSX)return Promise.resolve();return pr||(pr=new Promise(function(r){one(0,r)}))};
@@ -6720,6 +6733,15 @@ window.sscAuth={signOut:function(){signOut('You have been signed out.')}};
     document.addEventListener('keydown',function(e){if(e.key==='Escape')open(false)});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+
+  function hero(){
+    var h=document.querySelector('#view-orders .metric-head');if(!h||h.querySelector('.hero-hi'))return;
+    var d=h.querySelector('h2');if(!d)return;
+    var hr=new Date().getHours(),g=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+    var sp=document.createElement('span');sp.className='hero-hi';sp.textContent=g+' · Shubh Shringar Creations';
+    d.parentNode.insertBefore(sp,d);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hero);else hero();
 })();
 </script>
 <div id="appVer" style="text-align:center;font:11px system-ui,sans-serif;opacity:.5;padding:4px 0 16px">App version: 24 Oct 2026 · build 7 (GST reminders on)</div>

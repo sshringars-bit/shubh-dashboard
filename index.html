@@ -838,6 +838,43 @@ html body.ssc-shell #view-orders .metric-head .metric-live{background:rgba(255,2
 html body.ssc-shell #view-orders .metric-head .btn.danger{background:rgba(255,255,255,.12)!important;color:#fff!important;border:1px solid rgba(255,255,255,.3)!important;box-shadow:none!important}
 html body.ssc-shell #view-orders .metric-head .btn.danger:hover{background:rgba(220,60,60,.75)!important}
 @media (max-width:900px){html body.ssc-shell #view-orders .metric-head{padding:22px 20px!important;border-radius:20px!important}}
+
+/* ===== Step 3: stat cards ===== */
+html body.ssc-shell #metricGrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))!important;gap:18px!important}
+html body.ssc-shell #metricGrid>.stand-box{grid-column:1/-1}
+html body.ssc-shell #metricGrid .metric-card{--mc:#2f7a5b;position:relative;background:rgba(255,255,255,.94)!important;border:1px solid rgba(15,60,45,.08)!important;border-radius:22px!important;padding:20px 22px!important;color:#12342a;
+  box-shadow:0 10px 30px -14px rgba(10,60,45,.28),0 1px 0 rgba(255,255,255,.9) inset!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;overflow:hidden;transition:transform .2s,box-shadow .2s}
+html body.ssc-shell #metricGrid .metric-card:hover{transform:translateY(-3px);box-shadow:0 18px 36px -14px rgba(10,60,45,.34)!important}
+html body.ssc-shell #metricGrid .metric-card::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:4px;border-radius:0 4px 4px 0;background:var(--mc)}
+html body.ssc-shell #metricGrid .metric-title{margin-bottom:16px}
+html body.ssc-shell #metricGrid .metric-title h3{font-size:.92rem;font-weight:700;color:#3b5a4e;line-height:1.25}
+html body.ssc-shell #metricGrid .metric-icon{width:44px;height:44px;border-radius:14px;flex:none;font-size:1.2rem;background:color-mix(in srgb,var(--mc) 14%,#fff)!important;color:var(--mc)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mc) 22%,transparent)}
+html body.ssc-shell #metricGrid .metric-values{gap:10px}
+html body.ssc-shell #metricGrid .metric-values>div{background:#f4f8f6!important;border:0!important;border-radius:14px!important;padding:12px 14px}
+html body.ssc-shell #metricGrid .metric-values>div:last-child{background:color-mix(in srgb,var(--mc) 10%,#fff)!important}
+html body.ssc-shell #metricGrid .metric-values small{color:#6b867b!important}
+html body.ssc-shell #metricGrid .metric-values strong{color:#0f2e25;font-size:1.65rem;font-weight:800;letter-spacing:-.02em}
+html body.ssc-shell #metricGrid .metric-values>div:last-child strong{color:var(--mc)}
+html body.ssc-shell #metricGrid .metric-wise>div{background:transparent!important;border:0!important;border-top:1px dashed rgba(15,60,45,.16)!important;border-radius:0!important;padding:10px 2px 0}
+html body.ssc-shell #metricGrid .metric-wise label{color:#6b867b!important}
+html body.ssc-shell #metricGrid .metric-wise p span{color:#456357!important;background:#eef5f2;border-radius:999px;padding:3px 9px}
+html body.ssc-shell #metricGrid .metric-wise p b{color:#0f2e25!important}
+html body.ssc-shell #metricGrid .metric-caption{color:#6b867b!important}
+html body.ssc-shell #metricGrid .metric-card:nth-child(2){--mc:#2f6fe0}
+html body.ssc-shell #metricGrid .metric-card:nth-child(3){--mc:#c98a12}
+html body.ssc-shell #metricGrid .metric-card:nth-child(4){--mc:#1f9d63}
+html body.ssc-shell #metricGrid .metric-card:nth-child(5){--mc:#e0742a}
+html body.ssc-shell #metricGrid .metric-card:nth-child(6){--mc:#d6453d}
+html body.ssc-shell #metricGrid .metric-card:nth-child(7){--mc:#7a4fd0}
+html body.ssc-shell #metricGrid .metric-card:nth-child(8){--mc:#c43c7c}
+html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-card{background:rgba(24,34,32,.92)!important;border-color:rgba(255,255,255,.1)!important;color:#e9f3ee}
+html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-title h3{color:#bcd3c9}
+html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-values>div{background:rgba(255,255,255,.06)!important}
+html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-values>div:last-child{background:color-mix(in srgb,var(--mc) 18%,transparent)!important}
+html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-values strong,html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-wise p b{color:#fff!important}
+html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-values>div:last-child strong{color:color-mix(in srgb,var(--mc) 60%,#fff)!important}
+html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-wise p span{background:rgba(255,255,255,.08);color:#bcd3c9!important}
+html[data-theme*="dark"] body.ssc-shell #metricGrid .metric-icon{background:color-mix(in srgb,var(--mc) 22%,transparent)!important}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Shubh Dashboard"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png"><script>if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script><script>(function(){var U=["https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js","https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js","https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"],pr=null;
 function one(i,ok){if(window.XLSX)return ok();if(i>=U.length)return ok();var s=document.createElement("script");s.src=U[i];s.onload=function(){ok()};s.onerror=function(){one(i+1,ok)};document.head.appendChild(s)}
 window.__loadXlsx=function(){if(window.XLSX)return Promise.resolve();return pr||(pr=new Promise(function(r){one(0,r)}))};

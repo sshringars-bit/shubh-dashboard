@@ -4912,7 +4912,7 @@ function init(){
 }
 /* Tracker storage: same local copy (IndexedDB + localStorage) as the rest of the dashboard, or the shared db when published */
 var MF_CHUNK=150000,mfPrevN={},mfSnapP=null,mfSnapT=0;
-function mfLoadHook(){if(window.mfLoad)window.mfLoad();else window.__mfWantLoad=true}
+function mfLoadHook(){if(window.mfLoad)window.mfLoad();else window.__mfWantLoad=true;['azLoad','myLoad','fkLoad'].forEach(function(n){if(typeof window[n]==='function'){try{window[n]()}catch(e){}}})}
 /* One read of the whole tracker collection, asking the server first (a cache-only first answer can be incomplete),
    falling back to the local cache only when the server cannot be reached. Shared by all tabs loading at the same time. */
 function mfSnapshot(){

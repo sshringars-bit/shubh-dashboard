@@ -1224,7 +1224,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
     return Promise.all(ps);
   }
   window.__fbFlushAll=function(){if(timer){clearTimeout(timer)}return flush()};
-  function note(k,v){if(!hydrated)return;pend[k]=v;if(timer)clearTimeout(timer);timer=setTimeout(flush,1500)}
+  function note(k,v){if(!hydrated)return;pend[k]=v;if(timer)clearTimeout(timer);timer=setTimeout(flush,300)}
   function freeSpace(){try{var d=[];for(var i=0;i<LS.length;i++){var x=LS.key(i);if(x&&x.indexOf('bk:')===0)d.push(x)}d.forEach(function(x){LS.removeItem(x)});return d.length}catch(e){return 0}}
   function fullMsg(){
     if(document.getElementById('fbFull')||!document.body)return;
@@ -4910,7 +4910,7 @@ function init(){
   bind();render();setTab(t0);startData();
   var cab=$('#clearAllBtn');if(cab)cab.addEventListener('click',clearAllData);
 }
-/* Tracker storage: same local copy (IndexedDB + localStorage) as the rest of the dashboard, or the shared db when published */
+/* Tracker storage: local-first backup plus shared database sync; protects tracker rows during refresh/logout and view-only/offline sessions */
 var MF_CHUNK=150000,mfPrevN={},mfSnapP=null,mfSnapT=0;
 function mfLoadHook(){if(window.mfLoad)window.mfLoad();else window.__mfWantLoad=true}
 /* One read of the whole tracker collection, asking the server first (a cache-only first answer can be incomplete),
@@ -4923,18 +4923,27 @@ function mfSnapshot(){
 function mfBackupGet(key){return kvGet('bk:'+key).then(function(v){return(v&&!Array.isArray(v)&&v.t&&v.v!==undefined)?v:null},function(){return null})}
 window.sscStore={
   put:function(key,val){
-    if(!db)return kvPut(key,val);
-    if(!state.canWrite)return Promise.resolve(false);
-    var now=Date.now(),pf=key+'__',str=JSON.stringify(val),n=Math.max(1,Math.ceil(str.length/MF_CHUNK)),prev=mfMeta(key);
-    mfSnapP=null;
-    /* 1) always keep a copy in this browser first, so a refresh can never lose it */
-    var local=kvPut('bk:'+key,{t:now,v:val}).catch(function(){return false});
-    /* 2) then send it to the shared database */
-    var ch=Promise.resolve();
-    for(var i=0;i<n;i++){(function(i){ch=ch.then(function(){return db.collection('mftracker').doc(pf+'c'+i).set({k:key,i:i,s:str.slice(i*MF_CHUNK,(i+1)*MF_CHUNK)})})})(i)}
-    ch=ch.then(function(){return db.collection('mftracker').doc(pf+'meta').set({k:key,n:n,t:now})});
-    for(var j=n;j<prev;j++){(function(j){ch=ch.then(function(){return db.doc('mftracker/'+pf+'c'+j).delete()})})(j)}
-    return Promise.all([local,ch.then(function(){mfPrevN[key]=n;return true},function(){return false})]).then(function(r){return !!(r[0]||r[1])});
+    var now=Date.now();
+    /* Always save locally first, even for a view-only/offline session. The old code
+       returned before making this backup when state.canWrite was false. */
+    var local=Promise.resolve().then(function(){
+      return kvPut('bk:'+key,{t:now,v:val});
+    }).then(function(){return true},function(){return false});
+    if(!db){
+      return local.then(function(ok){
+        return kvPut(key,val).then(function(saved){return !!(ok||saved)},function(){return !!ok});
+      });
+    }
+    return local.then(function(localOk){
+      if(!state.canWrite)return !!localOk;
+      var pf=key+'__',str=JSON.stringify(val),n=Math.max(1,Math.ceil(str.length/MF_CHUNK)),prev=mfMeta(key);
+      mfSnapP=null;
+      var ch=Promise.resolve();
+      for(var i=0;i<n;i++){(function(i){ch=ch.then(function(){return db.collection('mftracker').doc(pf+'c'+i).set({k:key,i:i,s:str.slice(i*MF_CHUNK,(i+1)*MF_CHUNK)})})})(i)}
+      ch=ch.then(function(){return db.collection('mftracker').doc(pf+'meta').set({k:key,n:n,t:now})});
+      for(var j=n;j<prev;j++){(function(j){ch=ch.then(function(){return db.doc('mftracker/'+pf+'c'+j).delete()})})(j)}
+      return ch.then(function(){mfPrevN[key]=n;return true},function(){return false}).then(function(cloudOk){return !!(localOk||cloudOk)});
+    });
   },
   get:function(key){
     if(!db)return kvGet(key);

@@ -1597,8 +1597,6 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
               <span class="inv-file"><input id="invLogoFile" type="file" accept="image/png,image/jpeg,image/webp"><button class="btn small" id="invLogoReset" type="button">Use dashboard logo</button><label class="inv-check"><input type="checkbox" id="invShowLogo" checked> Show logo</label></span></label>
             <label class="inv-full">Signature or stamp <small>(your signature is already added; upload a photo to replace it, the paper background is removed automatically)</small>
               <span class="inv-file"><input id="invSigFile" type="file" accept="image/png,image/jpeg,image/webp"><button class="btn small" id="invSigReset" type="button">Use my default signature</button><label class="inv-check"><input type="checkbox" id="invShowSig" checked> Show signature</label></span></label>
-            <label class="inv-full">Scan &amp; pay QR code <small>(upload your UPI / payment QR image; it is printed on every invoice)</small>
-              <span class="inv-file"><input id="invQrFile" type="file" accept="image/png,image/jpeg,image/webp"><button class="btn small" id="invQrReset" type="button">Remove QR</button><label class="inv-check"><input type="checkbox" id="invShowQr" checked> Show QR on invoice</label></span></label>
           </div>
         </details>
         <h4>Invoice details</h4>
@@ -1638,6 +1636,11 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
           <label>Payment mode<select class="field-in" id="invMode"><option value="">Not stated</option><option>Cash</option><option>UPI</option><option>Bank transfer</option><option>Card</option><option>Cash on delivery</option><option>Marketplace settlement</option></select></label>
           <label>Payment status<select class="field-in" id="invStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Partially paid">Partially paid</option></select></label>
           <label class="inv-full" id="invPaidWrap" hidden>Amount received (₹)<input class="field-in" id="invPaid" type="number" step="0.01" min="0" value="0"></label>
+          <div class="inv-full inv-qrbox">
+            <b>Payment QR code (Scan &amp; pay)</b>
+            <small>Upload the QR image customers should scan. It is printed on the invoice.</small>
+            <div class="inv-qrrow"><img id="invQrThumb" alt="" hidden><div class="inv-file"><input id="invQrFile" type="file" accept="image/png,image/jpeg,image/webp"><button class="btn small" id="invQrReset" type="button">Remove QR</button><label class="inv-check"><input type="checkbox" id="invShowQr" checked> Show QR on invoice</label></div></div>
+          </div>
           <label class="inv-full">Bank details <small>(optional, printed on the invoice)</small><textarea class="field-in" id="invBank" rows="2" placeholder="Bank name, A/c no, IFSC"></textarea></label>
           <label class="inv-full">Notes / terms<textarea class="field-in" id="invNotes" rows="3"></textarea></label>
         </div>
@@ -5502,6 +5505,7 @@ mfFile=file.name;mfSave();$('mfInfo').textContent=`Imported "${file.name}": ${ma
 #view-invoice .inv-item-grid label{display:grid;gap:3px;font-weight:600;font-size:.74rem;min-width:0}
 #view-invoice .inv-item-grid label.w5{grid-column:1/-1}
 #view-invoice .inv-item-grid input{width:100%;min-width:0}
+#view-invoice .inv-qrbox{display:grid;gap:6px;border:1px dashed rgba(0,0,0,.25);border-radius:12px;padding:10px 12px}#view-invoice .inv-qrbox small{opacity:.7}#view-invoice .inv-qrrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}#view-invoice #invQrThumb{width:84px;height:84px;object-fit:contain;background:#fff;border:1px solid rgba(0,0,0,.15);border-radius:8px}
 #view-invoice .inv-hint{font-size:.74rem;font-weight:600;min-height:1em;color:#8a5a00}
 #view-invoice .inv-hint.ok{color:#0f6f52}
 #view-invoice .inv-row-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -5652,7 +5656,7 @@ function sheetFix(){
   var miss=[];if(!(p.price>0))miss.push('selling price');if(!p.hsn)miss.push('HSN');
   setHint(i,'✓ Matched: '+(p.name||v)+(miss.length?' (add the '+miss.join(' and ')+' to this product in the Products tab to fill it in automatically)':''),true)}
  function syncVis(){$('invSAddrWrap').hidden=$('invSame').checked;$('invPaidWrap').hidden=$('invStatus').value!=='Partially paid'}
- function renderPreview(){syncVis();$('invPreview').innerHTML=sheetHtml();saveDraft()}
+ function renderPreview(){syncVis();var qt=$('invQrThumb'),qs=lsGet(QKEY);if(qt){if(qs){qt.src=qs;qt.hidden=false}else{qt.removeAttribute('src');qt.hidden=true}}$('invPreview').innerHTML=sheetHtml();saveDraft()}
  window.invRender=renderPreview;
  function newInvoice(){
   items=[{s:'',d:'',hsn:'',u:'Pcs',q:1,r:'',g:18}];

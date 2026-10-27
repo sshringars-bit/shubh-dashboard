@@ -1645,11 +1645,18 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
           <label class="inv-full">Notes / terms<textarea class="field-in" id="invNotes" rows="3"></textarea></label>
         </div>
         <div class="inv-actions">
+          <button class="btn primary" id="invSave" type="button">Save invoice</button>
           <button class="btn primary" id="invPdf" type="button">Download PDF</button>
           <button class="btn" id="invPrint" type="button">Print</button>
           <button class="btn" id="invNew" type="button">New invoice</button>
         </div>
         <p class="muted" id="invMsg" role="status"></p>
+        <details class="inv-biz inv-saved" id="invSavedBox" open>
+          <summary>Saved invoices (<span id="invSavedCount">0</span>)</summary>
+          <input class="field-in" id="invSavedQ" type="search" placeholder="Search by invoice no. or customer" autocomplete="off">
+          <div id="invSavedList" class="inv-saved-list"></div>
+          <p class="muted" style="margin:6px 0 0;font-size:.76rem">Invoices are saved automatically when you download or print them. Saving again with the same invoice number updates that invoice.</p>
+        </details>
       </section>
       <section class="inv-preview-box" aria-label="Invoice preview"><div id="invPreview"></div></section>
     </div>
@@ -5506,6 +5513,9 @@ mfFile=file.name;mfSave();$('mfInfo').textContent=`Imported "${file.name}": ${ma
 #view-invoice .inv-item-grid label.w5{grid-column:1/-1}
 #view-invoice .inv-item-grid input{width:100%;min-width:0}
 #view-invoice .inv-qrbox{display:grid;gap:6px;border:1px dashed rgba(0,0,0,.25);border-radius:12px;padding:10px 12px}#view-invoice .inv-qrbox small{opacity:.7}#view-invoice .inv-qrrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}#view-invoice #invQrThumb{width:84px;height:84px;object-fit:contain;background:#fff;border:1px solid rgba(0,0,0,.15);border-radius:8px}
+#view-invoice .inv-saved{display:grid;gap:8px}#view-invoice .inv-saved-list{display:grid;gap:8px;max-height:420px;overflow:auto}
+#view-invoice .inv-saved-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid rgba(0,0,0,.14);border-radius:10px;padding:8px 10px;background:rgba(255,255,255,.5)}
+#view-invoice .inv-saved-row small{display:block;opacity:.75;font-size:.74rem;margin-top:2px}#view-invoice .inv-saved-row .acts{display:flex;gap:6px;flex:none}
 #view-invoice .inv-hint{font-size:.74rem;font-weight:600;min-height:1em;color:#8a5a00}
 #view-invoice .inv-hint.ok{color:#0f6f52}
 #view-invoice .inv-row-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -5625,7 +5635,8 @@ function sheetFix(){
    '<div class="foot"><div class="small"><b>Notes / terms</b><br>'+nl($('invNotes').value)+'<br>Reverse charge: No<br>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</div><div class="sign"><div>For <b>'+esc(S.name)+'</b></div><div class="line">'+(sig?'<img src="'+esc(sig)+'" alt="Signature">':'')+'</div><b>Authorised signatory</b></div></div>'+
    '<div class="cap">This is a computer generated invoice.</div></div>'}
  function saveSeller(){lsSet(SKEY,JSON.stringify(seller()))}
- function saveDraft(){lsSet(DKEY,JSON.stringify({no:$('invNo').value,date:$('invDate').value,due:$('invDue').value,ref:$('invRef').value,po:$('invPo').value,poDate:$('invPoDate').value,pos:$('invPos').value,bn:$('invBName').value,ba:$('invBAddr').value,same:$('invSame').checked,sa:$('invShAddr').value,bp:$('invBPhone').value,be:$('invBEmail').value,bg:$('invBGst').value,incl:$('invIncl').checked,ship:$('invShip').value,disc:$('invDisc').value,mode:$('invMode').value,st:$('invStatus').value,paid:$('invPaid').value,bank:$('invBank').value,notes:$('invNotes').value,showLogo:$('invShowLogo').checked,showSig:$('invShowSig').checked,showQr:$('invShowQr').checked,items:items}))}
+ function draftObj(){return ({no:$('invNo').value,date:$('invDate').value,due:$('invDue').value,ref:$('invRef').value,po:$('invPo').value,poDate:$('invPoDate').value,pos:$('invPos').value,bn:$('invBName').value,ba:$('invBAddr').value,same:$('invSame').checked,sa:$('invShAddr').value,bp:$('invBPhone').value,be:$('invBEmail').value,bg:$('invBGst').value,incl:$('invIncl').checked,ship:$('invShip').value,disc:$('invDisc').value,mode:$('invMode').value,st:$('invStatus').value,paid:$('invPaid').value,bank:$('invBank').value,notes:$('invNotes').value,showLogo:$('invShowLogo').checked,showSig:$('invShowSig').checked,showQr:$('invShowQr').checked,items:items})}
+ function saveDraft(){lsSet(DKEY,JSON.stringify(draftObj()))}
  function renderItems(){
   var h='';
   items.forEach(function(it,i){
@@ -5665,11 +5676,12 @@ function sheetFix(){
   $('invPos').value=sellerState()||'07';$('invDate').value=today();$('invNo').value=nextNo($('invDate').value);
   renderItems();renderPreview()}
  function fillSeller(){var s=null;try{s=JSON.parse(lsGet(SKEY)||'null')}catch(e){}s=s||SELLER0;Object.keys(SF).forEach(function(k){$(SF[k]).value=s[k]!=null?s[k]:(SELLER0[k]||'')})}
+ function applyDraft(d){items=d.items.map(function(x){x.u=x.u==null?'Pcs':x.u;return x});$('invNo').value=d.no||'';$('invDate').value=d.date||today();$('invDue').value=d.due||'';$('invRef').value=d.ref||'';$('invPo').value=d.po||'';$('invPoDate').value=d.poDate||'';$('invShowSig').checked=d.showSig!==false;$('invShowQr').checked=d.showQr!==false;$('invPos').value=d.pos||'07';$('invBName').value=d.bn||'';$('invBAddr').value=d.ba||'';$('invSame').checked=d.same!==false;$('invShAddr').value=d.sa||'';$('invBPhone').value=d.bp||'';$('invBEmail').value=d.be||'';$('invBGst').value=d.bg||'';$('invIncl').checked=!!d.incl;$('invShip').value=d.ship||'0';$('invDisc').value=d.disc||'0';$('invMode').value=d.mode||'';$('invStatus').value=d.st||'Paid';$('invPaid').value=d.paid||'0';$('invBank').value=d.bank||'';$('invNotes').value=d.notes!=null?d.notes:NOTES0;$('invShowLogo').checked=d.showLogo!==false;if(!$('invNo').value)$('invNo').value=nextNo($('invDate').value);renderItems();renderPreview()}
  function init(){
   $('invPos').innerHTML=STATES.map(function(s){return '<option value="'+s[0]+'">'+s[1]+' ('+s[0]+')</option>'}).join('');
-  fillSeller();refreshSkuList();
+  fillSeller();refreshSkuList();loadSaved();
   var d=null;try{d=JSON.parse(lsGet(DKEY)||'null')}catch(e){}
-  if(d&&d.items&&d.items.length){items=d.items.map(function(x){x.u=x.u==null?'Pcs':x.u;return x});$('invNo').value=d.no||'';$('invDate').value=d.date||today();$('invDue').value=d.due||'';$('invRef').value=d.ref||'';$('invPo').value=d.po||'';$('invPoDate').value=d.poDate||'';$('invShowSig').checked=d.showSig!==false;$('invShowQr').checked=d.showQr!==false;$('invPos').value=d.pos||'07';$('invBName').value=d.bn||'';$('invBAddr').value=d.ba||'';$('invSame').checked=d.same!==false;$('invShAddr').value=d.sa||'';$('invBPhone').value=d.bp||'';$('invBEmail').value=d.be||'';$('invBGst').value=d.bg||'';$('invIncl').checked=!!d.incl;$('invShip').value=d.ship||'0';$('invDisc').value=d.disc||'0';$('invMode').value=d.mode||'';$('invStatus').value=d.st||'Paid';$('invPaid').value=d.paid||'0';$('invBank').value=d.bank||'';$('invNotes').value=d.notes!=null?d.notes:NOTES0;$('invShowLogo').checked=d.showLogo!==false;if(!$('invNo').value)$('invNo').value=nextNo($('invDate').value);renderItems();renderPreview()}
+  if(d&&d.items&&d.items.length)applyDraft(d);
   else newInvoice()}
  ['invNo','invDate','invDue','invRef','invPo','invPoDate','invPos','invBName','invBAddr','invSame','invShAddr','invBPhone','invBEmail','invBGst','invIncl','invShip','invDisc','invMode','invStatus','invPaid','invBank','invNotes','invShowLogo','invShowSig','invShowQr'].forEach(function(id){var e=$(id);e.addEventListener('input',renderPreview);e.addEventListener('change',renderPreview)});
  Object.keys(SF).forEach(function(k){var e=$(SF[k]);var h=function(){saveSeller();renderPreview()};e.addEventListener('input',h);e.addEventListener('change',h)});
@@ -5693,7 +5705,33 @@ function sheetFix(){
  $('invNew').addEventListener('click',function(){if(!confirm('Start a new invoice? The current form will be cleared. Your business details, logo and signature are kept.'))return;newInvoice();$('invMsg').textContent='New invoice started.'});
  function checkReady(){var c=calc();if(!$('invBName').value.trim()){$('invMsg').textContent='Please enter the buyer name first.';$('invBName').focus();return false}
   if(!c.lines.some(function(l){return l.taxable>0})){$('invMsg').textContent='Please add at least one item with a rate.';return false}return true}
- function markUsed(){var n=parseInt(lsGet(NKEY)||'1',10);if(!(n>0))n=1;if($('invNo').value===nextNo($('invDate').value)){lsSet(NKEY,String(n+1))}}
+ function advanceNo(){var n=parseInt(lsGet(NKEY)||'1',10);if(!(n>0))n=1;if($('invNo').value===nextNo($('invDate').value)){lsSet(NKEY,String(n+1))}}
+ function markUsed(){advanceNo();saveInvoice(true)}
+ var IKEY='ssc-invoices-v1',saved=[];
+ function readSaved(){var p;try{p=window.sscStore?window.sscStore.get(IKEY):Promise.resolve(null)}catch(e){p=Promise.resolve(null)}
+  return Promise.resolve(p).catch(function(){return null}).then(function(v){if(!Array.isArray(v)){try{v=JSON.parse(lsGet(IKEY)||'null')}catch(e){v=null}}return Array.isArray(v)?v:[]})}
+ function writeSaved(list){lsSet(IKEY,JSON.stringify(list));try{if(window.sscStore)return Promise.resolve(window.sscStore.put(IKEY,list)).catch(function(){return false})}catch(e){}return Promise.resolve(true)}
+ function loadSaved(){return readSaved().then(function(v){saved=v;renderSaved()})}
+ function renderSaved(){
+  var q=($('invSavedQ').value||'').trim().toLowerCase();
+  var L=saved.slice().sort(function(a,b){return (b.at||0)-(a.at||0)}).filter(function(r){return !q||((r.no||'')+' '+(r.buyer||'')).toLowerCase().indexOf(q)>-1});
+  $('invSavedCount').textContent=saved.length;
+  $('invSavedList').innerHTML=L.length?L.map(function(r){return '<div class="inv-saved-row"><div><b>'+esc(r.no)+'</b> &middot; '+(r.buyer?esc(r.buyer):'<i>(no customer yet)</i>')+'<small>'+esc(fmtDate(r.date))+' &middot; &#8377;'+money(r.grand||0)+' &middot; '+esc(r.status||'')+'</small></div><div class="acts"><button class="btn small" type="button" data-open="'+esc(r.no)+'">Open</button><button class="inv-x" type="button" data-delsaved="'+esc(r.no)+'" title="Delete this saved invoice" aria-label="Delete saved invoice">&#10005;</button></div></div>'}).join(''):'<p class="muted" style="margin:0">'+(saved.length?'No invoice matches your search.':'No saved invoices yet.')+'</p>'}
+ function saveInvoice(silent){
+  var no=($('invNo').value||'').trim();if(!no)return Promise.resolve(false);
+  var c=calc(),rec={no:no,date:$('invDate').value,buyer:$('invBName').value.trim(),grand:c.grand,status:c.status,at:Date.now(),form:draftObj()};
+  return readSaved().then(function(list){
+   var i=list.findIndex(function(r){return r.no===no});if(i>-1)list[i]=rec;else list.push(rec);
+   saved=list;renderSaved();
+   return writeSaved(list).then(function(ok){if(!silent)$('invMsg').textContent=ok?'Invoice '+no+' saved. Find it under Saved invoices.':'Invoice '+no+' is saved in this browser only (could not reach the shared database).';return ok})})}
+ $('invSave').addEventListener('click',function(){advanceNo();saveInvoice(false)});
+ $('invSavedQ').addEventListener('input',renderSaved);
+ $('invSavedList').addEventListener('click',function(e){
+  var o=e.target.closest&&e.target.closest('[data-open]'),d=e.target.closest&&e.target.closest('[data-delsaved]');
+  if(o){var r=saved.filter(function(x){return x.no===o.dataset.open})[0];if(r&&r.form){applyDraft(r.form);$('invMsg').textContent='Opened invoice '+r.no+'. Edit it and press Save invoice to update it.';try{$('invNo').scrollIntoView({behavior:'smooth',block:'center'})}catch(x){}}}
+  if(d){var no=d.dataset.delsaved;if(!confirm('Delete saved invoice '+no+'? This cannot be undone.'))return;
+   readSaved().then(function(list){list=list.filter(function(x){return x.no!==no});saved=list;renderSaved();return writeSaved(list)}).then(function(){$('invMsg').textContent='Deleted saved invoice '+no+'.'})}});
+ var invTab2=document.getElementById('tab-invoice');if(invTab2)invTab2.addEventListener('click',loadSaved);
  function fname(){return 'Invoice-'+($('invNo').value||'draft').replace(/[^A-Za-z0-9_-]+/g,'-')+'.pdf'}
  function printNow(){
   var f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);

@@ -5493,7 +5493,7 @@ mfFile=file.name;mfSave();$('mfInfo').textContent=`Imported "${file.name}": ${ma
 })();
 </script>
 <style id="invCss">
-#view-invoice .inv-wrap{display:grid;grid-template-columns:minmax(300px,460px) minmax(0,1fr);gap:16px;align-items:start}
+#view-invoice .inv-wrap{display:grid;grid-template-columns:minmax(420px,540px) minmax(0,1fr);gap:18px;align-items:start}
 @media(max-width:1100px){#view-invoice .inv-wrap{grid-template-columns:1fr}}
 #view-invoice .inv-form{padding:18px;display:grid;gap:12px}
 #view-invoice .inv-form h4{margin:6px 0 0;font-size:.95rem}
@@ -5516,6 +5516,26 @@ mfFile=file.name;mfSave();$('mfInfo').textContent=`Imported "${file.name}": ${ma
 #view-invoice .inv-saved{display:grid;gap:8px}#view-invoice .inv-saved-list{display:grid;gap:8px;max-height:420px;overflow:auto}
 #view-invoice .inv-saved-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid rgba(0,0,0,.14);border-radius:10px;padding:8px 10px;background:rgba(255,255,255,.5)}
 #view-invoice .inv-saved-row small{display:block;opacity:.75;font-size:.74rem;margin-top:2px}#view-invoice .inv-saved-row .acts{display:flex;gap:6px;flex:none}
+/* larger, easier-to-read form */
+#view-invoice .inv-form{padding:24px;gap:16px}
+#view-invoice .inv-form h4{font-size:1.2rem;margin-top:10px}
+#view-invoice .inv-grid{gap:14px}
+#view-invoice .inv-grid label,#view-invoice .inv-item-grid label{font-size:1rem;gap:6px}
+#view-invoice .inv-grid label small,#view-invoice .inv-qrbox small{font-size:.85rem}
+#view-invoice .inv-form .field-in,#view-invoice .inv-form input,#view-invoice .inv-form select,#view-invoice .inv-form textarea{font-size:1.05rem!important}
+#view-invoice .inv-form .field-in{min-height:48px;padding:10px 14px}
+#view-invoice .inv-biz summary{font-size:1.1rem}
+#view-invoice .inv-item{padding:14px 16px;gap:12px}
+#view-invoice .inv-item-top{font-size:1.05rem}
+#view-invoice .inv-item-grid{gap:12px}
+#view-invoice .inv-hint{font-size:.9rem}
+#view-invoice .inv-form .btn{font-size:1rem;padding:11px 18px}
+#view-invoice .inv-form .btn.small{font-size:.95rem;padding:9px 14px}
+#view-invoice label.inv-check,#view-invoice .inv-check{font-size:1rem}
+#view-invoice .inv-saved-row{font-size:1rem;padding:10px 12px}#view-invoice .inv-saved-row small{font-size:.88rem}
+#view-invoice .inv-qrbox{font-size:1rem}
+#view-invoice #invMsg{font-size:.95rem}
+@media(max-width:1400px){#view-invoice .inv-wrap{grid-template-columns:1fr}}
 #view-invoice .inv-hint{font-size:.74rem;font-weight:600;min-height:1em;color:#8a5a00}
 #view-invoice .inv-hint.ok{color:#0f6f52}
 #view-invoice .inv-row-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap}

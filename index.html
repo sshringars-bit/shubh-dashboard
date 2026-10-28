@@ -75,7 +75,7 @@ button,input{font:inherit;color:inherit}
 
 /* colour field */
 .aurora{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--bg);pointer-events:none}
-.blob{position:absolute;border-radius:50%;filter:blur(72px);opacity:.82}
+.blob{position:absolute;border-radius:50%;filter:blur(72px);opacity:.82;will-change:transform;contain:layout paint}
 .blob.b1{width:52vmax;height:52vmax;left:-14vmax;top:-18vmax;background:var(--blob-a);animation:drift1 28s ease-in-out infinite alternate}
 .blob.b2{width:46vmax;height:46vmax;right:-14vmax;top:6vmax;background:var(--blob-b);animation:drift2 32s ease-in-out infinite alternate}
 .blob.b3{width:44vmax;height:44vmax;left:18vmax;bottom:-22vmax;background:var(--blob-c);animation:drift3 36s ease-in-out infinite alternate}
@@ -87,8 +87,8 @@ button,input{font:inherit;color:inherit}
 /* glass */
 .glass{
   background:var(--glass);
-  -webkit-backdrop-filter:blur(28px) saturate(175%);
-  backdrop-filter:blur(28px) saturate(175%);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  backdrop-filter:blur(18px) saturate(160%);
   border:1px solid var(--stroke);
   border-radius:28px;
   box-shadow:var(--shadow),inset 0 1px 0 var(--hi);
@@ -1527,12 +1527,12 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
         <div class="full" id="staffAddBox" hidden style="display:flex;gap:6px;flex-wrap:wrap"><input class="field-in" id="staffNewName" maxlength="120" placeholder="New staff name" style="flex:1;min-width:160px"><button class="btn primary small" type="button" id="staffAddSave">Add</button><button class="btn small" type="button" id="staffAddCancel">Cancel</button></div>
         <label>Material / product made<input class="field-in" id="staffMaterial" maxlength="200" required placeholder="e.g. Toran, Poshak, Mukut"></label>
         <label>Amount (₹)<input class="field-in" id="staffAmount" type="number" min="0.01" step="0.01" required placeholder="Amount payable"></label>
-        <label>Payment / work date<input class="field-in" id="staffDate" type="date" required></label>
+        <label>Payment / work date<input class="field-in" id="staffDate" type="date" required></label><label>Status<select class="field-in" id="staffStatus"><option value="pending">Pending</option><option value="paid">Paid</option></select></label>
         <div class="full actions" style="justify-content:flex-start"><button class="btn primary" id="staffSave" type="submit">Save entry</button><button class="btn" id="staffCancelEdit" type="button" hidden>Cancel edit</button></div>
       </form><p class="err" id="staffErr" role="alert"></p>
     </section>
     <section class="glass" style="padding:20px;display:grid;gap:14px">
-      <div class="ledger-tools" style="margin:0"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">Month <input class="field-in" type="month" id="staffMonth"></label><input class="field-in search" id="staffSearch" type="search" placeholder="Search staff or material"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">PDF type <select class="field-in" id="staffPdfMode"><option value="staff">Staff wise</option><option value="month">Month wise</option><option value="year">Year wise</option></select></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">PDF staff <select class="field-in" id="staffPdfStaff"></select></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700" id="staffPdfYearWrap" hidden>Year <select class="field-in" id="staffPdfYear"></select></label><button class="btn primary" type="button" id="staffPdf">Download PDF</button><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">JPEG date <input class="field-in" type="date" id="staffJpgDate"></label><button class="btn primary" type="button" id="staffJpg">Download JPEG</button></div>
+      <div class="ledger-tools" style="margin:0"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">Month <input class="field-in" type="month" id="staffMonth"></label><input class="field-in search" id="staffSearch" type="search" placeholder="Search staff or material"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">PDF type <select class="field-in" id="staffPdfMode"><option value="staff">Staff wise</option><option value="month">Month wise</option><option value="year">Year wise</option></select></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">PDF staff <select class="field-in" id="staffPdfStaff"></select></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700" id="staffPdfYearWrap" hidden>Year <select class="field-in" id="staffPdfYear"></select></label><button class="btn primary" type="button" id="staffPdf">Download PDF</button><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">JPEG from <input class="field-in" type="date" id="staffJpgDate"></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">JPEG to (optional) <input class="field-in" type="date" id="staffJpgTo"></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">JPEG type <select class="field-in" id="staffJpgEach"><option value="all">One combined image</option><option value="each">Separate image per staff</option></select></label><button class="btn primary" type="button" id="staffJpg">Download JPEG</button><button class="btn" type="button" id="staffJpgShare">Share (WhatsApp)</button></div>
       <div id="staffSummary"></div><div class="tablewrap" id="staffTable"></div>
     </section>
   </div>
@@ -2260,9 +2260,9 @@ function staffAllNames(){var seen={},out=[];staffNameList.concat(staffRows.map(f
 function staffFillSelects(selName){var names=staffAllNames(),f=$('#staffName'),cur=selName!=null?selName:f.value;f.innerHTML='<option value="">Select staff name</option>'+names.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');f.value=names.indexOf(cur)>=0?cur:'';var pf=$('#staffPdfStaff'),pc=pf.value;pf.innerHTML='<option value="">All staff</option>'+names.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');pf.value=names.indexOf(pc)>=0?pc:'';var years={};years[todayISO().slice(0,4)]=1;staffRows.forEach(function(r){var y=String(r.date||'').slice(0,4);if(y)years[y]=1});var ys=Object.keys(years).sort().reverse(),py=$('#staffPdfYear'),pv=py.value||todayISO().slice(0,4);py.innerHTML=ys.map(function(y){return '<option>'+y+'</option>'}).join('');py.value=ys.indexOf(pv)>=0?pv:ys[0]}
 function staffAddName(){var inp=$('#staffNewName'),n=inp.value.trim().replace(/\s+/g,' ');if(!n){toast('Enter a staff name');return}var ex=staffAllNames().find(function(x){return x.toLowerCase()===n.toLowerCase()});if(ex){staffFillSelects(ex);toast('Staff already exists - selected');}else{staffNameList.push(n);staffNamesStore();staffFillSelects(n);toast('Staff added')}inp.value='';$('#staffAddBox').hidden=true}
 function staffMonthRows(){var m=$('#staffMonth').value,q=$('#staffSearch').value.trim().toLowerCase();return staffRows.filter(function(r){return (!m||String(r.date||'').slice(0,7)===m)&&(!q||[r.name,r.material].join(' ').toLowerCase().includes(q))}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'')})}
-function renderStaff(){var rows=staffMonthRows(),total=rows.reduce(function(a,r){return a+(Number(r.amount)||0)},0),people=new Set(rows.map(function(r){return r.name.toLowerCase()})).size;
- $('#staffSummary').innerHTML='<div class="staff-total"><div><small>Total payment</small><strong>'+staffMoney(total)+'</strong></div><div><small>Work entries</small><strong>'+rows.length+'</strong></div><div><small>Staff members</small><strong>'+people+'</strong></div></div>';
- $('#staffTable').innerHTML=rows.length?'<table><thead><tr><th>Date</th><th>Staff name</th><th>Material / product made</th><th class="r">Amount</th><th>Actions</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(shortDate(r.date))+'</td><td><b>'+esc(r.name)+'</b></td><td>'+esc(r.material)+'</td><td class="r num"><b>'+staffMoney(r.amount)+'</b></td><td><button class="btn small" type="button" data-staff-edit="'+esc(r.id)+'">Edit</button> <button class="btn small danger" type="button" data-staff-del="'+esc(r.id)+'">Delete</button></td></tr>'}).join('')+'</tbody><tfoot><tr><td colspan="3">Total for selected month</td><td class="r">'+staffMoney(total)+'</td><td></td></tr></tfoot></table>':'<div class="empty"><p>No staff payment entries for this month/search.</p></div>';
+function renderStaff(){var rows=staffMonthRows(),total=rows.reduce(function(a,r){return a+(Number(r.amount)||0)},0),people=new Set(rows.map(function(r){return r.name.toLowerCase()})).size,pending=rows.reduce(function(a,r){return a+(staffIsPaid(r)?0:(Number(r.amount)||0))},0);
+ $('#staffSummary').innerHTML='<div class="staff-total"><div><small>Total payment</small><strong>'+staffMoney(total)+'</strong></div><div><small>Work entries</small><strong>'+rows.length+'</strong></div><div><small>Staff members</small><strong>'+people+'</strong></div><div><small>Pending amount</small><strong'+(pending>0?' style="color:#b42318"':'')+'>'+staffMoney(pending)+'</strong></div></div>';
+ $('#staffTable').innerHTML=rows.length?'<table><thead><tr><th>Date</th><th>Staff name</th><th>Material / product made</th><th>Status</th><th class="r">Amount</th><th>Actions</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(shortDate(r.date))+'</td><td><b>'+esc(r.name)+'</b></td><td>'+esc(r.material)+'</td><td><button class="btn small" type="button" data-staff-paid="'+esc(r.id)+'" title="Click to change status" style="font-weight:700;color:'+(staffIsPaid(r)?'#1a7f4b':'#b42318')+'">'+(staffIsPaid(r)?'Paid':'Pending')+'</button></td><td class="r num"><b>'+staffMoney(r.amount)+'</b></td><td><button class="btn small" type="button" data-staff-edit="'+esc(r.id)+'">Edit</button> <button class="btn small danger" type="button" data-staff-del="'+esc(r.id)+'">Delete</button></td></tr>'}).join('')+'</tbody><tfoot><tr><td colspan="4">Total for selected month</td><td class="r">'+staffMoney(total)+'</td><td></td></tr></tfoot></table>':'<div class="empty"><p>No staff payment entries for this month/search.</p></div>';
  staffFillSelects();
 }
 function resetStaffForm(){staffEditing=null;$('#staffForm').reset();$('#staffDate').value=todayISO();$('#staffFormTitle').textContent='Add staff work';$('#staffSave').textContent='Save entry';$('#staffCancelEdit').hidden=true;$('#staffErr').textContent='';$('#staffAddBox').hidden=true}
@@ -2272,47 +2272,68 @@ function bindStaff(){staffLoad();$('#staffMonth').value=todayISO().slice(0,7);$(
  $('#staffAddCancel').addEventListener('click',function(){$('#staffNewName').value='';$('#staffAddBox').hidden=true});
  $('#staffNewName').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();staffAddName()}});
  $('#staffPdfMode').addEventListener('change',function(){var m=$('#staffPdfMode').value;$('#staffPdfYearWrap').hidden=m!=='year'});
- $('#staffForm').addEventListener('submit',function(e){e.preventDefault();var name=$('#staffName').value.trim(),material=$('#staffMaterial').value.trim(),amount=Number($('#staffAmount').value),date=$('#staffDate').value;if(!name||!material||!date||!(amount>0)){$('#staffErr').textContent='Select staff name, enter material/product, a valid amount and date.';return}var row={id:staffEditing||('st'+Date.now().toString(36)),name:name,material:material,amount:amount,date:date,updated:Date.now()};if(staffEditing){var i=staffRows.findIndex(function(x){return x.id===staffEditing});if(i>=0)staffRows[i]=row}else staffRows.push(row);staffStore();resetStaffForm();$('#staffMonth').value=date.slice(0,7);renderStaff();toast('Staff payment entry saved')});
+ $('#staffForm').addEventListener('submit',function(e){e.preventDefault();var name=$('#staffName').value.trim(),material=$('#staffMaterial').value.trim(),amount=Number($('#staffAmount').value),date=$('#staffDate').value;if(!name||!material||!date||!(amount>0)){$('#staffErr').textContent='Select staff name, enter material/product, a valid amount and date.';return}var row={id:staffEditing||('st'+Date.now().toString(36)),name:name,material:material,amount:amount,date:date,paid:$('#staffStatus').value==='paid',updated:Date.now()};if(staffEditing){var i=staffRows.findIndex(function(x){return x.id===staffEditing});if(i>=0)staffRows[i]=row}else staffRows.push(row);staffStore();resetStaffForm();$('#staffMonth').value=date.slice(0,7);renderStaff();toast('Staff payment entry saved')});
  $('#staffCancelEdit').addEventListener('click',resetStaffForm);$('#staffMonth').addEventListener('change',renderStaff);$('#staffSearch').addEventListener('input',renderStaff);
- $('#staffTable').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;if(b.dataset.staffEdit){var r=staffRows.find(function(x){return x.id===b.dataset.staffEdit});if(!r)return;staffEditing=r.id;staffFillSelects(r.name);$('#staffMaterial').value=r.material;$('#staffAmount').value=r.amount;$('#staffDate').value=r.date;$('#staffFormTitle').textContent='Edit staff work';$('#staffSave').textContent='Update entry';$('#staffCancelEdit').hidden=false;$('#staffErr').textContent='';$('#staffName').focus()}else if(b.dataset.staffDel){if(!confirm('Delete this staff payment entry?'))return;staffRows=staffRows.filter(function(x){return x.id!==b.dataset.staffDel});staffStore();renderStaff();toast('Entry deleted')}});
- $('#staffPdf').addEventListener('click',staffPrintPdf);$('#staffJpgDate').value=todayISO();$('#staffJpg').addEventListener('click',staffDownloadJpg);}
-function staffDownloadJpg(){var d=$('#staffJpgDate').value,who=$('#staffPdfStaff').value;
- if(!d){toast('Select a date for the JPEG');return}
- var rows=staffRows.filter(function(r){return String(r.date||'')===d&&(!who||r.name.toLowerCase()===who.toLowerCase())}).sort(function(a,b){return a.name.localeCompare(b.name)});
- if(!rows.length){toast('No entries for this date');return}
- var total=rows.reduce(function(a,r){return a+(Number(r.amount)||0)},0);
- var W=900,pad=36,F='Arial,Helvetica,sans-serif',cw=[50,190,408,180],cx=[pad],i;for(i=0;i<cw.length;i++)cx.push(cx[i]+cw[i]);
- var cv=document.createElement('canvas'),c=cv.getContext('2d');
- function wrap(t,mw,font){c.font=font;var words=String(t).split(/\s+/),lines=[],cur='';words.forEach(function(w){var tt=cur?cur+' '+w:w;if(c.measureText(tt).width>mw&&cur){lines.push(cur);cur=w}else cur=tt});if(cur)lines.push(cur);return lines.length?lines:['']}
- var lay=rows.map(function(r){var ml=wrap(r.material,cw[2]-20,'16px '+F),nl=wrap(r.name,cw[1]-20,'bold 16px '+F),n=Math.max(ml.length,nl.length);return {r:r,ml:ml,nl:nl,h:n*22+20}});
- var logoImg=null,logo=document.querySelector('img.logo');
- function build(useLogo){
-  var headH=useLogo&&logoImg?150:70,H=pad+headH+110+34+lay.reduce(function(a,l){return a+l.h},0)+70+60+pad;
-  cv.width=W;cv.height=H;c=cv.getContext('2d');
-  c.fillStyle='#fff';c.fillRect(0,0,W,H);
-  var y=pad;
-  if(useLogo&&logoImg){var lh=110,lw=logoImg.width*lh/logoImg.height;if(lw>360){lw=360;lh=logoImg.height*lw/logoImg.width}c.drawImage(logoImg,(W-lw)/2,y,lw,lh);y+=lh+10}
-  else{c.fillStyle='#8e452b';c.font='bold 26px '+F;c.textAlign='center';c.fillText('SHUBH SHRINGAR CREATIONS',W/2,y+28);y+=44}
-  c.textAlign='center';c.fillStyle='#8e452b';c.font='bold 24px '+F;c.fillText('Daily Work & Payment Details',W/2,y+24);y+=36;
-  c.fillStyle='#222';c.font='17px '+F;c.fillText(new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric',weekday:'long'})+(who?'  -  '+who:''),W/2,y+22);y+=34;
-  c.strokeStyle='#9b4b2e';c.lineWidth=2;c.beginPath();c.moveTo(pad,y);c.lineTo(W-pad,y);c.stroke();y+=18;
-  c.fillStyle='#f5e8e1';c.fillRect(pad,y,W-2*pad,34);c.fillStyle='#8e452b';c.font='bold 15px '+F;c.textAlign='left';
-  c.fillText('Sr.',cx[0]+10,y+22);c.fillText('Staff name',cx[1]+10,y+22);c.fillText('Work / product made',cx[2]+10,y+22);c.textAlign='right';c.fillText('Amount (INR)',cx[4]-10,y+22);y+=34;
-  lay.forEach(function(l,k){
-   if(k%2)c.fillStyle='#fcf7f4',c.fillRect(pad,y,W-2*pad,l.h);
-   c.fillStyle='#222';c.textAlign='left';c.font='16px '+F;c.fillText(String(k+1),cx[0]+10,y+26);
-   c.font='bold 16px '+F;l.nl.forEach(function(t,j){c.fillText(t,cx[1]+10,y+26+j*22)});
-   c.font='16px '+F;l.ml.forEach(function(t,j){c.fillText(t,cx[2]+10,y+26+j*22)});
-   c.textAlign='right';c.font='bold 16px '+F;c.fillText(staffMoney(l.r.amount),cx[4]-10,y+26);
-   c.strokeStyle='#e5d8d0';c.lineWidth=1;c.beginPath();c.moveTo(pad,y+l.h);c.lineTo(W-pad,y+l.h);c.stroke();y+=l.h});
-  y+=18;c.fillStyle='#8e452b';c.fillRect(pad,y,W-2*pad,48);c.fillStyle='#fff';c.font='bold 19px '+F;c.textAlign='left';c.fillText('Total Payment',pad+14,y+31);c.textAlign='right';c.fillText(staffMoney(total),W-pad-14,y+31);y+=78;
-  c.textAlign='center';c.fillStyle='#8e452b';c.font='bold 17px '+F;c.fillText('Dil se Dhanyavad!',W/2,y);
-  c.fillStyle='#555';c.font='13px '+F;c.fillText('Thank you for your time, hard work and skill - Shubh Shringar Creations',W/2,y+24);
- }
- function save(){var who2=(who||'all-staff').replace(/[^A-Za-z0-9]+/g,'-');cv.toBlob(function(b){if(!b){toast('Could not create JPEG');return}var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='staff-payment-'+who2+'-'+d+'.jpg';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);toast('JPEG downloaded')},'image/jpeg',0.95)}
- function go(useLogo){try{build(useLogo);save()}catch(e){if(useLogo){go(false)}else toast('Could not create JPEG')}}
- if(logo&&logo.src){logoImg=new Image();logoImg.onload=function(){go(true)};logoImg.onerror=function(){logoImg=null;go(false)};logoImg.src=logo.src}else go(false);
-}
+ $('#staffTable').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;if(b.dataset.staffPaid){var pr=staffRows.find(function(x){return x.id===b.dataset.staffPaid});if(pr){pr.paid=!staffIsPaid(pr);pr.updated=Date.now();staffStore();renderStaff();toast(pr.paid?'Marked as paid':'Marked as pending')}return}if(b.dataset.staffEdit){var r=staffRows.find(function(x){return x.id===b.dataset.staffEdit});if(!r)return;staffEditing=r.id;staffFillSelects(r.name);$('#staffMaterial').value=r.material;$('#staffAmount').value=r.amount;$('#staffDate').value=r.date;$('#staffStatus').value=staffIsPaid(r)?'paid':'pending';$('#staffFormTitle').textContent='Edit staff work';$('#staffSave').textContent='Update entry';$('#staffCancelEdit').hidden=false;$('#staffErr').textContent='';$('#staffName').focus()}else if(b.dataset.staffDel){if(!confirm('Delete this staff payment entry?'))return;staffRows=staffRows.filter(function(x){return x.id!==b.dataset.staffDel});staffStore();renderStaff();toast('Entry deleted')}});
+ $('#staffPdf').addEventListener('click',staffPrintPdf);$('#staffJpgDate').value=todayISO();$('#staffJpg').addEventListener('click',function(){staffJpgRun(false)});$('#staffJpgShare').addEventListener('click',function(){staffJpgRun(true)});}
+function staffIsPaid(r){return r.paid!==false}
+function staffJpgRows(){var f=$('#staffJpgDate').value,t=$('#staffJpgTo').value||f,who=$('#staffPdfStaff').value;
+ if(!f){toast('Select a date for the JPEG');return null}
+ if(t<f){var x=f;f=t;t=x}
+ var rows=staffRows.filter(function(r){var d=String(r.date||'');return d>=f&&d<=t&&(!who||r.name.toLowerCase()===who.toLowerCase())}).sort(function(a,b){return (a.date||'').localeCompare(b.date||'')||a.name.localeCompare(b.name)});
+ if(!rows.length){toast('No entries for this date');return null}
+ return {rows:rows,from:f,to:t,who:who}}
+function staffJpgMake(rows,from,to,who){
+ return new Promise(function(resolve,reject){
+  var W=900,pad=36,F='Arial,Helvetica,sans-serif',cw=[44,160,330,100,194],cx=[pad],i;for(i=0;i<cw.length;i++)cx.push(cx[i]+cw[i]);
+  var multi=from!==to,tmp=document.createElement('canvas').getContext('2d');
+  var fmt=function(d,wd){return new Date(d+'T00:00:00').toLocaleDateString('en-IN',wd?{day:'numeric',month:'long',year:'numeric',weekday:'long'}:{day:'numeric',month:'long',year:'numeric'})};
+  function wrap(t,mw,font){tmp.font=font;var words=String(t).split(/\s+/),lines=[],cur='';words.forEach(function(w){var tt=cur?cur+' '+w:w;if(tmp.measureText(tt).width>mw&&cur){lines.push(cur);cur=w}else cur=tt});if(cur)lines.push(cur);return lines.length?lines:['']}
+  var items=[],sr=0,last=null,total=0,pend=0;
+  rows.forEach(function(r){var amt=Number(r.amount)||0;total+=amt;if(!staffIsPaid(r))pend+=amt;
+   if(multi&&r.date!==last){last=r.date;var ds=rows.filter(function(x){return x.date===r.date}).reduce(function(a,x){return a+(Number(x.amount)||0)},0);items.push({t:'day',label:fmt(r.date,true),sum:ds,h:34})}
+   sr++;var ml=wrap(r.material,cw[2]-20,'16px '+F),nl=wrap(r.name,cw[1]-20,'bold 16px '+F),n=Math.max(ml.length,nl.length);items.push({t:'row',r:r,sr:sr,ml:ml,nl:nl,h:n*22+20})});
+  function draw(c,logoImg,H){
+   c.fillStyle='#fff';c.fillRect(0,0,W,H);var y=pad;
+   if(logoImg){var lh=110,lw=logoImg.width*lh/logoImg.height;if(lw>360){lw=360;lh=logoImg.height*lw/logoImg.width}c.drawImage(logoImg,(W-lw)/2,y,lw,lh);y+=lh+10}
+   else{c.fillStyle='#8e452b';c.font='bold 26px '+F;c.textAlign='center';c.fillText('SHUBH SHRINGAR CREATIONS',W/2,y+28);y+=44}
+   c.textAlign='center';c.fillStyle='#8e452b';c.font='bold 24px '+F;c.fillText(multi?'Work & Payment Details':'Daily Work & Payment Details',W/2,y+24);y+=36;
+   c.fillStyle='#222';c.font='17px '+F;c.fillText((multi?fmt(from)+'  to  '+fmt(to):fmt(from,true))+(who?'  -  '+who:''),W/2,y+22);y+=34;
+   c.strokeStyle='#9b4b2e';c.lineWidth=2;c.beginPath();c.moveTo(pad,y);c.lineTo(W-pad,y);c.stroke();y+=18;
+   c.fillStyle='#f5e8e1';c.fillRect(pad,y,W-2*pad,34);c.fillStyle='#8e452b';c.font='bold 15px '+F;c.textAlign='left';
+   c.fillText('Sr.',cx[0]+10,y+22);c.fillText('Staff name',cx[1]+10,y+22);c.fillText('Work / product made',cx[2]+10,y+22);c.fillText('Status',cx[3]+10,y+22);c.textAlign='right';c.fillText('Amount (INR)',cx[4]+cw[4]-10,y+22);y+=34;
+   var k=0;items.forEach(function(l){
+    if(l.t==='day'){c.fillStyle='#faf1ec';c.fillRect(pad,y,W-2*pad,l.h);c.fillStyle='#8e452b';c.textAlign='left';c.font='bold 15px '+F;c.fillText(l.label,pad+10,y+22);c.textAlign='right';c.fillText('Day total  '+staffMoney(l.sum),W-pad-10,y+22);y+=l.h;return}
+    if(k++%2){c.fillStyle='#fcf7f4';c.fillRect(pad,y,W-2*pad,l.h)}
+    c.fillStyle='#222';c.textAlign='left';c.font='16px '+F;c.fillText(String(l.sr),cx[0]+10,y+26);
+    c.font='bold 16px '+F;l.nl.forEach(function(t,j){c.fillText(t,cx[1]+10,y+26+j*22)});
+    c.font='16px '+F;l.ml.forEach(function(t,j){c.fillText(t,cx[2]+10,y+26+j*22)});
+    var pd=staffIsPaid(l.r);c.fillStyle=pd?'#1a7f4b':'#b42318';c.font='bold 14px '+F;c.fillText(pd?'Paid':'Pending',cx[3]+10,y+26);
+    c.fillStyle='#222';c.textAlign='right';c.font='bold 16px '+F;c.fillText(staffMoney(l.r.amount),cx[4]+cw[4]-10,y+26);
+    c.strokeStyle='#e5d8d0';c.lineWidth=1;c.beginPath();c.moveTo(pad,y+l.h);c.lineTo(W-pad,y+l.h);c.stroke();y+=l.h});
+   y+=18;c.fillStyle='#8e452b';c.fillRect(pad,y,W-2*pad,48);c.fillStyle='#fff';c.font='bold 19px '+F;c.textAlign='left';c.fillText('Total Payment',pad+14,y+31);c.textAlign='right';c.fillText(staffMoney(total),W-pad-14,y+31);y+=48;
+   if(pend>0){y+=26;c.font='bold 16px '+F;c.textAlign='right';c.fillStyle='#1a7f4b';c.fillText('Paid: '+staffMoney(total-pend),W-pad-14-200,y);c.fillStyle='#b42318';c.fillText('Pending: '+staffMoney(pend),W-pad-14,y);y+=6}
+   y+=38;c.textAlign='center';c.fillStyle='#8e452b';c.font='bold 17px '+F;c.fillText('Dil se Dhanyavad!',W/2,y);
+   c.fillStyle='#555';c.font='13px '+F;c.fillText('Thank you for your time, hard work and skill - Shubh Shringar Creations',W/2,y+24);y+=24;
+   return y+pad}
+  function render(logoImg){var H=draw(tmp,logoImg,10);var cv=document.createElement('canvas');cv.width=W;cv.height=H;draw(cv.getContext('2d'),logoImg,H);cv.toBlob(function(b){b?resolve(b):reject(new Error('blob'))},'image/jpeg',0.95)}
+  function go(logoImg){try{render(logoImg)}catch(e){if(logoImg)go(null);else reject(e)}}
+  var logo=document.querySelector('img.logo');
+  if(logo&&logo.src){var im=new Image();im.onload=function(){go(im)};im.onerror=function(){go(null)};im.src=logo.src}else go(null);
+ })}
+function staffJpgSave(files){files.forEach(function(f,i){setTimeout(function(){var a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500)},i*600)})}
+function staffJpgRun(share){var s=staffJpgRows();if(!s)return;
+ var each=$('#staffJpgEach').value==='each'&&!s.who,names=[''];
+ if(each){var seen={};names=[];s.rows.forEach(function(r){var k=r.name.toLowerCase();if(!seen[k]){seen[k]=1;names.push(r.name)}})}
+ var btns=[$('#staffJpg'),$('#staffJpgShare')];btns.forEach(function(b){b.disabled=true});
+ var range=s.from+(s.to!==s.from?'_to_'+s.to:'');
+ Promise.all(names.map(function(n){var rr=n?s.rows.filter(function(r){return r.name.toLowerCase()===n.toLowerCase()}):s.rows,w=n||s.who;
+  return staffJpgMake(rr,s.from,s.to,w).then(function(b){return new File([b],'staff-payment-'+((w||'all-staff').replace(/[^A-Za-z0-9]+/g,'-'))+'-'+range+'.jpg',{type:'image/jpeg'})})})).then(function(files){
+  if(share){
+   if(navigator.canShare&&navigator.canShare({files:files})){return navigator.share({files:files,title:'Staff payment details'}).catch(function(e){if(!e||e.name!=='AbortError'){staffJpgSave(files);toast('Could not open sharing - image downloaded instead')}})}
+   staffJpgSave(files);toast('Sharing is not supported here - image downloaded, attach it in WhatsApp');return}
+  staffJpgSave(files);toast(files.length>1?files.length+' JPEGs downloading':'JPEG downloaded')
+ }).catch(function(){toast('Could not create JPEG')}).then(function(){btns.forEach(function(b){b.disabled=false})})}
 function staffGroup(rows,keyFn,labelFn){var g={},order=[];rows.forEach(function(r){var k=keyFn(r);if(!g[k]){g[k]=[];order.push(k)}g[k].push(r)});order.sort();return order.map(function(k){return {label:labelFn(k),rows:g[k]}})}
 function staffPrintPdf(){var mode=$('#staffPdfMode').value,who=$('#staffPdfStaff').value,m=$('#staffMonth').value,y=$('#staffPdfYear').value;
  var rows=staffRows.filter(function(r){var d=String(r.date||'');if(who&&r.name.toLowerCase()!==who.toLowerCase())return false;if(mode==='month')return !!m&&d.slice(0,7)===m;if(mode==='year')return d.slice(0,4)===y;return true}).sort(function(a,b){return (a.date||'').localeCompare(b.date||'')});
@@ -2323,13 +2344,31 @@ function staffPrintPdf(){var mode=$('#staffPdfMode').value,who=$('#staffPdfStaff
  if(mode==='month'){title='Month-wise Staff Payment Statement';sub=monthName(m)+' - '+(who||'All staff');groups=staffGroup(rows,function(r){return r.name.toLowerCase()},function(k){return rows.find(function(r){return r.name.toLowerCase()===k}).name})}
  else if(mode==='year'){title='Year-wise Staff Payment Statement';sub='Year '+y+' - '+(who||'All staff');groups=staffGroup(rows,function(r){return String(r.date).slice(0,7)},monthName)}
  else{title='Staff-wise Payment Statement';sub=(who||'All staff')+' - All dates';groups=staffGroup(rows,function(r){return r.name.toLowerCase()},function(k){return rows.find(function(r){return r.name.toLowerCase()===k}).name})}
- var total=rows.reduce(function(a,r){return a+(Number(r.amount)||0)},0),sr=0;
- var body=groups.map(function(g){var sub=g.rows.reduce(function(a,r){return a+(Number(r.amount)||0)},0);return '<tr class="grp"><td colspan="5">'+esc(g.label)+'</td></tr>'+g.rows.map(function(r){sr++;return '<tr><td>'+sr+'</td><td>'+esc(shortDate(r.date))+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.material)+'</td><td class="amount">'+staffMoney(r.amount)+'</td></tr>'}).join('')+'<tr class="sub"><td colspan="4">Subtotal - '+esc(g.label)+'</td><td class="amount">'+staffMoney(sub)+'</td></tr>'}).join('');
+ var total=rows.reduce(function(a,r){return a+(Number(r.amount)||0)},0),pendTot=rows.reduce(function(a,r){return a+(staffIsPaid(r)?0:(Number(r.amount)||0))},0),sr=0;
+ var body=groups.map(function(g){var sub=g.rows.reduce(function(a,r){return a+(Number(r.amount)||0)},0);return '<tr class="grp"><td colspan="6">'+esc(g.label)+'</td></tr>'+g.rows.map(function(r){sr++;return '<tr><td>'+sr+'</td><td>'+esc(shortDate(r.date))+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.material)+'</td><td style="font-weight:bold;color:'+(staffIsPaid(r)?'#1a7f4b':'#b42318')+'">'+(staffIsPaid(r)?'Paid':'Pending')+'</td><td class="amount">'+staffMoney(r.amount)+'</td></tr>'}).join('')+'<tr class="sub"><td colspan="5">Subtotal - '+esc(g.label)+'</td><td class="amount">'+staffMoney(sub)+'</td></tr>'}).join('');
  var summary='';
  if(mode==='year'&&!who){var sg=staffGroup(rows,function(r){return r.name.toLowerCase()},function(k){return rows.find(function(r){return r.name.toLowerCase()===k}).name});summary='<h2>Staff-wise summary for '+esc(y)+'</h2><table><thead><tr><th>Staff Name</th><th>Entries</th><th class="amount">Total (INR)</th></tr></thead><tbody>'+sg.map(function(g){return '<tr><td>'+esc(g.label)+'</td><td>'+g.rows.length+'</td><td class="amount">'+staffMoney(g.rows.reduce(function(a,r){return a+(Number(r.amount)||0)},0))+'</td></tr>'}).join('')+'</tbody></table>'}
- var logo=document.querySelector('.logo'),logoSrc=logo?logo.src:'';
- var w=window.open('','_blank');if(!w){toast('Please allow pop-ups to download the PDF');return}
- w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+' - '+esc(sub)+'</title><style>body{font:14px Arial,sans-serif;color:#222;margin:32px}header{text-align:center;border-bottom:2px solid #9b4b2e;padding-bottom:18px;margin-bottom:22px}header img{max-width:260px;max-height:150px;object-fit:contain}h1{font-size:22px;margin:12px 0 4px;color:#8e452b}h2{font-size:17px;color:#8e452b;margin:28px 0 8px}p{margin:4px 0}.meta{display:flex;justify-content:space-between;margin:18px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:9px;text-align:left}th{background:#f5e8e1}td.amount,th.amount{text-align:right}tr.grp td{background:#faf1ec;font-weight:bold;color:#8e452b}tr.sub td{font-weight:bold;background:#fafafa}tr{page-break-inside:avoid}.total{text-align:right;font-size:18px;font-weight:bold;margin-top:16px}.thanks{text-align:center;margin-top:44px;padding-top:18px;border-top:1px solid #ddd;color:#8e452b;font-size:17px;font-weight:bold}.thanks small{display:block;color:#555;font-size:13px;font-weight:normal;margin-top:8px}@media print{body{margin:16mm}}</style></head><body><header>'+(logoSrc?'<img src="'+logoSrc+'">':'<h1>SHUBH SHRINGAR CREATIONS</h1>')+'<h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p></header><div class="meta"><span>Generated: '+esc(shortDate(todayISO()))+'</span><span>Total entries: '+rows.length+'</span></div><table><thead><tr><th>Sr. No.</th><th>Date</th><th>Staff Name</th><th>Material / Product Made</th><th class="amount">Amount (INR)</th></tr></thead><tbody>'+body+'</tbody></table><div class="total">Total Payment: '+staffMoney(total)+'</div>'+summary+'<div class="thanks">♥ Dil se Dhanyavad!<small>Thank you for sharing your time, hard work and skill with Shubh Shringar Creations.</small></div><script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>');w.document.close();}
+ var logo=document.querySelector('img.logo'),logoSrc=logo?logo.src:'';
+ var fname=(mode==='year'?'staff-payment-year-'+y:mode==='month'?'staff-payment-'+m:'staff-payment-all-dates')+(who?'-'+who.replace(/[^A-Za-z0-9]+/g,'-'):'')+'.pdf';
+ var btn=$('#staffPdf'),oldTxt=btn.textContent;btn.disabled=true;btn.textContent='Preparing PDF...';toast('Preparing your PDF...');
+ function lib(url,ok){return new Promise(function(res,rej){if(ok()){res();return}var sc=document.createElement('script');sc.src=url;sc.onload=function(){ok()?res():rej(new Error('lib'))};sc.onerror=function(){rej(new Error('lib'))};document.head.appendChild(sc)})}
+ var host=null;
+ Promise.all([lib('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',function(){return !!window.html2canvas}),lib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',function(){return !!(window.jspdf&&window.jspdf.jsPDF)})]).then(function(){
+  host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1';
+  host.innerHTML='<style>.spdf{font:14px Arial,sans-serif;color:#222;padding:24px 28px;background:#fff;width:794px;box-sizing:border-box}.spdf header{text-align:center;border-bottom:2px solid #9b4b2e;padding-bottom:18px;margin-bottom:22px}.spdf header img{max-width:260px;max-height:150px;object-fit:contain}.spdf h1{font-size:22px;margin:12px 0 4px;color:#8e452b}.spdf h2{font-size:17px;color:#8e452b;margin:28px 0 8px}.spdf p{margin:4px 0}.spdf .meta{display:flex;justify-content:space-between;margin:18px 0}.spdf table{width:100%;border-collapse:collapse}.spdf th,.spdf td{border:1px solid #ddd;padding:9px;text-align:left}.spdf th{background:#f5e8e1}.spdf td.amount,.spdf th.amount{text-align:right}.spdf th,.spdf td{padding:9px 7px;font-size:13px}.spdf th:nth-child(1),.spdf td:nth-child(1){width:44px}.spdf td:nth-child(2),.spdf th:nth-child(2),.spdf td.amount,.spdf th.amount,.spdf td:nth-child(5){white-space:nowrap}.spdf tr.grp td{background:#faf1ec;font-weight:bold;color:#8e452b}.spdf tr.sub td{font-weight:bold;background:#fafafa}.spdf .total{text-align:right;font-size:18px;font-weight:bold;margin-top:16px}.spdf .thanks{text-align:center;margin-top:44px;padding-top:18px;border-top:1px solid #ddd;color:#8e452b;font-size:17px;font-weight:bold}.spdf .thanks small{display:block;color:#555;font-size:13px;font-weight:normal;margin-top:8px}</style><div class="spdf"><header>'+(logoSrc?'<img src="'+logoSrc+'">':'<h1>SHUBH SHRINGAR CREATIONS</h1>')+'<h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p></header><div class="meta"><span>Generated: '+esc(shortDate(todayISO()))+'</span><span>Total entries: '+rows.length+'</span></div><table><thead><tr><th>Sr. No.</th><th>Date</th><th>Staff Name</th><th>Material / Product Made</th><th>Status</th><th class="amount">Amount (INR)</th></tr></thead><tbody>'+body+'</tbody></table><div class="total">Total Payment: '+staffMoney(total)+'</div>'+(pendTot>0?'<div class="total" style="font-size:14px;color:#b42318">Paid: '+staffMoney(total-pendTot)+' &nbsp;|&nbsp; Pending: '+staffMoney(pendTot)+'</div>':'')+summary+'<div class="thanks">&hearts; Dil se Dhanyavad!<small>Thank you for sharing your time, hard work and skill with Shubh Shringar Creations.</small></div></div>';
+  document.body.appendChild(host);var sh=host.querySelector('.spdf');
+  var waits=[].map.call(host.querySelectorAll('img'),function(im){return im.complete?Promise.resolve():new Promise(function(r){im.onload=im.onerror=r})});
+  return Promise.all(waits).then(function(){
+   var W=sh.offsetWidth,H=sh.offsetHeight,pageH=Math.floor(285*W/198),t0=sh.getBoundingClientRect().top;
+   var blocks=[].map.call(sh.querySelectorAll('tr,.total,.thanks,h2,header'),function(e){var r=e.getBoundingClientRect();return [r.top-t0,r.bottom-t0]});
+   var cuts=[0],y0=0;while(H-y0>pageH+1){var y1=y0+pageH,again=true,g=0;while(again&&g++<80){again=false;for(var i=0;i<blocks.length;i++){var bl=blocks[i];if(bl[0]>y0+40&&bl[0]<y1-0.5&&bl[1]>y1+0.5){y1=bl[0];again=true}}}cuts.push(y1);y0=y1}cuts.push(H);
+   var scl=Math.max(1.5,Math.min(3,Math.sqrt(16000000/(W*H)),16000/H));
+   return window.html2canvas(sh,{scale:scl,backgroundColor:'#ffffff',useCORS:true,logging:false}).then(function(cv){
+    var k=cv.height/H,J=window.jspdf.jsPDF,pdf=new J({orientation:'portrait',unit:'mm',format:'a4',compress:true}),m0=6,pw=198;
+    for(var pg=0;pg<cuts.length-1;pg++){var ys=Math.round(cuts[pg]*k),ye=Math.min(cv.height,Math.round(cuts[pg+1]*k)),sl=ye-ys;if(sl<=0)continue;var pc=document.createElement('canvas');pc.width=cv.width;pc.height=sl;var cx=pc.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,pc.width,sl);cx.drawImage(cv,0,ys,cv.width,sl,0,0,cv.width,sl);if(pg>0)pdf.addPage();pdf.addImage(pc.toDataURL('image/jpeg',0.95),'JPEG',m0,m0,pw,sl*pw/cv.width,undefined,'FAST')}
+    pdf.save(fname);toast('PDF downloaded')})
+  })
+ }).catch(function(){toast('Could not create the PDF. Check your internet connection and try again.')}).then(function(){if(host)host.remove();btn.disabled=false;btn.textContent=oldTxt});}
 
 /* ---- payment report ---- */
 var PAY_KEY='ssc-payments-v1',PAY_RTO_LOSS=30,PAY_RET_PACK=30,payData={pay:{},fee:{},manual:{}},payFilter='all',payPending=null;
@@ -3248,9 +3287,9 @@ function renderProducts(){
   }
   var q=state.pq.trim().toLowerCase();
   var rows=all.filter(function(p){return !q||[p.name,p.sku,p.batch,p.amz,p.fk,p.meesho,p.myntra].join(' ').toLowerCase().indexOf(q)>-1});
-  $('#pNote').textContent=rows.length+' of '+all.length+(all.length===1?' product':' products')+' shown';
-  grid.innerHTML=rows.length?rows.map(pcard).join(''):'<div class="empty glass"><p>No products match this search.</p></div>';
-  if(typeof mpayData!=='undefined'&&typeof mpayRender==='function')mpayRender();
+  $('#pNote').textContent=Math.min(rows.length,state.pLimit||60)+' of '+all.length+(all.length===1?' product':' products')+' shown';
+  var plim=state.pLimit||60;grid.innerHTML=rows.length?rows.slice(0,plim).map(pcard).join('')+(rows.length>plim?'<div style="grid-column:1/-1;text-align:center;padding:8px"><button class="btn" type="button" data-pmore="1">Show more products ('+(rows.length-plim)+' more)</button></div>':''):'<div class="empty glass"><p>No products match this search.</p></div>';
+  if(typeof mpayData!=='undefined'&&typeof mpayRender==='function'){var rv=document.getElementById('view-recon');if(rv&&!rv.hidden)mpayRender();else window.__mpayDirty=true}
 }
 window.sscApi={esc:esc,toast:toast,todayISO:todayISO,shortDate:shortDate,money:money,trkRecords:trkRecords,sales:function(){return state.sales},tab:function(){return state.tab}};
 function setTab(t){
@@ -3263,6 +3302,7 @@ function setTab(t){
   $('#addBtn').textContent={orders:'+ New order',tracker:'',products:'+ New product',sales:'+ Manual entry',invoice:'',customers:'',staff:'',recon:'',expenses:'',states:'',returns:'',purchases:'',topten:''}[t];
   $('#addBtn').hidden=!state.canWrite||t==='invoice'||t==='customers'||t==='staff'||t==='recon'||t==='tracker'||t==='expenses'||t==='states'||t==='returns'||t==='purchases'||t==='topten';
   if(t==='recon')rcRender();
+  if(t==='recon'&&window.__mpayDirty){window.__mpayDirty=false;try{mpayRender()}catch(e){}}
   try{if(t==='expenses'&&window.exRender)window.exRender();if(t==='states'&&window.stRender)window.stRender();if(t==='returns'&&window.rtRender)window.rtRender();if(t==='purchases'&&window.prRender)window.prRender();if(t==='topten'&&window.t10Render)window.t10Render()}catch(e){}
   if(t==='orders'){try{renderBusinessDashboard()}catch(e){}}
   if(t==='tracker'){try{if(window.mfRefresh)window.mfRefresh()}catch(e){}}
@@ -4076,10 +4116,11 @@ function bindProducts(){
     var order=['orders','products','sales'],i=order.indexOf(state.tab);
     var t=order[(i+(e.key==='ArrowRight'?1:2))%3];setTab(t);$('#tab-'+t).focus();
   });
-  $('#pq').addEventListener('input',function(e){state.pq=e.target.value;productExportStatus('');renderProducts()});
+  $('#pq').addEventListener('input',function(e){state.pq=e.target.value;state.pLimit=60;productExportStatus('');renderProducts()});
   $('#pExportExcel').addEventListener('click',productExportExcel);
   $('#pExportPdf').addEventListener('click',productExportPdf);
   $('#pGrid').addEventListener('click',function(e){
+    if(e.target.closest('[data-pmore]')){state.pLimit=(state.pLimit||60)+60;renderProducts();return}
     var ed=e.target.closest('[data-pedit]');if(ed){openProduct(ed.dataset.pedit);return}
     if(e.target.closest('[data-pact="add"]')){openProduct(null);return}
     var pt=e.target.closest('[data-pi]');
@@ -4203,6 +4244,8 @@ function use(name){
   if(!(window.claude&&window.claude.use))return Promise.resolve(null);
   return window.claude.use(name).then(function(x){return x||null},function(){return null});
 }
+var renderT=null;
+function renderSoon(){if(renderT)return;renderT=setTimeout(function(){renderT=null;render()},80)}
 function startData(){
   Promise.all([use('user'),use('db'),use('downloads')]).then(function(r){
     var u=r[0];db=r[1];dl=r[2];
@@ -4214,13 +4257,13 @@ function startData(){
       state.mode='shared';mfLoadHook();
       db.collection('orders').onSnapshot(function(snap){
         state.orders=snap.docs.map(function(d){var x=d.data()||{};x.id=d.id;return x});
-        state.loaded=true;render();
+        state.loaded=true;renderSoon();
       },function(){
         state.loaded=true;render();toast('Could not load the shared orders');
       });
       db.collection('products').onSnapshot(function(snap){
         state.products=snap.docs.map(function(d){var x=d.data()||{};x.id=d.id;return x});
-        state.pLoaded=true;render();
+        state.pLoaded=true;renderSoon();
       },function(){
         state.pLoaded=true;renderProducts();toast('Could not load the shared products');
       });
@@ -4231,17 +4274,17 @@ function startData(){
           if(typeof x.pid==='string'&&Number.isInteger(x.k)&&x.k>=0&&x.k<5&&typeof x.data==='string'&&IMG_RE.test(x.data)){(m[x.pid]=m[x.pid]||[])[x.k]=x.data}
         });
         Object.keys(m).forEach(function(k){m[k]=m[k].filter(Boolean)});
-        state.pimgs=m;renderProducts();render();
+        state.pimgs=m;renderSoon();
       },function(){});
       db.collection('sales').onSnapshot(function(snap){
         state.sales=snap.docs.map(function(d){var x=d.data()||{};x.id=d.id;return x});
-        state.sLoaded=true;render();
+        state.sLoaded=true;renderSoon();
       },function(){
         state.sLoaded=true;renderSales();toast('Could not load the shared sale entries');
       });
       db.collection('customers').onSnapshot(function(snap){
         state.cflags=snap.docs.map(function(d){var x=d.data()||{};x.id=d.id;return x});
-        render();
+        renderSoon();
       },function(){});
     });
   }).catch(function(){loadLocal()});
@@ -4573,7 +4616,8 @@ function mpayLoad(){
 function mpaySave(){try{localStorage.setItem(MPAY_KEY,JSON.stringify(mpayData));}catch(e){$('#mpayStatus').textContent='Saved for this session; browser storage is full.';}}
 function mpayNum(v){var n=parseFloat(String(v==null?'':v).replace(/[₹,]/g,''));return isFinite(n)?n:0}
 function mpayMoney(v){return '₹'+mpayNum(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function mpayIdx(name){return mpayData.headers.findIndex(function(h){return String(h||'').trim().toLowerCase()===name.toLowerCase()})}
+var mpayIdxCache={h:null,n:-1,m:null};
+function mpayIdx(name){var hs=mpayData.headers;if(mpayIdxCache.h!==hs||mpayIdxCache.n!==hs.length){var m=Object.create(null);hs.forEach(function(h,i){var k=String(h||'').trim().toLowerCase();if(!(k in m))m[k]=i});mpayIdxCache={h:hs,n:hs.length,m:m}}var i=mpayIdxCache.m[String(name).toLowerCase()];return i===undefined?-1:i}
 function mpayVal(row,name){var i=mpayIdx(name);return i<0?'':row[i]}
 function mpaySet(row,name,val){var i=mpayIdx(name);if(i>=0)row[i]=val}
 /* Product cost is from Products; delivered cost includes quantity. Return/RTO loses packaging cost × quantity.

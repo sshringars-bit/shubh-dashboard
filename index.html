@@ -524,6 +524,50 @@ html[data-theme*="dark"] .chan-t small.dl-s.good{color:#34d399}html[data-theme*=
 .tp-img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none;background:var(--glass-2);display:flex;align-items:center;justify-content:center;overflow:hidden}.tp-img svg{width:60%;height:60%;opacity:.5}
 .tp-rank{width:22px;color:var(--ink-3);font-weight:700;text-align:left}
 .chan-t td.tp-rk{text-align:left;width:34px;padding-right:0}
+.stf-tools{display:grid;gap:14px}.stf-grp{display:grid;gap:12px;padding:14px 16px;border:1px solid var(--stroke-2);border-radius:14px}.stf-grp h4{margin:0;font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+.stf-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}.stf-row .btn{width:100%;justify-content:center}
+@media (max-width:700px){
+ .stf-grp{padding:12px}.stf-row{grid-template-columns:1fr 1fr}.stf-row>.search,.stf-row>.btn{grid-column:1/-1}
+ html body .btn{min-height:44px}html body .btn.small{min-height:38px}
+ html body.ssc-shell:not(:has(#view-orders:not([hidden]))) header.top{display:none!important}
+ html body.ssc-shell:has(#view-orders:not([hidden])) header.top{padding:14px!important;gap:12px!important}
+ html body.ssc-shell:has(#view-orders:not([hidden])) header.top .logo{height:80px!important;width:auto!important;max-width:70%!important}
+ .brand-addr .ba-cols{gap:8px!important}.brand-addr .ba-line span,.brand-addr .ba-line a{font-size:.84rem!important}
+ html body.ssc-shell .top3{width:100%!important;max-width:none!important}
+ .hero-stats{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+ .hero-stats>div{border-right:0!important;margin:0!important;padding:0!important}.hero-stats b{font-size:1.02rem!important}.hero-stats small{font-size:.62rem!important}.hero-stats .who{grid-column:1/-1}
+ .hero-btns{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;width:100%}.hero-btns .btn{width:100%;justify-content:center}
+ .chan-card{padding:16px 14px}
+ .chan-t th,.chan-t td{padding:10px 6px}.chan-t{min-width:0!important;font-size:.88rem}
+ #chanCard .chan-t th:nth-child(3),#chanCard .chan-t td:nth-child(3),#chanCard .chan-t th:nth-child(5),#chanCard .chan-t td:nth-child(5),#chanCard .chan-t th:nth-child(7),#chanCard .chan-t td:nth-child(7){display:none}
+ #prodCard .chan-t th:nth-child(4),#prodCard .chan-t td:nth-child(4),#prodCard .chan-t th:nth-child(6),#prodCard .chan-t td:nth-child(6),#prodCard .chan-t th:nth-child(8),#prodCard .chan-t td:nth-child(8){display:none}
+ .tp-prod{min-width:0;gap:8px}.tp-img{width:36px;height:36px}.chan-t td.tp-rk{width:22px}
+ .stat-donut svg{width:150px;height:150px}.stat-row .nm{min-width:0;overflow:hidden;text-overflow:ellipsis}
+ #chanCard .chan-t td:nth-child(2) small.dl-s{display:none}#chanCard .chan-t td:nth-child(6) small.dl-s{font-size:.64rem;white-space:normal}
+ #chanCard .chan-t td:nth-child(4) small{display:none}
+ #chanCard .chan-t{table-layout:fixed;width:100%}#chanCard .chan-t th{white-space:normal;letter-spacing:.02em;font-size:.64rem}#chanCard .chan-t th:nth-child(1){width:33%}#chanCard .chan-t th:nth-child(2){width:15%}#chanCard .chan-t th:nth-child(4){width:22%}#chanCard .chan-t th:nth-child(6){width:30%}
+ #chanCard .chan-t td:nth-child(6) small.dl-s{white-space:nowrap}
+ #prodCard .chan-t td small,#prodCard .tp-prod small{display:none}#prodCard .chan-t th{font-size:.64rem;padding:8px 4px}#prodCard .chan-t td{padding:10px 4px}
+ .stat-row{grid-template-columns:132px 1fr 26px!important}
+ html body.ssc-shell header.top .top3{width:100%!important;max-width:none!important;box-sizing:border-box}
+ .hero-stats small{letter-spacing:.03em!important;font-size:.58rem!important}
+}
+html body.ssc-shell #pageTitle[data-crumb]::before{content:attr(data-crumb);display:block;font:600 .7rem/1.2 system-ui,sans-serif;letter-spacing:.03em;color:var(--ink-3,#6b7c75);margin-bottom:2px;white-space:pre}
+@media (max-width:700px){html body.ssc-shell #pageTitle[data-crumb]::before{display:none}}
+#sbToggle{display:none}
+@media (min-width:901px){
+ html body.ssc-shell main.page{transition:margin-left .25s ease,padding-left .25s ease}
+ html body.ssc-shell .tabrow{transition:transform .25s ease,box-shadow .25s ease}
+ #sbToggle{position:fixed;top:24px;left:calc(var(--sbw) - 15px);z-index:70;width:30px;height:30px;border-radius:50%;border:1px solid rgba(233,210,138,.5);background:#0e3329;color:#e9d28a;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 4px 14px rgba(0,0,0,.35);transition:left .25s ease,transform .2s ease}
+ html body.ssc-shell #sbToggle{display:flex}
+ #sbToggle:hover{transform:scale(1.08)}#sbToggle:focus-visible{outline:2px solid #e9d28a;outline-offset:2px}
+ #sbToggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s}
+ html body.sb-collapsed{--sbw:0px}
+ html body.sb-collapsed .tabrow{width:272px!important;transform:translateX(-100%);box-shadow:none!important}
+ html body.sb-collapsed #sbToggle{left:12px}
+ html body.sb-collapsed #sbToggle svg{transform:rotate(180deg)}
+ html body.ssc-shell.sb-collapsed main.page{padding-left:62px!important}
+}
 html[data-theme]:not([data-theme="ios-glass"]) .glass{background:var(--g-bg);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);border:var(--g-bd);border-radius:var(--g-r);box-shadow:var(--g-sh)}
 html[data-theme]:not([data-theme="ios-glass"]) .sheet,html[data-theme]:not([data-theme="ios-glass"]) .fx-panel{background:var(--sheet);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);border:var(--g-bd);border-radius:calc(var(--g-r) + 4px);box-shadow:var(--g-sh)}
 html[data-theme]:not([data-theme="ios-glass"]) .scrim{background:var(--scrim);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -1057,12 +1101,12 @@ html body.ssc-shell #view-orders .metric-head.hero2 .hero-right .metric-live{dis
 .pf-bk{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 14px;border-radius:14px;background:#f4f8f6;margin-top:8px}.pf-bk b{display:block}.pf-bk small{color:#6b867b}
 
 /* ===== trend chart ===== */
-.trend{padding:20px 22px!important;margin:0 0 18px}
+.trend{padding:16px 20px!important;margin:0 0 16px}
 html:not([data-theme*="dark"]) body.ssc-shell #trendCard{background:rgba(255,255,255,.95)!important;border:1px solid rgba(15,60,45,.08)!important;border-radius:22px!important;box-shadow:0 10px 30px -14px rgba(10,60,45,.28)!important;backdrop-filter:none!important}
 .tr-hd{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:flex-start}
 .trend h3{margin:0;font-size:1.05rem;color:#12342a}.trend p{margin:3px 0 0;color:#6b867b;font-size:.82rem}
 .tr-sum{display:flex;gap:10px;flex-wrap:wrap}.tr-sum>div{background:#f4f8f6;border-radius:14px;padding:8px 14px;min-width:92px}.tr-sum small{display:block;font:700 .66rem system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#6b867b}.tr-sum b{font:800 1.05rem system-ui,sans-serif;color:#12342a}.tr-sum b.pos{color:#12775a}.tr-sum b.neg{color:#c0352d}
-.tr-chart{margin-top:12px}.tr-chart svg{width:100%;height:auto;display:block}
+.tr-chart{margin-top:6px}.tr-chart svg{width:100%;height:auto;display:block}
 .tr-chart .gl{stroke:rgba(15,60,45,.1);stroke-width:1}.tr-chart .zl{stroke:rgba(15,60,45,.35);stroke-width:1.2}.tr-chart .ax{font:600 11px system-ui,sans-serif;fill:#6b867b}
 .tr-chart .bp,.tr-lg .bp{fill:#1f9d63;background:#1f9d63}.tr-chart .bn,.tr-lg .bn{fill:#d6453d;background:#d6453d}.tr-chart .ol{fill:none;stroke:#c98a12;stroke-width:2.4;stroke-linejoin:round}.tr-chart .od{fill:#fff;stroke:#c98a12;stroke-width:2.2}
 .tr-chart rect:hover{opacity:.8}
@@ -1578,7 +1622,7 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
       </form><p class="err" id="staffErr" role="alert"></p>
     </section>
     <section class="glass" style="padding:20px;display:grid;gap:14px">
-      <div class="ledger-tools" style="margin:0"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">Month <input class="field-in" type="month" id="staffMonth"></label><input class="field-in search" id="staffSearch" type="search" placeholder="Search staff or material"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">PDF type <select class="field-in" id="staffPdfMode"><option value="staff">Staff wise</option><option value="month">Month wise</option><option value="year">Year wise</option></select></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">PDF staff <select class="field-in" id="staffPdfStaff"></select></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700" id="staffPdfYearWrap" hidden>Year <select class="field-in" id="staffPdfYear"></select></label><button class="btn primary" type="button" id="staffPdf">Download PDF</button><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">JPEG from <input class="field-in" type="date" id="staffJpgDate"></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">JPEG to (optional) <input class="field-in" type="date" id="staffJpgTo"></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">JPEG type <select class="field-in" id="staffJpgEach"><option value="all">One combined image</option><option value="each">Separate image per staff</option></select></label><button class="btn primary" type="button" id="staffJpg">Download JPEG</button><button class="btn" type="button" id="staffJpgShare">Share (WhatsApp)</button></div>
+      <div class="stf-tools"><div class="stf-grp"><h4>Find entries</h4><div class="stf-row"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">Month <input class="field-in" type="month" id="staffMonth"></label><input class="field-in search" id="staffSearch" type="search" placeholder="Search staff or material"></div></div><div class="stf-grp"><h4>Statement (PDF)</h4><div class="stf-row"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">PDF type <select class="field-in" id="staffPdfMode"><option value="staff">Staff wise</option><option value="month">Month wise</option><option value="year">Year wise</option></select></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">Staff (PDF &amp; JPEG) <select class="field-in" id="staffPdfStaff"></select></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700" id="staffPdfYearWrap" hidden>Year <select class="field-in" id="staffPdfYear"></select></label><button class="btn primary" type="button" id="staffPdf">Download PDF</button></div></div><div class="stf-grp"><h4>Daily details (JPEG) &mdash; to send on WhatsApp</h4><div class="stf-row"><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">From date <input class="field-in" type="date" id="staffJpgDate"></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">To date (optional) <input class="field-in" type="date" id="staffJpgTo"></label><label style="display:grid;gap:5px;font-size:.8rem;font-weight:700">JPEG type <select class="field-in" id="staffJpgEach"><option value="all">One combined image</option><option value="each">Separate image per staff</option></select></label></div><div class="stf-row"><button class="btn primary" type="button" id="staffJpg">Download JPEG</button><button class="btn" type="button" id="staffJpgShare">Share (WhatsApp)</button></div></div></div>
       <div id="staffSummary"></div><div class="tablewrap" id="staffTable"></div>
     </section>
   </div>
@@ -3440,6 +3484,7 @@ function setTab(t){
     var on=b.dataset.tab===t;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;
   });
   $('#pageTitle').textContent={orders:'Sales Dashboard',tracker:'Tracker',products:'Products',sales:'Sale entries',invoice:'Invoice',customers:'Customers',staff:'Staff Payment',recon:'Reconciliation',expenses:'Expenses',states:'State Sales',returns:'Return Tracking',purchases:'Purchase Records',topten:'Top 10 Sold Products'}[t];
+  try{var pt=$('#pageTitle');pt.setAttribute('data-crumb','Home  /  '+(t==='orders'?'Overview':pt.textContent))}catch(e){}
   $('#addBtn').textContent={orders:'+ New order',tracker:'',products:'+ New product',sales:'+ Manual entry',invoice:'',customers:'',staff:'',recon:'',expenses:'',states:'',returns:'',purchases:'',topten:''}[t];
   $('#addBtn').hidden=!state.canWrite||t==='invoice'||t==='customers'||t==='staff'||t==='recon'||t==='tracker'||t==='expenses'||t==='states'||t==='returns'||t==='purchases'||t==='topten';
   if(t==='recon')rcRender();
@@ -8021,8 +8066,8 @@ function trendUpd(){
   var mg=document.getElementById('metricGrid');if(!mg)return;
   var card=document.getElementById('trendCard');
   if(!card){card=document.createElement('section');card.id='trendCard';card.className='glass trend';mg.parentNode.insertBefore(card,mg)}
-  var D=trendData(),sig=JSON.stringify(D);if(sig===trendSig)return;trendSig=sig;
-  var W=760,H=250,L=46,R=14,T=16,B=34,iw=W-L-R,ih=H-T-B,mx=0,mn=0,mo=0;
+  var wide=window.innerWidth>700,D=trendData(),sig=JSON.stringify(D)+(wide?'w':'n');if(sig===trendSig)return;trendSig=sig;
+  var W=wide?1000:760,H=wide?185:250,L=46,R=14,T=14,B=wide?28:34,iw=W-L-R,ih=H-T-B,mx=0,mn=0,mo=0;
   D.forEach(function(d){mx=Math.max(mx,d.net);mn=Math.min(mn,d.net);mo=Math.max(mo,d.ord)});
   if(mx===0&&mn===0)mx=1000;
   var span=mx-mn,pad=span*.1;mx+=pad;if(mn<0)mn-=pad;span=mx-mn;
@@ -8033,7 +8078,7 @@ function trendUpd(){
   var pts=[];
   D.forEach(function(d,i){var x=L+i*bw+bw*.2,w=bw*.6,yy=y(Math.max(d.net,0)),hh=Math.max(3,Math.abs(y(d.net)-zy));if(d.net<0)yy=zy;
     if(d.net!==0)h+='<rect x="'+x+'" y="'+yy+'" width="'+w+'" height="'+hh+'" rx="5" class="'+(d.net<0?'bn':'bp')+'"><title>'+MN3[+d.m.slice(5)-1]+' '+d.m.slice(0,4)+' · Net '+inrFull(d.net)+' · '+d.ord+' orders</title></rect>';
-    h+='<text x="'+(L+i*bw+bw/2)+'" y="'+(H-12)+'" text-anchor="middle" class="ax">'+MN3[+d.m.slice(5)-1]+'</text>';
+    h+='<text x="'+(L+i*bw+bw/2)+'" y="'+(H-(wide?9:12))+'" text-anchor="middle" class="ax">'+MN3[+d.m.slice(5)-1]+'</text>';
     pts.push([L+i*bw+bw/2,yo(d.ord)])});
   h+='<polyline points="'+pts.map(function(p){return p.join(',')}).join(' ')+'" class="ol"/>'+pts.map(function(p,i){return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.6" class="od"><title>'+D[i].ord+' orders</title></circle>'}).join('');
   h+='</svg>';
@@ -8136,7 +8181,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')toggleAl(fal
 
 /* ---------- global search (orders from every marketplace + products) ---------- */
 var sbox=document.createElement('div');sbox.className='pf-search';
-sbox.innerHTML='<button type="button" class="pf-sbtn" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button><input type="search" class="pf-sin" placeholder="Search orders, SKU, order ID, product…" autocomplete="off" aria-label="Search everything"><kbd>Ctrl K</kbd>';
+sbox.innerHTML='<button type="button" class="pf-sbtn" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button><input type="search" class="pf-sin" placeholder="Search orders, SKU, products…" autocomplete="off" aria-label="Search everything"><kbd>Ctrl K</kbd>';
 var sres=document.createElement('div');sres.className='pf-sres';sres.hidden=true;
 var prodCache=null,prodT=0;
 function loadProducts(){
@@ -8225,5 +8270,17 @@ function refresh(){
 }
 setInterval(refresh,2000);
 document.addEventListener('DOMContentLoaded',refresh);
+})();
+</script>
+<script>
+(function(){
+  var KEY='ssc-sidebar-collapsed',b=document.body;
+  function get(){try{return localStorage.getItem(KEY)==='1'}catch(e){return false}}
+  function set(v){try{localStorage.setItem(KEY,v?'1':'0')}catch(e){}}
+  var btn=document.createElement('button');btn.id='sbToggle';btn.type='button';
+  btn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+  function apply(c){b.classList.toggle('sb-collapsed',c);btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label',c?'Show menu':'Hide menu');btn.title=c?'Show menu':'Hide menu';setTimeout(function(){try{window.dispatchEvent(new Event('resize'))}catch(e){}},300)}
+  btn.addEventListener('click',function(){var c=!b.classList.contains('sb-collapsed');apply(c);set(c)});
+  b.appendChild(btn);apply(get());
 })();
 </script>

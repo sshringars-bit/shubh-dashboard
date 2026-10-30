@@ -638,6 +638,14 @@ html[data-theme*="dark"] .st-tag.out{color:#f87171}html[data-theme*="dark"] .st-
 .goal-set{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.goal-set input{border:1px solid var(--stroke-2);background:var(--field);color:var(--ink);border-radius:10px;padding:8px 12px;font:600 .9rem system-ui,sans-serif;width:160px}
 .days-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;height:130px;margin-top:6px}.days-bar{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}.days-bar i{display:block;width:100%;max-width:48px;border-radius:6px 6px 2px 2px;background:var(--accent);opacity:.55;min-height:2px}.days-bar.top i{opacity:1}.days-bar b{font-size:.74rem;color:var(--ink)}.days-bar small{font-size:.72rem;color:var(--ink-3)}
 .days-note{margin:14px 0 0;font-size:.84rem;color:var(--ink-3)}.days-note b{color:var(--ink)}
+.fest-list{display:grid;gap:10px}.fest-i{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;border:1px solid var(--stroke-2);background:var(--field)}
+.fest-d{flex:none;width:54px;text-align:center;border-radius:10px;padding:6px 0;background:var(--accent);color:#fff}.fest-d b{display:block;font-size:1.15rem;line-height:1}.fest-d small{font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;opacity:.9}
+.fest-t{flex:1;min-width:0}.fest-t b{display:block;color:var(--ink);font-size:.95rem}.fest-t span b{display:inline;font-size:inherit}.fest-t span{display:block;color:var(--ink-3);font-size:.82rem;margin-top:2px;line-height:1.4}
+.fest-n{flex:none;font-size:.78rem;font-weight:800;padding:5px 11px;border-radius:99px;background:rgba(245,165,36,.18);color:#b26a00;white-space:nowrap}.fest-n.soon{background:rgba(217,45,32,.13);color:#d92d20}
+html[data-theme*="dark"] .fest-n{color:#fbbf24}html[data-theme*="dark"] .fest-n.soon{color:#f87171}
+.pc-sel{border:1px solid var(--stroke-2);background:var(--field);color:var(--ink);border-radius:10px;padding:7px 10px;font:600 .84rem system-ui,sans-serif}
+.pc-t{width:100%!important;min-width:0!important;border-collapse:collapse;font-size:.88rem}.pc-t th{text-align:left;color:var(--ink-3);font-size:.75rem;font-weight:700;padding:6px 8px;border-bottom:1px solid var(--stroke-2)}.pc-t td{padding:9px 8px;border-bottom:1px solid var(--stroke-2)}.pc-t .r{text-align:right}
+@media(max-width:700px){.fest-i{flex-wrap:wrap}.fest-n{margin-left:66px}.pc-t th:nth-child(2),.pc-t td:nth-child(2){display:none}}
 html[data-theme]:not([data-theme="ios-glass"]) .glass{background:var(--g-bg);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);border:var(--g-bd);border-radius:var(--g-r);box-shadow:var(--g-sh)}
 html[data-theme]:not([data-theme="ios-glass"]) .sheet,html[data-theme]:not([data-theme="ios-glass"]) .fx-panel{background:var(--sheet);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);border:var(--g-bd);border-radius:calc(var(--g-r) + 4px);box-shadow:var(--g-sh)}
 html[data-theme]:not([data-theme="ios-glass"]) .scrim{background:var(--scrim);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -1622,6 +1630,8 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
     <section class="glass chan-card" id="goalCard" aria-label="Profit target"></section>
     <section class="glass chan-card" id="chanCard" aria-label="Channel performance"></section>
     <section class="glass chan-card" id="daysCard" aria-label="Best selling days"></section>
+    <section class="glass chan-card" id="festCard" aria-label="Festival planner"></section>
+    <section class="glass chan-card" id="priceCard" aria-label="Price check"></section>
     <section class="glass chan-card" id="expCard" aria-label="Expenses breakdown"></section>
     <section class="glass chan-card" id="stockCard" aria-label="Stock"></section>
     <section class="glass chan-card" id="statusCard" aria-label="Order status"></section>
@@ -3152,6 +3162,48 @@ function renderDaysCard(){
   var td=Object.keys(byDate).sort(function(a,b){return byDate[b]-byDate[a]||b.localeCompare(a)}).slice(0,3).map(function(k){var d=pDateAny(k);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' ('+byDate[k]+')'}).join(' · ');
   card.innerHTML=head+'<div class="days-bars">'+bars+'</div><p class="days-note">Best day: <b>'+FN[best]+'</b> ('+Math.round(wd[best]*100/tot)+'% of orders) · Quietest: <b>'+FN[slow]+'</b>. Busiest dates: <b>'+td+'</b>.</p>';
 }
+var FESTS=[
+ ['New Year','fix','01-01',''],['Makar Sankranti','fix','01-14',''],['Republic Day','fix','01-26',''],['Valentine’s Day','fix','02-14',''],['Christmas','fix','12-25',''],
+ ['Vasant Panchami',{2025:'02-02',2026:'01-23',2027:'02-11'}],['Maha Shivaratri',{2025:'02-26',2026:'02-15',2027:'03-06'}],['Holi',{2025:'03-14',2026:'03-03',2027:'03-22'}],['Ram Navami',{2025:'04-06',2026:'03-27',2027:'04-15'}],
+ ['Raksha Bandhan',{2025:'08-09',2026:'08-28'}],['Janmashtami',{2025:'08-16',2026:'09-04'}],['Ganesh Chaturthi',{2025:'08-27',2026:'09-14'}],['Navratri begins',{2025:'09-22',2026:'10-11'}],['Dussehra',{2025:'10-02',2026:'10-20'}],
+ ['Karwa Chauth',{2025:'10-10',2026:'10-29'}],['Dhanteras',{2025:'10-18',2026:'11-06'}],['Diwali',{2025:'10-20',2026:'11-08'}],['Bhai Dooj',{2025:'10-23',2026:'11-11'}]];
+function festDate(f,y){var v=f[1]==='fix'?f[2]:f[1][y];if(!v)return null;var a=v.split('-');return new Date(y,+a[0]-1,+a[1])}
+function renderFestCard(){
+  var card=document.getElementById('festCard');if(!card)return;
+  var dc=document.getElementById('daysCard');if(dc&&card.previousElementSibling!==dc)dc.after(card);
+  var now=new Date();now=new Date(now.getFullYear(),now.getMonth(),now.getDate());var up=[];
+  FESTS.forEach(function(f){[now.getFullYear(),now.getFullYear()+1].forEach(function(y){var d=festDate(f,y);if(!d)return;var dl=Math.round((d-now)/864e5);if(dl>=0&&dl<=120)up.push({n:f[0],f:f,d:d,dl:dl,y:y})})});
+  up.sort(function(a,b){return a.dl-b.dl});up=up.slice(0,4);
+  var head='<div class="chan-head"><div><h3>Festival planner</h3><p>Upcoming festivals and what sold before them last year</p></div></div>';
+  if(!up.length){card.innerHTML=head+'<div class="chan-empty">No major festival in the next 4 months.</div>';return}
+  var recs=trkRecords(),MN=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],look=window.sscProductLookup?window.sscProductLookup():function(){return null};
+  var rows=up.map(function(u){
+    var py=festDate(u.f,u.y-1),info='';
+    if(py){var from=new Date(py.getTime()-30*864e5),seen={},cnt=0,pp={};
+      recs.forEach(function(r,i){if(r.other||r.st==='cancel'||!r.date)return;var d=pDateAny(r.date);if(!d||d<from||d>py)return;var k=r.mp+'|'+(r.id||('#'+i));if(seen[k])return;seen[k]=1;cnt++;var pr=null;try{pr=look(r.sku)}catch(e){}var nm=pr&&pr.name?pr.name:r.sku;if(nm)pp[nm]=(pp[nm]||0)+(+r.qty||1)});
+      var top=Object.keys(pp).sort(function(a,b){return pp[b]-pp[a]}).slice(0,2);
+      info=cnt?'Last year, the 30 days before: <b>'+cnt+' orders</b>'+(top.length?' · best: '+top.map(esc).join(', '):''):'No sales recorded for the 30 days before last year’s date.'}
+    else info='Start stocking about 3–4 weeks ahead.';
+    return '<div class="fest-i"><div class="fest-d"><b>'+u.d.getDate()+'</b><small>'+MN[u.d.getMonth()]+'</small></div><div class="fest-t"><b>'+esc(u.n)+'</b><span>'+info+'</span></div><span class="fest-n'+(u.dl<=14?' soon':'')+'">'+(u.dl===0?'Today':u.dl===1?'Tomorrow':u.dl+' days')+'</span></div>'}).join('');
+  card.innerHTML=head+'<div class="fest-list">'+rows+'</div><p class="today-note">Festival dates are approximate and can move by a day; check the exact date before planning.</p>';
+}
+function priceRows(){
+  var th=20;try{th=+localStorage.getItem('ssc-min-margin')||20}catch(e){}
+  var l=(window.sscProductList?window.sscProductList():[]).map(function(p){var c=pTotal(p),pr=p.price;return {name:p.name||p.sku,sku:p.sku,cost:c,price:pr,m:pr>0?(pr-c)*100/pr:null,gap:(pr>0?(pr-c):null)}});
+  return {th:th,all:l,bad:l.filter(function(x){return x.cost>0&&x.m!==null&&x.m<th}).sort(function(a,b){return a.m-b.m}),nop:l.filter(function(x){return !(x.price>0)&&x.cost>0})};
+}
+function renderPriceCard(){
+  var card=document.getElementById('priceCard');if(!card)return;
+  var fc=document.getElementById('festCard');if(fc&&card.previousElementSibling!==fc)fc.after(card);
+  var d=priceRows(),opts=[10,15,20,25,30,40].map(function(v){return '<option value="'+v+'"'+(v===d.th?' selected':'')+'>'+v+'%</option>'}).join('');
+  var head='<div class="chan-head"><div><h3>Price check</h3><p>Products earning less than your minimum margin</p></div><label style="font-size:.84rem;color:var(--ink-3)">Minimum margin <select class="pc-sel" id="pcTh">'+opts+'</select></label></div>';
+  var body;
+  if(!d.all.length)body='<div class="attn-item"><div class="attn-tx"><b>No products yet</b><span>Add products with cost and price in the Products tab.</span></div></div>';
+  else if(!d.bad.length)body='<div class="attn-item"><span class="attn-ic ok">✓</span><div class="attn-tx"><b>All products are above '+d.th+'% margin</b><span>Margin = (price − total cost) ÷ price, using the price saved on each product. Marketplace fees are not included.</span></div></div>'+(d.nop.length?'<p class="today-note">'+d.nop.length+' product'+(d.nop.length>1?'s have':' has')+' no selling price saved.</p>':'');
+  else body='<table class="pc-t"><thead><tr><th>Product</th><th class="r">Cost</th><th class="r">Price</th><th class="r">Margin</th></tr></thead><tbody>'+d.bad.slice(0,8).map(function(x){return '<tr><td><b>'+esc(x.name)+'</b><br><small style="color:var(--ink-3)">'+esc(x.sku)+'</small></td><td class="r">'+money(Math.round(x.cost))+'</td><td class="r">'+money(Math.round(x.price))+'</td><td class="r"><span class="st-tag '+(x.m<0?'out':'low')+'">'+(Math.round(x.m*10)/10)+'%</span></td></tr>'}).join('')+'</tbody></table>'+(d.bad.length>8?'<p class="today-note">+'+(d.bad.length-8)+' more below '+d.th+'%</p>':'')+'<p class="today-note">Margin = (price − total cost) ÷ price, using the price saved on each product. Marketplace fees are not included.</p>';
+  card.innerHTML=head+body;
+  if(!card._pb){card._pb=1;card.addEventListener('change',function(e){if(e.target.id==='pcTh'){try{localStorage.setItem('ssc-min-margin',e.target.value)}catch(x){}renderPriceCard();try{renderAttentionCard()}catch(x){}}})}
+}
 function renderTodayCard(){
   var card=document.getElementById('todayCard');if(!card)return;var hc=document.getElementById('attnCard');if(hc&&card.nextElementSibling!==hc)hc.before(card);
   var d0=new Date(),iso=function(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')},t=iso(d0),y=iso(new Date(d0.getTime()-864e5));
@@ -3201,6 +3253,7 @@ function renderAttentionCard(){
   var hiP=pl2.filter(function(a){var den=a.u+a.ret;return den>=5&&a.ret*100/den>=30}).sort(function(a,b){return b.ret/(b.u+b.ret)-a.ret/(a.u+a.ret)});
   if(hiP.length)items.push({sev:'amber',ic:'↩',t:hiP.length+' product'+(hiP.length>1?'s':'')+' with 30%+ returns',d:hiP.slice(0,4).map(function(a){return a.name+' ('+Math.round(a.ret*100/(a.u+a.ret))+'%)'}).join(' · ')+' in '+per+'.',a:'Open Products',tab:'products',w:2});
   try{var sl=stkList().filter(function(x){return x.state==='low'||x.state==='out'});if(sl.length){var so=sl.filter(function(x){return x.state==='out'});items.push({sev:so.length?'red':'amber',ic:'□',t:sl.length+' product'+(sl.length>1?'s':'')+' low on stock',d:sl.slice(0,4).map(function(x){return x.name+' ('+x.q+' left)'}).join(' · ')+(sl.length>4?' · +'+(sl.length-4)+' more':''),a:'Manage stock',tab:'__stock',w:so.length?3:2})}}catch(e){}
+  try{var pcd=priceRows();if(pcd.bad.length)items.push({sev:'amber',ic:'%',t:pcd.bad.length+' product'+(pcd.bad.length>1?'s':'')+' below '+pcd.th+'% margin',d:pcd.bad.slice(0,4).map(function(x){return x.name+' ('+(Math.round(x.m*10)/10)+'%)'}).join(' · ')+(pcd.bad.length>4?' · +'+(pcd.bad.length-4)+' more':''),a:'See Price check',tab:'__price',w:2})}catch(e){}
   try{var lb=+localStorage.getItem('ssc-last-backup')||0,dd=lb?Math.floor((Date.now()-lb)/864e5):null;if(dd===null||dd>=30)items.push({sev:'amber',ic:'⇅',t:dd===null?'No backup downloaded yet':'Last backup was '+dd+' days ago',d:'Your data is also saved online, but a downloaded backup file is your own copy.',a:'Back up now',tab:'__backup',w:1})}catch(e){}
   items.sort(function(a,b){return b.w-a.w});
   window._attnCount=items.length;
@@ -3208,7 +3261,7 @@ function renderAttentionCard(){
   var head='<div class="chan-head"><div><h3>Needs attention</h3><p>Things worth checking today</p></div>'+(items.length?'<span class="attn-badge '+(reds?'red':'amber')+'" style="'+(reds?'':'background:rgba(245,165,36,.18);color:#b26a00')+'">'+items.length+' to check</span>':'<span class="attn-badge ok">✓ All clear</span>')+'</div>';
   if(!items.length){card.innerHTML=head+'<div class="attn-item"><span class="attn-ic ok">✓</span><div class="attn-tx"><b>Nothing needs your attention right now</b><span>No overdue payments, loss-making products or high return rates for '+esc(per)+'.</span></div></div>';return}
   card.innerHTML=head+'<div class="attn-list">'+items.map(function(it){return '<div class="attn-item"><span class="attn-ic '+it.sev+'">'+it.ic+'</span><div class="attn-tx"><b>'+esc(it.t)+'</b><span>'+esc(it.d)+'</span></div><div class="attn-go"><button type="button" data-attn-tab="'+it.tab+'">'+esc(it.a)+'</button></div></div>'}).join('')+'</div>';
-  if(!card._ab){card._ab=1;card.addEventListener('click',function(e){var b=e.target.closest('[data-attn-tab]');if(!b)return;if(b.dataset.attnTab==='__overdue'){openOverdue();return}if(b.dataset.attnTab==='__stock'){openStock();return}if(b.dataset.attnTab==='__backup'){var db=document.getElementById('dataBtn');if(db)db.click();return}try{setTab(b.dataset.attnTab);window.scrollTo({top:0,behavior:'smooth'})}catch(x){}})}
+  if(!card._ab){card._ab=1;card.addEventListener('click',function(e){var b=e.target.closest('[data-attn-tab]');if(!b)return;if(b.dataset.attnTab==='__overdue'){openOverdue();return}if(b.dataset.attnTab==='__stock'){openStock();return}if(b.dataset.attnTab==='__price'){var pc=document.getElementById('priceCard');if(pc)pc.scrollIntoView({behavior:'smooth',block:'start'});return}if(b.dataset.attnTab==='__backup'){var db=document.getElementById('dataBtn');if(db)db.click();return}try{setTab(b.dataset.attnTab);window.scrollTo({top:0,behavior:'smooth'})}catch(x){}})}
 }
 window._tpSort=window._tpSort||'profit';
 function renderProductCard(){
@@ -3408,6 +3461,8 @@ function renderBusinessDashboard(){
   try{renderTodayCard()}catch(e){}
   try{renderGoalCard()}catch(e){}
   try{renderDaysCard()}catch(e){}
+  try{renderFestCard()}catch(e){}
+  try{renderPriceCard()}catch(e){}
   try{renderExpenseCard()}catch(e){}
   try{renderStockCard()}catch(e){}
 }

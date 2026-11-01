@@ -698,6 +698,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #toTop.on{display:flex}#toTop svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 #kbOv{position:fixed;inset:0;z-index:9100;background:rgba(10,14,22,.55);display:none;align-items:center;justify-content:center;padding:16px}#kbOv.on{display:flex}
 .kb-l{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;padding:6px 18px 18px;font-size:.9rem;color:var(--ink)}.kb-l kbd{font:700 .78rem ui-monospace,monospace;background:var(--field);border:1px solid var(--stroke-2);border-radius:6px;padding:3px 8px;justify-self:start}
+#catOv{position:fixed;inset:0;z-index:9000;background:rgba(10,14,22,.55);display:none;align-items:center;justify-content:center;padding:16px}#catOv.on{display:flex}
+.cat-l{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;padding:0 18px 12px;overflow:auto}
+.cat-i{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--stroke-2);border-radius:12px;background:var(--field);cursor:pointer;font-size:.86rem;color:var(--ink)}.cat-i input{flex:none;accent-color:var(--accent)}.cat-i img,.cat-i i{width:42px;height:42px;border-radius:8px;object-fit:cover;flex:none;background:var(--glass-2);display:grid;place-items:center;font-style:normal;color:var(--ink-3);font-weight:800}.cat-i span{min-width:0}.cat-i b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cat-i small{color:var(--ink-3)}
+.cat-o{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:0 18px 12px;font-size:.86rem;color:var(--ink)}.cat-o label{display:flex;gap:6px;align-items:center}
+.cat-pv{display:flex;gap:10px;flex-wrap:wrap;padding:0 18px 12px}.cat-pv img{height:150px;border-radius:10px;border:1px solid var(--stroke-2)}
+.dc-t{width:100%!important;min-width:0!important;border-collapse:collapse;font-size:.88rem}.dc-t th{text-align:left;color:var(--ink-3);font-size:.75rem;font-weight:700;padding:6px 8px;border-bottom:1px solid var(--stroke-2)}.dc-t td{padding:9px 8px;border-bottom:1px solid var(--stroke-2)}.dc-t .r{text-align:right}.dc-t button{border:1px solid var(--stroke-2);background:var(--btn-bg,var(--glass-2));color:var(--ink);border-radius:999px;padding:5px 12px;font:700 .74rem system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.dc-h{margin:14px 0 6px;font-size:.82rem;color:var(--ink-3);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+@media(max-width:700px){.dc-t th:nth-child(2),.dc-t td:nth-child(2){display:none}}
 html[data-theme]:not([data-theme="ios-glass"]) .glass{background:var(--g-bg);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);border:var(--g-bd);border-radius:var(--g-r);box-shadow:var(--g-sh)}
 html[data-theme]:not([data-theme="ios-glass"]) .sheet,html[data-theme]:not([data-theme="ios-glass"]) .fx-panel{background:var(--sheet);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);border:var(--g-bd);border-radius:calc(var(--g-r) + 4px);box-shadow:var(--g-sh)}
 html[data-theme]:not([data-theme="ios-glass"]) .scrim{background:var(--scrim);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -1613,7 +1621,22 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
   var iv=setInterval(tick,600);
   window.__gstCheck=tick;
 })();
-</script></head><body>
+</script><style id="alignFix">
+/* alignment pass */
+html body.ssc-shell .top .top3{flex:1 1 100%!important;max-width:none!important;width:100%!important;margin-left:0!important;box-sizing:border-box}
+html body.ssc-shell .top .top3 ol{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important;gap:8px 16px}
+html body.ssc-shell .top .brand-addr .ba-cols{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))!important}
+html body.ssc-shell .top .brand-addr .ba-line span{white-space:normal!important;min-width:0}
+html body.ssc-shell .top .brand-addr .ba-line a{overflow-wrap:anywhere;word-break:normal}
+html body.ssc-shell #view-orders .metric-head.hero2 .hero-btns{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px}
+@media(max-width:700px){
+ html body.ssc-shell #view-orders .metric-head.hero2 .hero-btns{display:grid!important;grid-template-columns:1fr 1fr;width:100%}
+ html body.ssc-shell #view-orders .metric-head.hero2 .hero-btns>*{width:100%!important;box-sizing:border-box;justify-content:center;white-space:nowrap}
+ html body.ssc-shell #view-orders .metric-head.hero2 .hero-btns>:nth-child(n+3){grid-column:1/-1}
+}
+@media(max-width:700px){html body.ssc-shell #view-orders .metric-head.hero2 .hero-right>span{width:100%}html body.ssc-shell #clearAllBtn{width:100%;justify-content:center}}
+</style>
+</head><body>
 <div id="sscLock" role="dialog" aria-modal="true" aria-label="Sign in"><div class="ssc-card" id="sscCard"></div></div>
 <div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><div class="ssc-bar"><i></i></div></div></div>
 
@@ -1629,7 +1652,7 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
         <div class="ba-head"><div class="ba-name">Shubh Shringar Creations</div><div class="ba-gst"><small>GST No</small><b>07ETPPK0480J1ZA</b></div></div>
         <div class="ba-orn" aria-hidden="true"><i></i><b>❖</b><i></i></div>
         <div class="ba-cols">
-          <div class="ba-line"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg><div><small>Address</small><span>78, Gali No 54-H-2, 1st Sixty Feet Road,<br>Molarband Extension, Badarpur Border,<br>New Delhi, 110044</span></div></div>
+          <div class="ba-line"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg><div><small>Address</small><span>78, Gali No 54-H-2, 1st Sixty Feet Road, Molarband Extension, Badarpur Border, New Delhi, 110044</span></div></div>
           <div class="ba-line"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><div><small>Website</small><a href="https://www.shubhshringarcreations.in/all-products" target="_blank" rel="noopener">shubhshringarcreations.in/all-products</a></div></div>
           <div class="ba-line"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg><div><small>Contact</small><a href="tel:+919625645719">+91 96256 45719</a></div></div>
         </div>
@@ -1690,6 +1713,8 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
     <section class="glass chan-card" id="festCard" aria-label="Festival planner"></section>
     <section class="glass chan-card" id="priceCard" aria-label="Price check"></section>
     <section class="glass chan-card" id="gstCard" aria-label="GST summary"></section>
+    <section class="glass chan-card" id="insCard" aria-label="Smart insights"></section>
+    <section class="glass chan-card" id="dataCard" aria-label="Data check"></section>
     <section class="glass chan-card" id="lossCard" aria-label="Orders that lost money"></section>
     <section class="glass chan-card" id="expCard" aria-label="Expenses breakdown"></section>
     <section class="glass chan-card" id="stockCard" aria-label="Stock"></section>
@@ -1707,6 +1732,7 @@ border:1.5px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(40,50,140,.
       <div class="p-export-actions" aria-label="Export product catalogue">
         <button class="btn small primary" id="pExportExcel" type="button">⇩ Download Excel</button>
         <button class="btn small" id="pExportPdf" type="button">⇩ Download PDF</button>
+        <button class="btn small" id="pShareCat" type="button">▣ Share catalogue (WhatsApp)</button>
       </div>
       <span class="muted p-export-status" id="pExportStatus" role="status" aria-live="polite"></span>
     </section>
@@ -3404,7 +3430,7 @@ function renderPendCard(){
   if(!rows.length){card.innerHTML=head+'<div class="attn-item"><span class="attn-ic ok">✓</span><div class="attn-tx"><b>No payments pending</b><span>Every delivered order has been paid.</span></div></div>';return}
   card.innerHTML=head+'<div class="pend-big"><b>≈ '+money(Math.round(tot))+'</b><span>expected from '+cnt.toLocaleString('en-IN')+' unpaid order'+(cnt>1?'s':'')+'</span></div><table class="pend-t"><thead><tr><th>Channel</th><th>Unpaid orders</th><th>Typical payout</th><th>Oldest</th><th>Expected</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(NM[r.k])+'</td><td>'+r.n+'</td><td>'+(r.avg?money(Math.round(r.avg)):'–')+'</td><td>'+(r.old?r.old+' days':'–')+'</td><td><b>'+(r.avg?money(Math.round(r.est)):'–')+'</b></td></tr>'}).join('')+'</tbody></table><p class="today-note">Estimate: unpaid orders × the average payout of your recent paid orders on that channel (last 4 months).'+(guess?' Channels showing – have no paid orders yet to base an estimate on.':'')+' Returns and cancellations will reduce the real amount.</p>';
 }
-var CU_CARDS=[['todoCard','To-do list'],['retCard','Returns not received yet'],['attnCard','Needs attention'],['pendCard','Money coming in'],['goalCard','Monthly profit target'],['yoyCard','Compared with last year'],['trendCard','Last 12 months'],['chanCard','Channel performance'],['daysCard','Best selling days'],['festCard','Festival planner'],['priceCard','Price check'],['gstCard','GST summary'],['statusCard','Order status'],['prodCard','Top performing products'],['lossCard','Orders that lost money'],['expCard','Expenses breakdown'],['stockCard','Stock'],['reorderCard','Reorder list'],['metricGrid','Summary figures (the tiles at the bottom)']];
+var CU_CARDS=[['insCard','Smart insights'],['dataCard','Data check'],['todoCard','To-do list'],['retCard','Returns not received yet'],['attnCard','Needs attention'],['pendCard','Money coming in'],['goalCard','Monthly profit target'],['yoyCard','Compared with last year'],['trendCard','Last 12 months'],['chanCard','Channel performance'],['daysCard','Best selling days'],['festCard','Festival planner'],['priceCard','Price check'],['gstCard','GST summary'],['statusCard','Order status'],['prodCard','Top performing products'],['lossCard','Orders that lost money'],['expCard','Expenses breakdown'],['stockCard','Stock'],['reorderCard','Reorder list'],['metricGrid','Summary figures (the tiles at the bottom)']];
 function cuGet(){try{var a=JSON.parse(localStorage.getItem('ssc-hidden-cards')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
 function cuApply(){var h=cuGet(),st=document.getElementById('cuStyle');if(!st){st=document.createElement('style');st.id='cuStyle';document.head.appendChild(st)}st.textContent=h.map(function(id){return '#'+id.replace(/[^\w-]/g,'')+'{display:none!important}'}).join('')}
 function openCustomize(){
@@ -3473,6 +3499,118 @@ function renderRetCard(){
   bindRet(card);
 }
 function bindRet(card){if(card._rb)return;card._rb=1;card.addEventListener('click',function(e){if(e.target.id==='retOpen'){setTab('returns');try{window.scrollTo({top:0,behavior:'smooth'})}catch(x){}}})}
+window.sscSearchData=function(){var n=function(a,f){return (a||[]).map(f)};return {orders:n(state.orders,norm).filter(function(o){return !o.sample}),sales:n(state.sales,normS).filter(function(o){return !o.sample}),flags:n(state.cflags,normFlag),staff:(typeof staffRows!=='undefined'?staffRows.slice():[])}};
+var CAT_BRAND={name:'Shubh Shringar Creations',tag:'Crafted with love, made by hand.',phone:'+91 96256 45719',web:'www.shubhshringarcreations.in'};
+function catLoadImg(src){return new Promise(function(res){if(!src)return res(null);var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
+function catRR(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function catWrap(c,t,x,y,maxW,lh,maxL){var w=String(t).split(/\s+/),line='',n=0;for(var i=0;i<w.length;i++){var tt=line?line+' '+w[i]:w[i];if(c.measureText(tt).width>maxW&&line){if(n+1>=maxL){var ln=line;while(c.measureText(ln+'…').width>maxW&&ln.length>1)ln=ln.slice(0,-1);c.fillText(ln+'…',x,y+n*lh);return}c.fillText(line,x,y+n*lh);n++;line=w[i]}else line=tt}if(line)c.fillText(line,x,y+n*lh)}
+function catMake(items,o){
+  var W=1080,H=1350,per=6,pages=Math.max(1,Math.ceil(items.length/per)),logo=document.querySelector('img.logo'),F='system-ui,Segoe UI,Arial,sans-serif';
+  return Promise.all([catLoadImg(logo?(logo.currentSrc||logo.src):''),Promise.all(items.map(function(p){return catLoadImg(p.image||(p.images&&p.images[0])||'')}))]).then(function(r){
+    var lg=r[0],ims=r[1],out=[];
+    for(var pg=0;pg<pages;pg++){
+      var cv=document.createElement('canvas');cv.width=W;cv.height=H;var c=cv.getContext('2d');
+      c.fillStyle='#fbf6f0';c.fillRect(0,0,W,H);
+      c.fillStyle='#8e452b';c.fillRect(0,0,W,138);
+      var x0=40;if(lg){var lh=96,lw=lg.width*lh/lg.height;if(lw>220){lw=220;lh=lg.height*lw/lg.width}c.fillStyle='#fff';catRR(c,34,20,lw+16,lh+16,14);c.fill();c.drawImage(lg,42,28,lw,lh);x0=34+lw+34}
+      c.fillStyle='#fff';c.textAlign='left';c.font='800 38px '+F;c.fillText(CAT_BRAND.name,x0,66);c.font='500 22px '+F;c.fillStyle='rgba(255,255,255,.85)';c.fillText(o.title||CAT_BRAND.tag,x0,102);
+      var cw=490,ch=360,gx=20,gy=18,gx0=40,gy0=162;
+      for(var k=0;k<per;k++){var idx=pg*per+k;if(idx>=items.length)break;var p=items[idx],col=k%2,row=Math.floor(k/2),x=gx0+col*(cw+gx),y=gy0+row*(ch+gy);
+        c.save();c.shadowColor='rgba(0,0,0,.12)';c.shadowBlur=14;c.shadowOffsetY=3;c.fillStyle='#fff';catRR(c,x,y,cw,ch,18);c.fill();c.restore();
+        c.save();catRR(c,x,y,cw,258,18);c.clip();c.fillStyle='#f1e7dd';c.fillRect(x,y,cw,258);var im=ims[idx];
+        if(im){var sc=Math.max(cw/im.width,258/im.height),dw=im.width*sc,dh=im.height*sc;c.drawImage(im,x+(cw-dw)/2,y+(258-dh)/2,dw,dh)}else{c.fillStyle='#c9b4a3';c.font='800 90px '+F;c.textAlign='center';c.fillText((p.name||'?').charAt(0).toUpperCase(),x+cw/2,y+155);c.textAlign='left'}
+        c.restore();
+        c.fillStyle='#2b1d14';c.font='700 25px '+F;c.textAlign='left';catWrap(c,p.name||'',x+18,y+296,cw-36,30,2);
+        var by=y+ch-14;
+        if(o.price&&p.price>0){c.fillStyle='#8e452b';c.font='800 32px '+F;c.fillText('₹'+Math.round(p.price).toLocaleString('en-IN'),x+18,by)}
+        if(o.sku&&p.sku){c.fillStyle='#8a7a6c';c.font='500 20px '+F;c.textAlign='right';c.fillText(p.sku,x+cw-18,by);c.textAlign='left'}
+      }
+      c.fillStyle='#8e452b';c.fillRect(0,H-64,W,64);c.fillStyle='#fff';c.font='600 24px '+F;c.textAlign='center';c.fillText('Order on WhatsApp: '+CAT_BRAND.phone+'   ·   '+CAT_BRAND.web,W/2,H-24);
+      if(pages>1){c.font='500 18px '+F;c.fillStyle='rgba(255,255,255,.8)';c.textAlign='right';c.fillText((pg+1)+' / '+pages,W-24,H-24)}
+      out.push(new Promise(function(res){cv.toBlob(function(b){res(b)},'image/jpeg',0.9)}));
+    }
+    return Promise.all(out);
+  });
+}
+window.sscMakeCatalog=catMake;
+function openCatalog(){
+  var ov=document.getElementById('catOv');
+  if(!ov){ov=document.createElement('div');ov.id='catOv';
+    ov.innerHTML='<div class="od-box" role="dialog" aria-label="Share catalogue" style="width:min(900px,100%)"><div class="od-h"><div><h3>Share catalogue</h3><p>Pick products. We make clean pictures (6 products each) with photo, name and price, ready to send on WhatsApp.</p></div><button class="od-x" type="button" id="catX" aria-label="Close">×</button></div><div class="cat-o"><input class="field-in" id="catQ" type="search" placeholder="Search products" style="width:220px"><label><input type="checkbox" id="catPrice" checked> Show price</label><label><input type="checkbox" id="catSku"> Show SKU code</label><button class="btn small" type="button" id="catAll">Select all</button><button class="btn small" type="button" id="catNone">Clear</button><span id="catCount" style="margin-left:auto;color:var(--ink-3)"></span></div><div class="cat-l" id="catL"></div><div class="cat-pv" id="catPv"></div><div class="od-f"><span id="catMsg" style="color:var(--ink-3);font-size:.84rem"></span><button type="button" id="catGo">Create pictures</button></div></div>';
+    document.body.appendChild(ov);ov._sel={};ov._files=[];
+    ov.addEventListener('click',function(e){var t=e.target;if(t===ov||t.id==='catX')ov.classList.remove('on');
+      else if(t.id==='catAll'){catList().forEach(function(p){ov._sel[p.id]=1});catDraw()}else if(t.id==='catNone'){ov._sel={};catDraw()}
+      else if(t.id==='catGo')catRun()});
+    ov.addEventListener('change',function(e){var t=e.target;if(t.dataset&&t.dataset.cid){if(t.checked)ov._sel[t.dataset.cid]=1;else delete ov._sel[t.dataset.cid];catCount()}});
+    ov.addEventListener('input',function(e){if(e.target.id==='catQ')catDraw()})}
+  ov.classList.add('on');catDraw();
+}
+function catList(){var q=String((document.getElementById('catQ')||{}).value||'').trim().toLowerCase();return state.products.map(normP).filter(function(p){return !p.sample&&(!q||(p.name+' '+p.sku).toLowerCase().indexOf(q)>-1)}).sort(function(a,b){return a.name.localeCompare(b.name)})}
+function catCount(){var ov=document.getElementById('catOv'),n=Object.keys(ov._sel).length;document.getElementById('catCount').textContent=n+' selected'+(n?' · '+Math.ceil(n/6)+' picture'+(Math.ceil(n/6)>1?'s':''):'')}
+function catDraw(){var ov=document.getElementById('catOv'),l=catList();document.getElementById('catL').innerHTML=l.length?l.map(function(p){var im=p.image||(p.images&&p.images[0])||'';return '<label class="cat-i"><input type="checkbox" data-cid="'+esc(p.id)+'"'+(ov._sel[p.id]?' checked':'')+'>'+(im?'<img src="'+esc(im)+'" alt="">':'<i>'+esc((p.name||'?').charAt(0).toUpperCase())+'</i>')+'<span><b>'+esc(p.name)+'</b><small>'+esc(p.sku)+(p.price>0?' · ₹'+Math.round(p.price):'')+'</small></span></label>'}).join(''):'<p style="padding:10px;color:var(--ink-3)">No products found.</p>';catCount()}
+function catRun(){
+  var ov=document.getElementById('catOv'),msg=document.getElementById('catMsg'),ids=ov._sel,items=state.products.map(normP).filter(function(p){return ids[p.id]}).sort(function(a,b){return a.name.localeCompare(b.name)});
+  if(!items.length){msg.textContent='Tick at least one product.';return}
+  msg.textContent='Making pictures…';
+  catMake(items,{price:document.getElementById('catPrice').checked,sku:document.getElementById('catSku').checked}).then(function(blobs){
+    var files=blobs.map(function(b,i){return new File([b],'catalogue-'+(i+1)+'.jpg',{type:'image/jpeg'})});ov._files=files;
+    var pv=document.getElementById('catPv');pv.innerHTML=blobs.map(function(b){return '<img src="'+URL.createObjectURL(b)+'" alt="Catalogue page">'}).join('');
+    var go=document.getElementById('catGo');go.textContent=(navigator.canShare&&navigator.canShare({files:files}))?'Share on WhatsApp':'Download pictures';msg.textContent=files.length+' picture'+(files.length>1?'s':'')+' ready.';
+    go.onclick=function(){if(navigator.canShare&&navigator.canShare({files:files})){navigator.share({files:files,title:CAT_BRAND.name+' catalogue'}).catch(function(){})}else{files.forEach(function(f,i){setTimeout(function(){var a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)},i*350)})}};
+  }).catch(function(){msg.textContent='Could not make the pictures. Try fewer products.'});
+}
+function dataCheck(){
+  var look=window.sscProductLookup?window.sscProductLookup():function(){return null},NM={Meesho:'Meesho',Amazon:'Amazon',Myntra:'Myntra',Flipkart:'Flipkart',Manual:'Website & Offline'},un={},seen={},orders=0;
+  trkRecords().forEach(function(r,i){
+    if(r.other||!r.sku)return;var k=r.mp+'|'+(r.id||('#'+i))+'|'+skuKey(r.sku);if(seen[k])return;seen[k]=1;
+    var p=null;try{p=look(r.sku)}catch(e){}if(p)return;
+    var key=skuKey(r.sku),o=un[key]||(un[key]={sku:r.sku,n:0,mp:{}});o.n++;o.mp[NM[r.mp]||r.mp]=1;orders++});
+  var prods=(window.sscProductList?window.sscProductList():[]),noCost=[],noPrice=[],noGst=[],noPhoto=0;
+  prods.forEach(function(p){if(!(pTotal(p)>0))noCost.push(p);if(!(p.price>0))noPrice.push(p);if(p.gst===''||isNaN(+p.gst))noGst.push(p);if(!(p.image||(p.images&&p.images.length)))noPhoto++});
+  return {un:Object.keys(un).map(function(k){return un[k]}).sort(function(a,b){return b.n-a.n}),orders:orders,noCost:noCost,noPrice:noPrice,noGst:noGst,noPhoto:noPhoto,total:prods.length};
+}
+function renderDataCard(){
+  var card=document.getElementById('dataCard');if(!card)return;
+  var gc=document.getElementById('gstCard');if(gc&&card.previousElementSibling!==gc)gc.after(card);
+  var d=dataCheck(),issues=d.un.length+d.noCost.length+d.noPrice.length+d.noGst.length;
+  var head='<div class="chan-head"><div><h3>Data check</h3><p>Gaps that make profit, margin and GST figures wrong</p></div><span class="attn-badge '+(issues?'red':'ok')+'">'+(issues?issues+' to fix':'✓ All good')+'</span></div>';
+  if(!issues){card.innerHTML=head+'<div class="attn-item"><span class="attn-ic ok">✓</span><div class="attn-tx"><b>Your data looks complete</b><span>Every order SKU matches a product, and every product has a cost, price and GST %.'+(d.noPhoto?' '+d.noPhoto+' product'+(d.noPhoto>1?'s have':' has')+' no photo.':'')+'</span></div></div>';dcBind(card);return}
+  var tile=function(l,n){return '<div class="today-t"><small>'+l+'</small><b>'+n+'</b></div>'};
+  var h=head+'<div class="today-row">'+tile('Unknown SKUs',d.un.length)+tile('No cost',d.noCost.length)+tile('No price',d.noPrice.length)+tile('No GST %',d.noGst.length)+'</div>';
+  if(d.un.length)h+='<div class="dc-h">Order SKUs with no matching product ('+d.orders+' orders have no cost, so profit is overstated)</div><table class="dc-t"><thead><tr><th>SKU in orders</th><th>Channels</th><th class="r">Orders</th><th></th></tr></thead><tbody>'+d.un.slice(0,6).map(function(u){return '<tr><td><b>'+esc(u.sku)+'</b></td><td>'+esc(Object.keys(u.mp).join(', '))+'</td><td class="r">'+u.n+'</td><td class="r"><button type="button" data-dc-add="'+esc(u.sku)+'">Add product</button></td></tr>'}).join('')+'</tbody></table>'+(d.un.length>6?'<p class="today-note">+'+(d.un.length-6)+' more SKUs.</p>':'');
+  var fixes=[];d.noCost.forEach(function(p){fixes.push([p,'No cost'])});d.noPrice.forEach(function(p){fixes.push([p,'No price'])});d.noGst.forEach(function(p){fixes.push([p,'No GST %'])});
+  if(fixes.length)h+='<div class="dc-h">Products to complete</div><table class="dc-t"><thead><tr><th>Product</th><th>SKU</th><th>Missing</th><th></th></tr></thead><tbody>'+fixes.slice(0,8).map(function(f){return '<tr><td><b>'+esc(f[0].name)+'</b></td><td>'+esc(f[0].sku)+'</td><td>'+f[1]+'</td><td class="r"><button type="button" data-dc-fix="'+esc(f[0].sku||f[0].name)+'">Open</button></td></tr>'}).join('')+'</tbody></table>'+(fixes.length>8?'<p class="today-note">+'+(fixes.length-8)+' more in the Products tab.</p>':'');
+  card.innerHTML=h;dcBind(card);
+}
+function dcBind(card){if(card._db)return;card._db=1;card.addEventListener('click',function(e){var a=e.target.closest('[data-dc-add]'),f=e.target.closest('[data-dc-fix]');if(!a&&!f)return;setTab('products');
+  setTimeout(function(){if(a){var ab=document.getElementById('addBtn');if(ab)ab.click();setTimeout(function(){var el=document.getElementById('p-sku');if(el){el.value=a.dataset.dcAdd;el.dispatchEvent(new Event('input',{bubbles:true}))}},200)}else{var q=document.getElementById('pq');if(q){q.value=f.dataset.dcFix;q.dispatchEvent(new Event('input',{bubbles:true}))}}},250)})}
+function insightData(){
+  var now=new Date(),D=864e5,NM={Meesho:'Meesho',Amazon:'Amazon',Myntra:'Myntra',Flipkart:'Flipkart',Manual:'Website & Offline'},seen={},out=[];
+  var o7=0,p7=0,ch={},pr={};
+  trkRecords().forEach(function(r,i){ if(r.other||!r.date)return; var k=r.mp+'|'+(r.id||('#'+i))+'|'+skuKey(r.sku||''); if(seen[k])return; seen[k]=1;
+    var d=pDateAny(r.date); if(!d)return; var age=(now-d)/D; if(age<0||age>=60)return; var q=+r.qty||1;
+    if(r.st==='ok'){ if(age<7)o7++; else if(age<14)p7++ }
+    if(age<30){ var c=ch[r.mp]||(ch[r.mp]={n:0,bad:0,net:0,ok:0}); c.n++; if(r.st==='return'||r.st==='rto')c.bad++;
+      if(r.st==='ok'){c.ok++; var fv=(r.fin===undefined)?((+r.recv||0)-(r.other?0:(+r.cost||0))):+r.fin; c.net+=fv||0} }
+    if(r.st==='ok'&&r.sku){ var sk=skuKey(r.sku),o=pr[sk]||(pr[sk]={sku:r.sku,a:0,b:0}); if(age<14)o.a+=q; else if(age<28)o.b+=q } });
+  if(o7+p7>=5){ var pc=p7?Math.round((o7-p7)/p7*100):100;
+    out.push({t:pc>=0?'up':'down',h:'Orders '+(pc>=0?'up ':'down ')+Math.abs(pc)+'% this week',s:o7+' orders in the last 7 days vs '+p7+' the week before.'}) }
+  Object.keys(ch).forEach(function(k){ var c=ch[k]; if(c.n>=10&&c.bad/c.n>=.25) out.push({t:'warn',h:(NM[k]||k)+' returns are high',s:Math.round(c.bad/c.n*100)+'% of the last 30 days’ orders came back ('+c.bad+' of '+c.n+'). Check packing, size charts and photos.'}) });
+  var cs=Object.keys(ch).filter(function(k){return ch[k].ok>=5}).map(function(k){return {k:k,v:ch[k].net/ch[k].ok}}).sort(function(a,b){return b.v-a.v});
+  if(cs.length>=2&&cs[0].v-cs[cs.length-1].v>=Math.max(5,Math.abs(cs[0].v)*.1)){ var b=cs[0],w=cs[cs.length-1]; out.push({t:'info',h:(NM[b.k]||b.k)+' earns you the most per order',s:'About '+money(Math.round(b.v))+' per order in 30 days, against '+money(Math.round(w.v))+' on '+(NM[w.k]||w.k)+'.'}) }
+  var pl=Object.keys(pr).map(function(k){return pr[k]}).filter(function(o){return o.a+o.b>=6});
+  var up=pl.filter(function(o){return o.a>o.b*1.5&&o.a-o.b>=3}).sort(function(a,b){return (b.a-b.b)-(a.a-a.b)})[0];
+  var dn=pl.filter(function(o){return o.b>o.a*1.5&&o.b-o.a>=3}).sort(function(a,b){return (b.b-b.a)-(a.b-a.a)})[0];
+  if(up) out.push({t:'up',h:up.sku+' is picking up',s:up.a+' sold in the last 14 days vs '+up.b+' in the 14 before. Make sure you have stock.'});
+  if(dn) out.push({t:'down',h:dn.sku+' is slowing down',s:dn.a+' sold in the last 14 days vs '+dn.b+' in the 14 before. Try a better photo or a small price cut.'});
+  return out }
+function renderInsightCard(){
+  var card=document.getElementById('insCard');if(!card)return;
+  var dc=document.getElementById('dataCard');if(dc&&card.nextElementSibling!==dc)dc.before(card);
+  var rows=insightData(),IC={up:'↑',down:'↓',warn:'!',info:'i'};
+  var head='<div class="chan-head"><div><h3>Smart insights</h3><p>What changed in your business, worked out automatically</p></div></div>';
+  if(!rows.length){card.innerHTML=head+'<div class="attn-item"><span class="attn-ic ok">✓</span><div class="attn-tx"><b>Nothing unusual</b><span>Need a few weeks of orders with dates before trends show up here.</span></div></div>';return}
+  card.innerHTML=head+rows.map(function(r){return '<div class="attn-item"><span class="attn-ic '+(r.t==='warn'?'red':(r.t==='down'?'amber':(r.t==='up'?'ok':'')))+'">'+IC[r.t]+'</span><div class="attn-tx"><b>'+esc(r.h)+'</b><span>'+esc(r.s)+'</span></div></div>'}).join('') }
 function remGet(){var o={on:false,time:'20:00'};try{var x=JSON.parse(localStorage.getItem('ssc-daily-rem')||'null');if(x){o.on=!!x.on;if(/^\d\d:\d\d$/.test(x.time||''))o.time=x.time}}catch(e){}return o}
 function remSet(o){try{localStorage.setItem('ssc-daily-rem',JSON.stringify(o))}catch(e){}if(window.sscRemCheck)window.sscRemCheck()}
 function renderTodayCard(){
@@ -3525,6 +3663,7 @@ function renderAttentionCard(){
   var hiP=pl2.filter(function(a){var den=a.u+a.ret;return den>=5&&a.ret*100/den>=30}).sort(function(a,b){return b.ret/(b.u+b.ret)-a.ret/(a.u+a.ret)});
   if(hiP.length)items.push({sev:'amber',ic:'↩',t:hiP.length+' product'+(hiP.length>1?'s':'')+' with 30%+ returns',d:hiP.slice(0,4).map(function(a){return a.name+' ('+Math.round(a.ret*100/(a.u+a.ret))+'%)'}).join(' · ')+' in '+per+'.',a:'Open Products',tab:'products',w:2});
   try{var sl=stkList().filter(function(x){return x.state==='low'||x.state==='out'});if(sl.length){var so=sl.filter(function(x){return x.state==='out'});items.push({sev:so.length?'red':'amber',ic:'□',t:sl.length+' product'+(sl.length>1?'s':'')+' low on stock',d:sl.slice(0,4).map(function(x){return x.name+' ('+x.q+' left)'}).join(' · ')+(sl.length>4?' · +'+(sl.length-4)+' more':''),a:'Manage stock',tab:'__stock',w:so.length?3:2})}}catch(e){}
+  try{var dc0=dataCheck();if(dc0.un.length)items.push({sev:'red',ic:'!',t:dc0.un.length+' order SKU'+(dc0.un.length>1?'s':'')+' not matched to a product',d:dc0.un.slice(0,4).map(function(u){return u.sku+' ('+u.n+')'}).join(' · ')+(dc0.un.length>4?' · +'+(dc0.un.length-4)+' more':'')+'. Profit is overstated for these orders.',a:'See Data check',tab:'__data',w:3})}catch(e){}
   try{var rp=retPendData().filter(function(r){return r.days!==null&&r.days>=10});if(rp.length)items.push({sev:'amber',ic:'↩',t:rp.length+' return'+(rp.length>1?'s':'')+' not received after 10+ days',d:'Mark them received in Return Tracking, or ask the marketplace where they are.',a:'Open Return Tracking',tab:'returns',w:2})}catch(e){}
   try{var pcd=priceRows();if(pcd.bad.length)items.push({sev:'amber',ic:'%',t:pcd.bad.length+' product'+(pcd.bad.length>1?'s':'')+' below '+pcd.th+'% margin',d:pcd.bad.slice(0,4).map(function(x){return x.name+' ('+(Math.round(x.m*10)/10)+'%)'}).join(' · ')+(pcd.bad.length>4?' · +'+(pcd.bad.length-4)+' more':''),a:'See Price check',tab:'__price',w:2})}catch(e){}
   try{var lb=+localStorage.getItem('ssc-last-backup')||0,dd=lb?Math.floor((Date.now()-lb)/864e5):null;if(dd===null||dd>=30)items.push({sev:'amber',ic:'⇅',t:dd===null?'No backup downloaded yet':'Last backup was '+dd+' days ago',d:'Your data is also saved online, but a downloaded backup file is your own copy.',a:'Back up now',tab:'__backup',w:1})}catch(e){}
@@ -3534,7 +3673,7 @@ function renderAttentionCard(){
   var head='<div class="chan-head"><div><h3>Needs attention</h3><p>Things worth checking today</p></div>'+(items.length?'<span class="attn-badge '+(reds?'red':'amber')+'" style="'+(reds?'':'background:rgba(245,165,36,.18);color:#b26a00')+'">'+items.length+' to check</span>':'<span class="attn-badge ok">✓ All clear</span>')+'</div>';
   if(!items.length){card.innerHTML=head+'<div class="attn-item"><span class="attn-ic ok">✓</span><div class="attn-tx"><b>Nothing needs your attention right now</b><span>No overdue payments, loss-making products or high return rates for '+esc(per)+'.</span></div></div>';return}
   card.innerHTML=head+'<div class="attn-list">'+items.map(function(it){return '<div class="attn-item"><span class="attn-ic '+it.sev+'">'+it.ic+'</span><div class="attn-tx"><b>'+esc(it.t)+'</b><span>'+esc(it.d)+'</span></div><div class="attn-go"><button type="button" data-attn-tab="'+it.tab+'">'+esc(it.a)+'</button></div></div>'}).join('')+'</div>';
-  if(!card._ab){card._ab=1;card.addEventListener('click',function(e){var b=e.target.closest('[data-attn-tab]');if(!b)return;if(b.dataset.attnTab==='__overdue'){openOverdue();return}if(b.dataset.attnTab==='__stock'){openStock();return}if(b.dataset.attnTab==='__price'){var pc=document.getElementById('priceCard');if(pc)pc.scrollIntoView({behavior:'smooth',block:'start'});return}if(b.dataset.attnTab==='__backup'){var db=document.getElementById('dataBtn');if(db)db.click();return}try{setTab(b.dataset.attnTab);window.scrollTo({top:0,behavior:'smooth'})}catch(x){}})}
+  if(!card._ab){card._ab=1;card.addEventListener('click',function(e){var b=e.target.closest('[data-attn-tab]');if(!b)return;if(b.dataset.attnTab==='__overdue'){openOverdue();return}if(b.dataset.attnTab==='__stock'){openStock();return}if(b.dataset.attnTab==='__data'){var dcx=document.getElementById('dataCard');if(dcx){dcx.classList.remove('ccol');dcx.scrollIntoView({behavior:'smooth',block:'start'})}return}if(b.dataset.attnTab==='__price'){var pc=document.getElementById('priceCard');if(pc)pc.scrollIntoView({behavior:'smooth',block:'start'});return}if(b.dataset.attnTab==='__backup'){var db=document.getElementById('dataBtn');if(db)db.click();return}try{setTab(b.dataset.attnTab);window.scrollTo({top:0,behavior:'smooth'})}catch(x){}})}
 }
 window._tpSort=window._tpSort||'profit';
 function renderProductCard(){
@@ -3742,6 +3881,8 @@ function rbdInner(){
   try{renderFestCard()}catch(e){}
   try{renderPriceCard()}catch(e){}
   try{renderGstCard()}catch(e){}
+  try{renderDataCard()}catch(e){}
+  try{renderInsightCard()}catch(e){}
   try{renderYoyCard()}catch(e){}
   try{renderLossCard()}catch(e){}
   try{renderPendCard()}catch(e){}
@@ -5002,7 +5143,9 @@ function bindProducts(){
   });
   $('#pq').addEventListener('input',function(e){state.pq=e.target.value;state.pLimit=60;productExportStatus('');renderProducts()});
   $('#pExportExcel').addEventListener('click',productExportExcel);
+  var _sc=$('#pShareCat');if(_sc)_sc.addEventListener('click',openCatalog);
   $('#pExportPdf').addEventListener('click',productExportPdf);
+  $('#pShareCat').addEventListener('click',openCatalog);
   $('#pGrid').addEventListener('click',function(e){
     if(e.target.closest('[data-pmore]')){state.pLimit=(state.pLimit||60)+60;renderProducts();return}
     var ed=e.target.closest('[data-pedit]');if(ed){openProduct(ed.dataset.pedit);return}
@@ -6697,7 +6840,7 @@ function sheetFix(){
   if(!c.lines.some(function(l){return l.taxable>0})){$('invMsg').textContent='Please add at least one item with a rate.';return false}return true}
  function advanceNo(){var n=parseInt(lsGet(NKEY)||'1',10);if(!(n>0))n=1;if($('invNo').value===nextNo($('invDate').value)){lsSet(NKEY,String(n+1))}}
  function markUsed(){advanceNo();saveInvoice(true)}
- var IKEY='ssc-invoices-v1',saved=[];
+ var IKEY='ssc-invoices-v1',saved=[];window.sscInvoiceLoad=function(){return readSaved()};
  function readSaved(){var p;try{p=window.sscStore?window.sscStore.get(IKEY):Promise.resolve(null)}catch(e){p=Promise.resolve(null)}
   return Promise.resolve(p).catch(function(){return null}).then(function(v){if(!Array.isArray(v)){try{v=JSON.parse(lsGet(IKEY)||'null')}catch(e){v=null}}return Array.isArray(v)?v:[]})}
  function writeSaved(list){lsSet(IKEY,JSON.stringify(list));try{if(window.sscStore)return Promise.resolve(window.sscStore.put(IKEY,list)).catch(function(){return false})}catch(e){}return Promise.resolve(true)}
@@ -8073,7 +8216,7 @@ var A=window.sscApi;if(!A)return;
 var esc=A.esc,toast=A.toast,todayISO=A.todayISO;
 var PK='ssc-purchases-v1',MN=['','January','February','March','April','May','June','July','August','September','October','November','December'];
 var q=function(x){return document.querySelector(x)};
-var rows=[],editing=null,f={y:'all',m:'all',q:''};
+var rows=[],editing=null,f={y:'all',m:'all',q:''};window.sscPurchaseRows=function(){return rows.slice()};
 var inr=function(n){return '₹'+(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})};
 function dmy(d){return /^\d{4}-\d{2}-\d{2}$/.test(d)?d.slice(8)+'-'+d.slice(5,7)+'-'+d.slice(0,4):d}
 function parse(v){try{var x=typeof v==='string'?JSON.parse(v):v;return Array.isArray(x)?x:[]}catch(e){return []}}
@@ -8996,13 +9139,30 @@ function runSearch(){
     expF=(window.exGet?window.exGet():[]).filter(function(x){var hay=[x.cat,x.desc,x.plat,x.date,x.amount].join(' ').toLowerCase();return toks.every(function(w){return hay.indexOf(w)>-1})}).sort(function(a,b){return String(b.date).localeCompare(String(a.date))}).slice(0,5)}}catch(e){}
   if(tabsF.length)h+='<div class="pf-sh">Go to</div>'+tabsF.map(function(b,i){return '<button class="pf-sr" data-st="'+i+'"><span class="mp p">Tab</span><span class="mid"><b>'+esc(b.textContent.trim())+'</b></span></button>'}).join('');
   if(expF.length)h+='<div class="pf-sh">Expenses <small>'+expF.length+' shown</small></div>'+expF.map(function(x,i){return '<button class="pf-sr" data-sx="'+i+'"><span class="mp p">Expense</span><span class="mid"><b>'+esc(x.cat||'Expense')+' · ₹'+Math.round(+x.amount||0).toLocaleString('en-IN')+'</b><small>'+esc([x.date,x.plat,x.desc].filter(Boolean).join(' · '))+'</small></span></button>'}).join('');
+  var G=[];
+  try{
+    var D=window.sscSearchData?window.sscSearchData():{orders:[],sales:[],flags:[],staff:[]},hit=function(txt){var h=String(txt).toLowerCase();return toks.every(function(w){return h.indexOf(w)>-1})};
+    var add=function(lab,title,sub,tab,input,val){var tb0=document.querySelector('#tabs [data-tab="'+tab+'"]');if(!tb0||tb0.offsetParent===null)return;G.push({lab:lab,title:title,sub:sub,tab:tab,input:input,val:val})};
+    var n0;
+    n0=0;D.sales.forEach(function(x){if(n0<4&&hit([x.customer,x.orderId,x.sku,x.marketplace,x.status,x.date,x.address].join(' '))){n0++;add('Sale entry',(x.customer||x.orderId||'Sale entry')+(x.orderId&&x.customer?' · '+x.orderId:''),[x.marketplace,x.sku,x.status,x.date].filter(Boolean).join(' · '),'sales','sq',x.orderId||x.customer||x.sku)}});
+    var seenC={};n0=0;D.orders.concat(D.sales).forEach(function(x){var nm=String(x.customer||'').trim(),k=nm.toLowerCase();if(!nm||seenC[k]||n0>=4)return;if(hit(nm+' '+(x.address||''))){seenC[k]=1;n0++;add('Customer',nm,String(x.address||x.product||'').slice(0,70),'customers','cq',nm)}});
+    D.flags.forEach(function(x){if(x.blacklisted&&hit(x.name+' '+x.remark+' '+x.address)&&!seenC[String(x.name).toLowerCase()]){seenC[String(x.name).toLowerCase()]=1;add('Blacklisted',x.name||'Customer',String(x.remark||'').slice(0,70),'customers','cq',x.name)}});
+    n0=0;D.orders.forEach(function(x){if(n0<3&&hit([x.no,x.customer,x.product,x.date].join(' '))){n0++;add('Dashboard order','#'+x.no+' · '+(x.customer||''),[x.product,x.date].filter(Boolean).join(' · '),'orders','','')}});
+    n0=0;D.staff.forEach(function(x){if(n0<4&&hit([x.name,x.material,x.date,x.amount].join(' '))){n0++;add('Staff payment',(x.name||'')+' · ₹'+Math.round(+x.amount||0).toLocaleString('en-IN'),[x.material,x.date].filter(Boolean).join(' · '),'staff','staffSearch',x.name)}});
+    n0=0;(window.sscPurchaseRows?window.sscPurchaseRows():[]).forEach(function(x){if(n0<4&&hit([x.item,x.note,x.date,x.amount].join(' '))){n0++;add('Purchase',(x.item||'')+' · ₹'+Math.round(+x.amount||0).toLocaleString('en-IN'),[x.note,x.date].filter(Boolean).join(' · '),'purchases','prQ',x.item)}});
+    n0=0;(window.__invRows||[]).forEach(function(x){if(n0<4&&hit([x.no,x.buyer,x.date,x.status].join(' '))){n0++;add('Invoice',(x.no||'')+(x.buyer?' · '+x.buyer:''),[x.date,x.status,x.grand?'₹'+Math.round(x.grand).toLocaleString('en-IN'):''].filter(Boolean).join(' · '),'invoice','invSavedQ',x.no)}});
+  }catch(e){}
+  if(G.length)h+='<div class="pf-sh">More results <small>'+G.length+' found</small></div>'+G.map(function(g,i){return '<button class="pf-sr" data-go="'+i+'"><span class="mp p">'+esc(g.lab)+'</span><span class="mid"><b>'+esc(g.title)+'</b><small>'+esc(g.sub)+'</small></span></button>'}).join('');
+  sres._g=G;
   sres._t=tabsF;sres._x=expF;
-  if(!h)h='<p class="pf-note" style="margin:18px">No match for “'+esc(q)+'”. Try an order ID, SKU, state, product name, expense or tab name.</p>';
+  if(!h)h='<p class="pf-note" style="margin:18px">No match for “'+esc(q)+'”. Try an order ID, SKU, customer, product, expense, staff name, invoice or tab name.</p>';
   if(window.innerWidth>900){var rb=sbox.getBoundingClientRect();sres.style.top=(rb.bottom+8)+'px';sres.style.right=Math.max(12,window.innerWidth-rb.right)+'px';sres.style.left='auto'}else{sres.style.top=sres.style.right=sres.style.left=''}
   sres.innerHTML=h;sres._o=orders.slice(0,8);sres._p=prods.slice(0,5);sres.hidden=false;
 }
 function setField(id,val){var el=document.getElementById(id);if(!el)return;el.value=val;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}
 sres.addEventListener('click',function(e){
+  var gb=e.target.closest('[data-go]');
+  if(gb){var g=sres._g[+gb.dataset.go];sres.hidden=true;sbox.classList.remove('open');if(g){goTab(g.tab);if(g.input)setTimeout(function(){setField(g.input,g.val||'');var fe=document.getElementById(g.input);if(fe)fe.scrollIntoView({block:'center',behavior:'smooth'})},250)}return}
   var tb=e.target.closest('[data-st]'),xb=e.target.closest('[data-sx]');
   if(tb){var t=sres._t[+tb.dataset.st];sres.hidden=true;sbox.classList.remove('open');if(t)t.click();return}
   if(xb){sres.hidden=true;sbox.classList.remove('open');goTab('expenses');return}
@@ -9012,7 +9172,7 @@ sres.addEventListener('click',function(e){
   else if(p){var pr=sres._p[+p.dataset.sp];sres.hidden=true;sbox.classList.remove('open');goTab('products');setTimeout(function(){setField('pq',pr.sku||pr.name||'')},200)}
 });
 sbox.addEventListener('input',runSearch);
-sbox.addEventListener('focusin',function(e){if(e.target.classList.contains('pf-sin')){loadProducts();if(e.target.value)runSearch()}});
+sbox.addEventListener('focusin',function(e){if(e.target.classList.contains('pf-sin')){try{if(window.sscInvoiceLoad)window.sscInvoiceLoad().then(function(v){window.__invRows=v})}catch(x){}loadProducts();if(e.target.value)runSearch()}});
 sbox.querySelector('.pf-sbtn').addEventListener('click',function(){sbox.classList.toggle('open');var i=sbox.querySelector('input');if(sbox.classList.contains('open')||window.innerWidth>900)i.focus()});
 document.addEventListener('mousedown',function(e){if(!sbox.contains(e.target)&&!sres.contains(e.target)){sres.hidden=true;if(window.innerWidth<=900)sbox.classList.remove('open')}});
 document.addEventListener('keydown',function(e){

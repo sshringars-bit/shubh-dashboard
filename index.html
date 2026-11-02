@@ -1636,6 +1636,22 @@ html body.ssc-shell #view-orders .metric-head.hero2 .hero-btns{display:flex;flex
 }
 @media(max-width:700px){html body.ssc-shell #view-orders .metric-head.hero2 .hero-right>span{width:100%}html body.ssc-shell #clearAllBtn{width:100%;justify-content:center}}
 </style>
+<style id="alignFix2">
+/* tabs alignment pass */
+.ledger-tools select.field-in{width:auto;flex:0 1 180px;min-width:120px}
+.ledger-tools input.field-in{flex:1 1 220px;width:auto}
+#stCards .staff-total{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+#stCards .staff-total>*{min-width:0;box-sizing:border-box}
+#view-purchases section.glass:empty,#view-returns section.glass:empty,.view>section:empty{display:none}
+@media(max-width:700px){
+ html body.ssc-shell .headline p#today{flex-basis:100%;order:5;width:100%}
+ #stCards .staff-total{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #view-expenses .ledger-tools,#view-states .ledger-tools,#view-returns .ledger-tools,#view-purchases .ledger-tools,#view-stock .ledger-tools{display:grid!important;grid-template-columns:1fr 1fr;gap:10px}
+ .ledger-tools select.field-in,#view-returns .ledger-tools .field-in,#view-purchases .ledger-tools .field-in,#view-stock .ledger-tools .field-in{width:100%!important;flex:none}
+ .ledger-tools input.field-in{grid-column:1/-1;width:100%!important}
+ #view-invoice .field-in,#view-invoice input,#view-invoice select{font-size:.95rem}
+}
+</style>
 </head><body>
 <div id="sscLock" role="dialog" aria-modal="true" aria-label="Sign in"><div class="ssc-card" id="sscCard"></div></div>
 <div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><div class="ssc-bar"><i></i></div></div></div>
@@ -6987,6 +7003,43 @@ document.addEventListener('keydown',function(e){
  if(e.altKey&&!e.ctrlKey&&!e.metaKey&&/^[1-9]$/.test(e.key)){var t=document.querySelectorAll('#tabs [data-tab]')[+e.key-1];if(t){e.preventDefault();t.click();window.scrollTo({top:0,behavior:'smooth'})}}
 });
 /* small "?" hint in the Today card is not needed; add a link in the jump bar */
+})();
+</script>
+<style id="fsCss">
+.fs-bar{display:flex;justify-content:flex-end;margin:6px 0 8px}
+.fs-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:12px;border:1px solid var(--stroke-2,#cfd8d4);background:var(--field,#fff);color:var(--ink,#12342a);font-weight:700;font-size:.82rem;font-family:inherit;cursor:pointer}
+.fs-btn:hover{border-color:var(--accent,#0f7a5a)}
+.fs-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+html body.ssc-shell #view-tracker section.ssc-fs,html body .ssc-fs{position:fixed!important;inset:0!important;z-index:9200!important;width:auto!important;max-width:none!important;height:auto!important;margin:0!important;border-radius:0!important;overflow:hidden!important;padding:12px 18px 14px!important;box-sizing:border-box!important;background:#f3f6f5!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;border:0!important;transform:none!important;animation:none!important;display:flex!important;flex-direction:column;gap:8px}
+html[data-theme*="dark"] body.ssc-shell #view-tracker section.ssc-fs,html[data-theme*="standby"] body.ssc-shell #view-tracker section.ssc-fs,html[data-theme*="nowbar"] body.ssc-shell #view-tracker section.ssc-fs{background:#10171a!important}
+.ssc-fs>.mf-head,.ssc-fs>.mf-status,.ssc-fs>.mf-notes,.ssc-fs>.mpay-stats,.ssc-fs>.ws-form,.ssc-fs>.mf-profit{display:none!important}
+.ssc-fs>.fs-bar{order:-1;margin:0;justify-content:space-between;align-items:center}
+.ssc-fs>.fs-bar::before{content:attr(data-title);font-weight:800;font-size:1.1rem;line-height:1.2;color:var(--ink,#12342a)}
+.ssc-fs>.mf-toolbar,.ssc-fs>.mf-period,.ssc-fs>.mf-legend{margin:0!important;flex:none}
+.ssc-fs>.table-wrap{flex:1 1 auto;min-height:0;max-height:none!important;height:auto!important}
+.ssc-fs .mf-wrap table{min-width:100%}
+body.ssc-fs-open{overflow:hidden}
+body.ssc-fs-open main.page{z-index:9200!important}
+body.ssc-fs-open #sbToggle,body.ssc-fs-open #jumpBar,body.ssc-fs-open #toTop{display:none!important}
+</style>
+<script id="fsJs">
+(function(){
+ var ICON_IN='<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',ICON_OUT='<svg viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+ function box(w){return w.closest('#meeshoFreshTracker,section,.tracker-pane')||w.parentElement}
+ function setup(){
+  document.querySelectorAll('#view-tracker .table-wrap.mf-wrap').forEach(function(w){
+   if(w._fs)return;w._fs=1;var b=document.createElement('div');b.className='fs-bar';b.setAttribute('data-title',({meeshoFreshTracker:'Meesho',amazonOrderSheet:'Amazon',myntraOrderSheet:'Myntra',flipkartOrderSheet:'Flipkart',websiteOrderSheet:'Website & Offline'}[box(w).id]||'Order sheet')+' orders');
+   b.innerHTML='<button type="button" class="fs-btn">'+ICON_IN+'<span>Full screen</span></button>';
+   w.parentNode.insertBefore(b,w.previousElementSibling&&w.previousElementSibling.classList.contains('mf-legend')?w.previousElementSibling:w);
+   b.firstChild.addEventListener('click',function(){toggle(box(w))})})}
+ function label(c,on){c.querySelectorAll('.fs-btn').forEach(function(x){x.innerHTML=(on?ICON_OUT:ICON_IN)+'<span>'+(on?'Exit full screen':'Full screen')+'</span>'})}
+ function toggle(c){var on=!c.classList.contains('ssc-fs');
+  document.querySelectorAll('.ssc-fs').forEach(function(x){x.classList.remove('ssc-fs');x.style.removeProperty('background');label(x,false)});
+  if(on){c.classList.add('ssc-fs');c.scrollTop=0;c.style.setProperty('background',/dark|standby|nowbar/.test(document.documentElement.getAttribute('data-theme')||'')?'#10171a':'#f3f6f5','important')}label(c,on);document.body.classList.toggle('ssc-fs-open',on)}
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.querySelector('.ssc-fs'))toggle(document.querySelector('.ssc-fs'))});
+ window.addEventListener('hashchange',function(){var c=document.querySelector('.ssc-fs');if(c)toggle(c)});
+ document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('#tabs [data-tab], .tracker-subtab');if(t){var c=document.querySelector('.ssc-fs');if(c)toggle(c)}},true);
+ setup();setTimeout(setup,800);setTimeout(setup,2500);
 })();
 </script>
 </body></html>

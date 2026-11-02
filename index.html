@@ -1652,6 +1652,15 @@ html body.ssc-shell #view-orders .metric-head.hero2 .hero-btns{display:flex;flex
  #view-invoice .field-in,#view-invoice input,#view-invoice select{font-size:.95rem}
 }
 </style>
+<style id="pendCss">
+.mpay-stat.settle-red,.mpay-stat.settle-green{cursor:pointer}
+.mpay-stat.settle-red:hover{filter:brightness(.97)}
+section:has(table.hl-pend) .mpay-stat.settle-red{box-shadow:0 0 0 3px #f6c90e;border-color:#d9a900}
+table.hl-pend tbody tr.mf-pend>td{background:#fff176!important;color:#3d3200!important}
+table.hl-pend tbody tr.mf-pend>td .mf-ed,table.hl-pend tbody tr.mf-pend>td select{background:transparent}
+.pend-hint{display:none;margin:6px 0;padding:7px 12px;border-radius:10px;background:#fff8c5;border:1px solid #e6cf3a;color:#5c4b00;font-size:.84rem;font-weight:600}
+.pend-hint.show{display:block}
+</style>
 </head><body>
 <div id="sscLock" role="dialog" aria-modal="true" aria-label="Sign in"><div class="ssc-card" id="sscCard"></div></div>
 <div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><div class="ssc-bar"><i></i></div></div></div>
@@ -6285,7 +6294,7 @@ init();
   const qtyAll=pr.reduce((a,r)=>a+(parseFloat(r.qty)||0),0);
   let recv=0,recvN=0,netAll=0,netN=0;
   pr.forEach(r=>{const v=pay2(r);if(v!=null){recv+=v;recvN++}const n=(stOf(r)==='other'&&v==null)?null:netOf(r,costLook);if(n!=null){netAll+=n;netN++}});
-  const settlePending=pr.filter(r=>stOf(r)==='other'&&pay2(r)==null).length;
+  const isPend=r=>stOf(r)==='other'&&pay2(r)==null;const settlePending=pr.filter(isPend).length;
   $('mfStats').innerHTML=[['Total Orders',ordIds.size],['Cancelled',pr.filter(r=>stOf(r)==='cancel').length],['Return',pr.filter(r=>stOf(r)==='return').length],['RTO',pr.filter(r=>stOf(r)==='rto').length],['Total Quantity',qtyAll],['Total cost invested',inr(allFinal)],['Total Payment Received',recvN?sgn(Math.round(recv*100)/100):'—'],['Net Profit',netN?sgn(Math.round(netAll*100)/100):'—'],['Order Settle Pending',settlePending]].map(x=>`<div class="mpay-stat${x[0]==='Order Settle Pending'?(+x[1]>0?' settle-red':' settle-green'):''}"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');
   {const sh=shown.filter(r=>!(stOf(r)==='other'&&pay2(r)==null)),payT=sh.reduce((a,r)=>a+(payTot(r)||0),0),costT=sh.reduce((a,r)=>a+(costOf(r,costLook).final||0),0),net=Math.round((payT-costT)*100)/100,top=Math.max(Math.abs(payT),costT,1),cw=Math.min(costT,Math.max(payT,costT))/top*100;
    const lab=($('mfMonth').value==='all'?'All months':$('mfMonth').selectedOptions[0].text)+' · '+($('mfYear').value==='all'?'All years':$('mfYear').value);
@@ -6308,7 +6317,7 @@ init();
       return '<td class="mf-pay'+(e.a<0?' mf-pay-neg':'')+'">'+ed(r,'pay',(e.a>0?'+':'')+sgn(e.a),'data-pi="'+pi+'" data-ek="'+encodeURIComponent(e.k)+'"')+(e.d?'<small class="mf-pdate">'+esc(e.d)+'</small>':'')+'</td>'}
     if(k==='cost'||k==='final'){const c=costOf(r,costLook);const v=k==='cost'?c.unit:c.final;if(v==null)return '<td class="mf-nocost" title="This SKU was not found in the Products tab (or has no cost)">'+(k==='cost'?'Not in Products':'—')+'</td>';return '<td class="mf-'+(k==='cost'?'cost':'final')+'">'+inr(v)+'</td>'}
     return '<td>'+ed(r,k,esc(r[k]))+'</td>'};
-  let body=shown.map((r,n)=>'<tr class="mf-r-'+kind(String(r.status||''))+'"><td class="mf-rn"><span class="mf-n">'+(n+1)+'</span><button class="mf-del" type="button" data-ri="'+ix.get(r)+'" title="Delete this row">✕</button></td>'+columns.map(([k])=>cell(r,k)).join('')+'</tr>').join('');
+  let body=shown.map((r,n)=>'<tr class="mf-r-'+kind(String(r.status||''))+(isPend(r)?' mf-pend':'')+'"><td class="mf-rn"><span class="mf-n">'+(n+1)+'</span><button class="mf-del" type="button" data-ri="'+ix.get(r)+'" title="Delete this row">✕</button></td>'+columns.map(([k])=>cell(r,k)).join('')+'</tr>').join('');
   let foot='';
   if(shown.length){const tq=shown.reduce((a,r)=>a+(parseFloat(r.qty)||0),0),tf=shown.reduce((a,r)=>a+(costOf(r,costLook).final||0),0);foot='<tfoot><tr class="mf-total"><td class="mf-rn">Σ</td><td colspan="6" class="mf-total-label">TOTAL · '+shown.length+(shown.length===rows.length?' orders':' orders (filtered)')+'</td><td>'+tq+'</td><td></td><td>'+inr(tf)+'</td><td>'+sgn(shown.reduce((a,r)=>a+pkgOf(r),0))+'</td>'+columns.filter(c=>/^pay/.test(c[0])).map(c=>'<td>'+sgn(shown.reduce((a,r)=>{if(c[0]==='paytotal')return a+(netOf(r,costLook)||0);const e=payEntries(r)[parseInt(c[0].slice(4))];return a+(e?e.a:0)},0))+'</td>').join('')+'</tr></tfoot>'}
   $('mfTable').innerHTML=cg()+head+'<tbody>'+body+'</tbody>'+foot;
@@ -7042,6 +7051,101 @@ body.ssc-fs-open #sbToggle,body.ssc-fs-open #jumpBar,body.ssc-fs-open #toTop{dis
  setup();setTimeout(setup,800);setTimeout(setup,2500);
 })();
 </script>
+<style id="xlCss">
+.xl-btn{margin-left:5px;border:0;border-radius:5px;background:rgba(15,80,60,.12);color:inherit;font-size:11px;line-height:1;padding:3px 5px;cursor:pointer;vertical-align:middle}
+.xl-btn:hover{background:rgba(15,80,60,.28)}
+.xl-btn.on{background:#0f7a5a;color:#fff}
+#myTable .my-fbtn,#fkTable .fk-fbtn{display:none!important}
+.xl-bar{display:none;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:6px 0;padding:8px 12px;border-radius:12px;background:#e8f4ee;border:1px solid #bfe0d0;color:#0f4d3a;font-size:.84rem;font-weight:600}
+.xl-bar.show{display:flex}
+.xl-bar button{border:1px solid #0f7a5a;background:#fff;color:#0f7a5a;border-radius:9px;padding:4px 11px;font-weight:700;font-size:.8rem;cursor:pointer;font-family:inherit}
+html[data-theme*="dark"] .xl-bar{background:#16302a;border-color:#245045;color:#bfe9d6}
+#xlPop{position:fixed;z-index:9400;width:min(300px,92vw);background:#fff;color:#12342a;border:1px solid #cfd8d4;border-radius:14px;box-shadow:0 18px 50px rgba(10,30,25,.28);padding:8px;font-size:.88rem;display:flex;flex-direction:column}
+html[data-theme*="dark"] #xlPop{background:#17211f;color:#e6f2ee;border-color:#2c403a}
+#xlPop .xl-i{display:block;width:100%;text-align:left;border:0;background:transparent;color:inherit;font:inherit;padding:8px 10px;border-radius:8px;cursor:pointer}
+#xlPop .xl-i:hover{background:rgba(15,122,90,.12)}
+#xlPop hr{border:0;border-top:1px solid rgba(120,140,135,.35);margin:6px 0}
+#xlPop input[type=search]{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:9px;border:1px solid #cfd8d4;background:transparent;color:inherit;font:inherit;margin-bottom:6px}
+#xlPop .xl-list{overflow:auto;max-height:240px;min-height:60px;border:1px solid rgba(120,140,135,.3);border-radius:9px;padding:4px}
+#xlPop label{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:6px;cursor:pointer;word-break:break-word}
+#xlPop label:hover{background:rgba(15,122,90,.1)}
+#xlPop label span.n{margin-left:auto;opacity:.6;font-size:.78rem}
+#xlPop .xl-act{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+#xlPop .xl-act button{border:1px solid #0f7a5a;background:#fff;color:#0f7a5a;border-radius:9px;padding:6px 14px;font-weight:700;cursor:pointer;font-family:inherit}
+#xlPop .xl-act button.p{background:#0f7a5a;color:#fff}
+</style>
+<script id="xlJs">
+(function(){
+ var IDS=['mfTable','azTable','myTable','fkTable','wsTable'],ST={},pop=null,PURE=/^([-−+]?)\s*₹?\s*([\d,]+(?:\.\d+)?)(?:\s+\d{4}-\d{2}-\d{2})?$/;
+ function rowsOf(t){return [].filter.call(t.querySelectorAll('tbody > tr'),function(r){return r.cells.length>1})}
+ function txt(td){if(!td)return '';var s=td.querySelector('select');if(s&&s.selectedIndex>=0)return s.options[s.selectedIndex].text.trim();var t=td.textContent.replace(/\s+/g,' ').trim();if(!t){var i=td.querySelector('input:not([type=checkbox])');if(i&&i.value)return i.value.trim();if(td.querySelector('img'))return 'Has image'}return t}
+ function disp(v){return v===''?'(Blank)':v}
+ function key(v){if(v===''||v==='(Blank)')return [2,0];var m=v.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);if(m)return [1,+(m[3]+m[2]+m[1])];m=v.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return [1,+(m[1]+m[2]+m[3])];m=v.match(PURE);if(m){var n=parseFloat(m[2].replace(/,/g,''));return [1,(m[1]==='-'||m[1]==='−')?-n:n]}return [0,v.toLowerCase()]}
+ function cmp(a,b,d){var x=key(a),y=key(b);if(x[0]===2||y[0]===2)return x[0]===y[0]?0:(x[0]===2?1:-1);if(x[0]!==y[0])return x[0]===1?-1:1;var r=x[0]===1?x[1]-y[1]:String(x[1]).localeCompare(String(y[1]),undefined,{numeric:true});return r*d}
+ function S(t){return ST[t.id]||(ST[t.id]={f:{},s:null})}
+ function heads(t){return t.tHead&&t.tHead.rows[0]?[].slice.call(t.tHead.rows[0].cells):[]}
+ function inject(t){heads(t).forEach(function(th,i){if(i===0||th.querySelector('.xl-btn'))return;var b=document.createElement('button');b.type='button';b.className='xl-btn';b.textContent='▾';b.title='Sort / filter';b.setAttribute('data-c',i);th.appendChild(b)})}
+ function marks(t){var s=S(t);heads(t).forEach(function(th,i){var b=th.querySelector('.xl-btn');if(!b)return;var f=!!s.f[i],so=s.s&&s.s.c===i;b.classList.toggle('on',f||so);b.textContent=so?(s.s.d>0?'▲':'▼'):'▾'})}
+ function barEl(t){var w=t.closest('.table-wrap');var b=w.previousElementSibling;if(!b||!b.classList.contains('xl-bar')){b=document.createElement('div');b.className='xl-bar';w.parentNode.insertBefore(b,w);b.addEventListener('click',function(e){if(e.target.getAttribute('data-clr')){ST[t.id]={f:{},s:null};apply(t)}})}return b}
+ function fmtNum(n,orig){var d=(orig.match(/\.(\d+)/)||['',''])[1].length,neg=n<0,s=Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});return (neg?'-':'')+(orig.indexOf('₹')>-1?'₹':'')+s}
+ function footer(t,rs,filtered,nvis){var tf=t.tFoot||t.querySelector('tfoot'),tr=tf&&tf.rows[0];if(!tr)return;if(!tr._o){tr._o=[].map.call(tr.cells,function(c){return c.innerHTML})}
+  [].forEach.call(tr.cells,function(c,i){c.innerHTML=tr._o[i]});if(!filtered)return;var vis=rs.filter(function(r){return r.style.display!=='none'}),col=0;
+  [].forEach.call(tr.cells,function(c){var span=c.colSpan||1,tx=c.textContent.trim();
+   if(c.classList.contains('mf-total-label')){c.textContent=tx.replace(/\d+/,nvis).replace(/\s*\(filtered\)/,'')+' (filtered)'}
+   else if(span===1&&/\d/.test(tx)){var sum=0,ok=true;vis.forEach(function(r){var v=txt(r.cells[col]);if(v==='')return;var m=v.match(PURE);if(!m){ok=false;return}var n=parseFloat(m[2].replace(/,/g,''));sum+=(m[1]==='-'||m[1]==='−')?-n:n});
+    var st=c.querySelector('strong')||c;st.textContent=ok?fmtNum(sum,tx):'–'}
+   col+=span})}
+ function apply(t){var s=S(t),rs=rowsOf(t);if(t._obs)t._obs.disconnect();
+  rs.forEach(function(r,i){if(r._o===undefined)r._o=i});
+  var cols=Object.keys(s.f),shown=0;
+  rs.forEach(function(r){var ok=true;cols.forEach(function(c){if(!s.f[c][disp(txt(r.cells[c]))])ok=false});r.style.display=ok?'':'none';if(ok)shown++});
+  if(rs.length){var tb=rs[0].parentNode,arr=rs.map(function(r){return {r:r,v:s.s?txt(r.cells[s.s.c]):''}});
+   arr.sort(function(a,b){return (s.s?cmp(a.v,b.v,s.s.d):0)||(a.r._o-b.r._o)});arr.forEach(function(o){tb.appendChild(o.r)})}
+  var active=cols.length>0||!!s.s;footer(t,rs,cols.length>0,shown);marks(t);
+  var bar=barEl(t),names=heads(t).map(function(th){return th.firstChild?th.firstChild.textContent.trim():''}),parts=[];
+  if(cols.length)parts.push('Showing <b>'+shown+'</b> of <b>'+rs.length+'</b> rows · filtered by '+cols.map(function(c){return names[c]}).join(', '));
+  if(s.s)parts.push('Sorted by <b>'+names[s.s.c]+'</b> '+(s.s.d>0?'(low → high)':'(high → low)'));
+  bar.innerHTML='<span>'+parts.join(' · ')+'</span> <button type="button" data-clr="1">Clear all</button>';bar.classList.toggle('show',active&&rs.length>0);
+  watch(t)}
+ function watch(t){if(!t._obs)t._obs=new MutationObserver(function(){clearTimeout(t._tm);t._tm=setTimeout(function(){inject(t);apply(t)},40)});t._obs.observe(t,{childList:true,subtree:true})}
+ function close(){if(pop){pop.remove();pop=null}}
+ function open(t,th,ci){close();var s=S(t),rs=rowsOf(t),cnt={};rs.forEach(function(r){var v=disp(txt(r.cells[ci]));cnt[v]=(cnt[v]||0)+1});
+  var vals=Object.keys(cnt).sort(function(a,b){return cmp(a,b,1)}),first=vals.filter(function(v){return v!=='(Blank)'})[0]||'',k=key(first),kind=/^\d{2}-\d{2}-\d{4}$|^\d{4}-\d{2}-\d{2}/.test(first)?'date':(k[0]===1?'num':'text');
+  var L=kind==='date'?['Oldest → newest','Newest → oldest']:kind==='num'?['Smallest → largest','Largest → smallest']:['A → Z','Z → A'];
+  var sel={};vals.forEach(function(v){sel[v]=s.f[ci]?!!s.f[ci][v]:true});
+  pop=document.createElement('div');pop.id='xlPop';
+  pop.innerHTML='<button class="xl-i" data-a="asc">↑ Sort '+L[0]+'</button><button class="xl-i" data-a="desc">↓ Sort '+L[1]+'</button>'+(s.s&&s.s.c===ci?'<button class="xl-i" data-a="nosort">Clear sort</button>':'')+'<hr><input type="search" placeholder="Search values" aria-label="Search values"><div class="xl-list"></div><div class="xl-act"><button type="button" data-a="clear">Clear filter</button><button type="button" class="p" data-a="ok">OK</button></div>';
+  document.body.appendChild(pop);var list=pop.querySelector('.xl-list'),q=pop.querySelector('input');
+  function draw(){var f=q.value.trim().toLowerCase(),vs=vals.filter(function(v){return !f||v.toLowerCase().indexOf(f)>-1});
+   var all=vs.length&&vs.every(function(v){return sel[v]});
+   list.innerHTML='<label><input type="checkbox" data-all="1"'+(all?' checked':'')+'><b>(Select all'+(f?' shown':'')+')</b></label>'+vs.slice(0,400).map(function(v){return '<label><input type="checkbox" data-v="'+v.replace(/"/g,'&quot;')+'"'+(sel[v]?' checked':'')+'><span>'+v.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span><span class="n">'+cnt[v]+'</span></label>'}).join('')+(vs.length>400?'<div style="padding:6px;opacity:.6">Showing first 400 – type to narrow</div>':'')}
+  draw();q.addEventListener('input',draw);
+  list.addEventListener('change',function(e){var c=e.target;if(c.getAttribute('data-all')){var f=q.value.trim().toLowerCase();vals.forEach(function(v){if(!f||v.toLowerCase().indexOf(f)>-1)sel[v]=c.checked});draw()}else{sel[c.getAttribute('data-v')]=c.checked;draw()}});
+  pop.addEventListener('click',function(e){var a=e.target.getAttribute&&e.target.getAttribute('data-a');if(!a)return;
+   if(a==='asc'||a==='desc'){s.s={c:ci,d:a==='asc'?1:-1}}else if(a==='nosort'){s.s=null}else if(a==='clear'){delete s.f[ci]}
+   else if(a==='ok'){var all=vals.every(function(v){return sel[v]});if(all)delete s.f[ci];else{var o={};vals.forEach(function(v){if(sel[v])o[v]=1});s.f[ci]=o}}
+   close();apply(t)});
+  var r=th.getBoundingClientRect(),w=Math.min(300,innerWidth*.92),left=Math.max(8,Math.min(r.left,innerWidth-w-8)),top=r.bottom+4;pop.style.left=left+'px';pop.style.top=top+'px';pop.style.maxHeight=Math.max(220,innerHeight-top-12)+'px';q.focus({preventScroll:true});pop._t=Date.now()}
+ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.xl-btn');
+  if(b){e.preventDefault();e.stopPropagation();var t=b.closest('table'),th=b.closest('th');if(pop&&pop._for===b){close();return}open(t,th,+b.getAttribute('data-c'));pop._for=b;return}
+  if(pop&&!pop.contains(e.target))close()},true);
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&pop){e.stopImmediatePropagation();close()}},true);
+ window.addEventListener('scroll',function(e){if(pop&&Date.now()-pop._t>400&&!pop.contains(e.target))close()},true);
+ function init(){IDS.forEach(function(id){var t=document.getElementById(id);if(!t)return;inject(t);apply(t)})}
+ init();setTimeout(init,1000);setTimeout(init,3000);
+})();
+</script>
+<script id="pendJs">
+(function(){
+ function find(e){var t=e.target.closest&&e.target.closest('.mpay-stat');if(!t)return null;var sm=t.querySelector('small');return sm&&/settle\s*pending/i.test(sm.textContent)?t:null}
+ document.addEventListener('click',function(e){var t=find(e);if(!t)return;var sec=t.closest('section');if(!sec)return;var tb=sec.querySelector('table.mpay-table');if(!tb)return;
+  var on=!tb.classList.contains('hl-pend');tb.classList.toggle('hl-pend',on);
+  var h=sec.querySelector('.pend-hint');if(!h){h=document.createElement('div');h.className='pend-hint';var w=tb.closest('.table-wrap');w.parentNode.insertBefore(h,w)}
+  var n=tb.querySelectorAll('tbody tr.mf-pend').length;h.textContent=on?(n?n+' row'+(n>1?'s':'')+' waiting for settlement are highlighted in yellow. Click the tile again to turn this off.':'Nothing is pending settlement.'):'';h.classList.toggle('show',on);
+  if(on&&n){var f=tb.querySelector('tbody tr.mf-pend');if(f)f.scrollIntoView({block:'center',behavior:'smooth'})}});
+ document.addEventListener('mouseover',function(e){var t=find(e);if(t&&!t.title)t.title='Click to highlight pending orders in yellow'});
+})();
+</script>
 </body></html>
 <style>
 #view-tracker .tracker-subtab[aria-selected="true"]{box-shadow:0 2px 10px rgba(0,0,0,.08);border-color:#c9a3c4;background:#fff7fc}
@@ -7220,7 +7324,7 @@ body.ssc-fs-open #sbToggle,body.ssc-fs-open #jumpBar,body.ssc-fs-open #toTop{dis
   /* Order Settle Pending = orders whose Final Settlement cell is blank (no payment matched yet). Each order is counted once, even if it has several item rows. */
   const cntRe=re=>{const seen=new Set();pr.forEach(r=>{if(!r.other&&re.test(String(r.status||'')))seen.add(r.orderId)});return seen.size};
   const paidIds=new Set(prO.filter(r=>r.net!==undefined&&r.net!=='').map(r=>r.orderId));
-  const pendSettle=Array.from(ids).filter(id=>!paidIds.has(id)).length;
+  const pendIdSet=new Set(Array.from(ids).filter(id=>!paidIds.has(id)));const pendSettle=pendIdSet.size;
   const cards=[['Total Orders',ids.size],['Total Cancelled',cntRe(/cancel/i)],['Total Return',cntRe(/return|retrun/i)],['Total Quantity',pr.reduce((a,r)=>a+qtyOf(r),0)],['Total Cost Invested',money(costSum)],['Total Payment Received',hasPay?money(netSum):'—'],['Order Settle Pending',pendSettle],['Net Profit',fin.length?money(finSum):'—']];
   $('azStats').innerHTML=cards.map(x=>'<div class="mpay-stat'+(x[0]==='Order Settle Pending'?(+x[1]>0?' settle-red':' settle-green'):'')+'"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('');
   $('azCount').textContent=nOrd?('Showing '+nShown+' of '+nOrd+' orders'):'';
@@ -7242,7 +7346,7 @@ body.ssc-fs-open #sbToggle,body.ssc-fs-open #jumpBar,body.ssc-fs-open #toTop{dis
    if(k==='orderId')return '<td class="mf-mono">'+ed(r,k,esc(r[k]))+'</td>';
    if(k==='qty'){const q=parseFloat(r.qty);return '<td class="mf-qty'+(q>1?' mf-qty-multi':'')+'">'+ed(r,k,esc(r[k]))+'</td>'}
    return '<td>'+ed(r,k,esc(r[k]))+'</td>'};
-  const body=shown.map((r,n)=>'<tr class="mf-r-'+kind(String(r.status||''))+'"><td class="mf-rn"><span class="mf-n">'+(n+1)+'</span><button class="mf-del" type="button" data-ri="'+ix.get(r)+'" title="Delete this row">✕</button></td>'+AC.map(([k])=>cell(r,k)).join('')+'</tr>').join('');
+  const body=shown.map((r,n)=>'<tr class="mf-r-'+kind(String(r.status||''))+(!r.other&&pendIdSet.has(r.orderId)?' mf-pend':'')+'"><td class="mf-rn"><span class="mf-n">'+(n+1)+'</span><button class="mf-del" type="button" data-ri="'+ix.get(r)+'" title="Delete this row">✕</button></td>'+AC.map(([k])=>cell(r,k)).join('')+'</tr>').join('');
   let foot='';if(shown.length)foot='<tfoot><tr class="mf-total"><td class="mf-rn">Σ</td><td colspan="5" class="mf-total-label">TOTAL · '+nShown+(nShown===nOrd?' orders':' orders (filtered)')+(shown.some(r=>r.other)?' + other charges':'')+'</td><td></td><td>'+shown.reduce((a,r)=>a+qtyOf(r),0)+'</td><td></td><td class="mf-num"><strong>'+money(shown.reduce((a,r)=>a+(costQtyOf(r,costLook)||0),0))+'</strong></td>'+NUMK.map(k=>{const t=shown.reduce((a,r)=>a+(parseFloat(r[k])||0),0);return '<td class="mf-num">'+(shown.some(r=>r[k]!==undefined&&r[k]!=='')?money(t):'')+'</td>'}).join('')+(()=>{const fr=shown.filter(r=>finalOf(r,costLook)!=null);return '<td class="mf-num"><strong>'+(fr.length?money(fr.reduce((a,r)=>a+finalOf(r,costLook),0)):'')+'</strong></td>'})()+AC.slice(cols.length).map(()=>'<td></td>').join('')+'</tr></tfoot>';
   $('azTable').innerHTML=cg+head+'<tbody>'+(shown.length?body:'<tr><td colspan="'+(AC.length+1)+'" class="mf-empty">'+(rows.length?'No matching order rows.':'No orders yet. Click Import Order Excel/CSV to add your Amazon order report.')+'</td></tr>')+'</tbody>'+foot}
  window.azRefresh=render;window.sscTrk=window.sscTrk||{};window.sscTrk.Amazon=function(){const look=(window.sscProductCostLookup?window.sscProductCostLookup():()=>null);return rows.map(r=>{const p=ymOf(r.date),t=String(r.status||''),n=parseFloat(r.net),has=r.net!==undefined&&r.net!==''&&!isNaN(n);return {mp:'Amazon',date:String(r.date||''),sttext:t,sku:String(r.sku||'').trim(),qty:(parseFloat(r.qty)>0?parseFloat(r.qty):1),state:String(r.state||''),id:String(r.orderId||'').trim(),ym:p?p.y+'-'+String(p.m).padStart(2,'0'):'',st:/cancel/i.test(t)?'cancel':/rto/i.test(t)?'rto':/return|retrun/i.test(t)?'return':'ok',other:!!r.other,cost:costQtyOf(r,look)||0,recv:has?n:0,settled:has,fin:finalOf(r,look)}})};
@@ -7506,7 +7610,7 @@ body.ssc-fs-open #sbToggle,body.ssc-fs-open #jumpBar,body.ssc-fs-open #toTop{dis
   const fin=pr.filter(r=>finalOf(r,costLook)!=null),finSum=fin.reduce((a,r)=>a+finalOf(r,costLook),0);
   /* Order Settle Pending = orders still waiting for a payment: cancelled and RTO orders are not expected to be paid, so they are not counted */
   const paidIds=new Set(prO.filter(r=>r.net!==undefined&&r.net!=='').map(r=>r.orderId));
-  const pendSettle=Array.from(ids).filter(id=>!paidIds.has(id)&&!prO.some(r=>r.orderId===id&&/cancel|^rto|lost/i.test(String(r.status||'')))).length;
+  const pendIdSet=new Set(Array.from(ids).filter(id=>!paidIds.has(id)&&!prO.some(r=>r.orderId===id&&/cancel|^rto|lost/i.test(String(r.status||'')))));const pendSettle=pendIdSet.size;
   const cards=[['Total Orders',ids.size],['Total Delivered',cntRe(/deliver/i)],['Total Cancelled',cntRe(/cancel/i)],['Total Return',cntRe(/^return/i)],['Total RTO',cntRe(/^rto/i)],['Total Quantity',pr.reduce((a,r)=>a+qtyOf(r),0)],['Total Cost Invested',money(costSum)],['Total Payment Received',hasPay?money(netSum):'—'],['Order Settle Pending',pendSettle],['Net Profit',fin.length?money(finSum):'—']];
   $('myStats').innerHTML=cards.map(x=>'<div class="mpay-stat'+(x[0]==='Order Settle Pending'?(+x[1]>0?' settle-red':' settle-green'):'')+'"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('');
   $('myCount').textContent=nOrd?('Showing '+nShown+' of '+nOrd+' orders'+(actCount()?' · '+actCount()+' column filter'+(actCount()>1?'s':'')+' on':'')):'';
@@ -7525,7 +7629,7 @@ body.ssc-fs-open #sbToggle,body.ssc-fs-open #jumpBar,body.ssc-fs-open #toTop{dis
    if(k==='orderId')return '<td class="mf-mono">'+ed(r,k,esc(r[k]))+'</td>';
    if(k==='qty'){const q=parseFloat(r.qty);return '<td class="mf-qty'+(q>1?' mf-qty-multi':'')+'">'+ed(r,k,esc(r[k]))+'</td>'}
    return '<td>'+ed(r,k,esc(r[k]))+'</td>'};
-  const body=shown.map((r,n)=>'<tr class="mf-r-'+kind(String(r.status||''))+'"><td class="mf-rn"><span class="mf-n">'+(n+1)+'</span><button class="mf-del" type="button" data-ri="'+ix.get(r)+'" title="Delete this row">✕</button></td>'+cols.map(([k])=>cell(r,k)).join('')+'</tr>').join('');
+  const body=shown.map((r,n)=>'<tr class="mf-r-'+kind(String(r.status||''))+(!r.other&&pendIdSet.has(r.orderId)?' mf-pend':'')+'"><td class="mf-rn"><span class="mf-n">'+(n+1)+'</span><button class="mf-del" type="button" data-ri="'+ix.get(r)+'" title="Delete this row">✕</button></td>'+cols.map(([k])=>cell(r,k)).join('')+'</tr>').join('');
   let foot='';if(shown.length)foot='<tfoot><tr class="mf-total"><td class="mf-rn">Σ</td><td colspan="5" class="mf-total-label">TOTAL · '+nShown+(nShown===nOrd?' orders':' orders (filtered)')+(shown.some(r=>r.other)?' + other charges':'')+'</td><td></td><td>'+shown.reduce((a,r)=>a+qtyOf(r),0)+'</td><td></td><td class="mf-num"><strong>'+money(shown.reduce((a,r)=>a+(costQtyOf(r,costLook)||0),0))+'</strong></td>'+NUMK.map(k=>{const t=shown.reduce((a,r)=>a+(parseFloat(r[k])||0),0);return '<td class="mf-num">'+(shown.some(r=>r[k]!==undefined&&r[k]!=='')?money(t):'')+'</td>'}).join('')+(()=>{const fr=shown.filter(r=>finalOf(r,costLook)!=null);return '<td class="mf-num"><strong>'+(fr.length?money(fr.reduce((a,r)=>a+finalOf(r,costLook),0)):'')+'</strong></td>'})()+'</tr></tfoot>';
   $('myTable').innerHTML=cg+head+'<tbody>'+(shown.length?body:'<tr><td colspan="'+(cols.length+1)+'" class="mf-empty">'+(rows.length?'No matching order rows.':'No orders yet. Click Import Order Excel/CSV to add your Myntra order report.')+'</td></tr>')+'</tbody>'+foot}
  window.myRefresh=render;window.sscTrk=window.sscTrk||{};window.sscTrk.Myntra=function(){const look=(window.sscProductCostLookup?window.sscProductCostLookup():()=>null);return rows.map(r=>{const p=ymOf(r.date),t=String(r.status||''),n=parseFloat(r.net),has=r.net!==undefined&&r.net!==''&&!isNaN(n);return {mp:'Myntra',date:String(r.date||''),sttext:t,sku:String(r.sku||'').trim(),qty:(parseFloat(r.qty)>0?parseFloat(r.qty):1),state:String(r.state||''),id:String(r.orderId||'').trim(),ym:p?p.y+'-'+String(p.m).padStart(2,'0'):'',st:/cancel/i.test(t)?'cancel':/rto/i.test(t)?'rto':/return|retrun/i.test(t)?'return':'ok',other:!!r.other,cost:costQtyOf(r,look)||0,recv:has?n:0,settled:has,fin:finalOf(r,look)}})};
@@ -7792,7 +7896,7 @@ body.ssc-fs-open #sbToggle,body.ssc-fs-open #jumpBar,body.ssc-fs-open #toTop{dis
   const fin=pr.filter(r=>finalOf(r,costLook)!=null),finSum=fin.reduce((a,r)=>a+finalOf(r,costLook),0);
   /* Order Settle Pending = orders still waiting for a payment: cancelled orders are not expected to be paid, so they are not counted */
   const paidIds=new Set(prO.filter(r=>r.net!==undefined&&r.net!=='').map(r=>r.orderId));
-  const pendSettle=Array.from(ids).filter(id=>!paidIds.has(id)&&!prO.some(r=>r.orderId===id&&/cancel/i.test(String(r.status||'')))).length;
+  const pendIdSet=new Set(Array.from(ids).filter(id=>!paidIds.has(id)&&!prO.some(r=>r.orderId===id&&/cancel/i.test(String(r.status||'')))));const pendSettle=pendIdSet.size;
   const cards=[['Total Orders',ids.size],['Total Delivered',cntRe(/deliver/i)],['Total Cancelled',cntRe(/cancel/i)],['Total Return',cntRe(/return/i)],['Total Quantity',pr.reduce((a,r)=>a+qtyOf(r),0)],['Total Cost Invested',money(costSum)],['Total Payment Received',hasPay?money(netSum):'—'],['Order Settle Pending',pendSettle],['Net Profit',fin.length?money(finSum):'—']];
   $('fkStats').innerHTML=cards.map(x=>'<div class="mpay-stat'+(x[0]==='Order Settle Pending'?(+x[1]>0?' settle-red':' settle-green'):'')+'"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('');
   $('fkCount').textContent=nOrd?('Showing '+nShown+' of '+nOrd+' orders'+(actCount()?' · '+actCount()+' column filter'+(actCount()>1?'s':'')+' on':'')):'';
@@ -7811,7 +7915,7 @@ body.ssc-fs-open #sbToggle,body.ssc-fs-open #jumpBar,body.ssc-fs-open #toTop{dis
    if(k==='orderId')return '<td class="mf-mono">'+ed(r,k,esc(r[k]))+'</td>';
    if(k==='qty'){const q=parseFloat(r.qty);return '<td class="mf-qty'+(q>1?' mf-qty-multi':'')+'">'+ed(r,k,esc(r[k]))+'</td>'}
    return '<td>'+ed(r,k,esc(r[k]))+'</td>'};
-  const body=shown.map((r,n)=>'<tr class="mf-r-'+kind(String(r.status||''))+'"><td class="mf-rn"><span class="mf-n">'+(n+1)+'</span><button class="mf-del" type="button" data-ri="'+ix.get(r)+'" title="Delete this row">✕</button></td>'+cols.map(([k])=>cell(r,k)).join('')+'</tr>').join('');
+  const body=shown.map((r,n)=>'<tr class="mf-r-'+kind(String(r.status||''))+(!r.other&&pendIdSet.has(r.orderId)?' mf-pend':'')+'"><td class="mf-rn"><span class="mf-n">'+(n+1)+'</span><button class="mf-del" type="button" data-ri="'+ix.get(r)+'" title="Delete this row">✕</button></td>'+cols.map(([k])=>cell(r,k)).join('')+'</tr>').join('');
   let foot='';if(shown.length)foot='<tfoot><tr class="mf-total"><td class="mf-rn">Σ</td><td colspan="4" class="mf-total-label">TOTAL · '+nShown+(nShown===nOrd?' orders':' orders (filtered)')+'</td><td></td><td>'+shown.reduce((a,r)=>a+qtyOf(r),0)+'</td><td></td><td class="mf-num"><strong>'+money(shown.reduce((a,r)=>a+(costQtyOf(r,costLook)||0),0))+'</strong></td>'+(()=>{const t=shown.reduce((a,r)=>a+(parseFloat(r.net)||0),0);return '<td class="mf-num">'+(shown.some(r=>r.net!==undefined&&r.net!=='')?money(t):'')+'</td>'})()+(()=>{const fr=shown.filter(r=>finalOf(r,costLook)!=null);return '<td class="mf-num"><strong>'+(fr.length?money(fr.reduce((a,r)=>a+finalOf(r,costLook),0)):'')+'</strong></td>'})()+'</tr></tfoot>';
   $('fkTable').innerHTML=cg+head+'<tbody>'+(shown.length?body:'<tr><td colspan="'+(cols.length+1)+'" class="mf-empty">'+(rows.length?'No matching order rows.':'No orders yet. Click Import Order Excel/CSV to add your Flipkart Orders report.')+'</td></tr>')+'</tbody>'+foot}
  window.fkRefresh=render;window.sscTrk=window.sscTrk||{};window.sscTrk.Flipkart=function(){const look=(window.sscProductCostLookup?window.sscProductCostLookup():()=>null);return rows.map(r=>{const p=ymOf(r.date),t=String(r.status||''),n=parseFloat(r.net),has=r.net!==undefined&&r.net!==''&&!isNaN(n);return {mp:'Flipkart',date:String(r.date||''),sttext:t,sku:String(r.sku||'').trim(),qty:(parseFloat(r.qty)>0?parseFloat(r.qty):1),id:String(r.orderId||'').trim(),ym:p?p.y+'-'+String(p.m).padStart(2,'0'):'',st:/cancel/i.test(t)?'cancel':/rto/i.test(t)?'rto':/return|retrun/i.test(t)?'return':'ok',other:!!r.other,cost:costQtyOf(r,look)||0,recv:has?n:0,settled:has,fin:finalOf(r,look)}})};

@@ -1751,6 +1751,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
     <button type="button" role="tab" id="tab-purchases" data-tab="purchases" aria-selected="false" tabindex="-1">Purchase Records</button>
     <button type="button" role="tab" id="tab-topten" data-tab="topten" aria-selected="false" tabindex="-1">Top 10 Sold</button>
     <button type="button" role="tab" id="tab-stock" data-tab="stock" aria-selected="false" tabindex="-1">Stock</button>
+    <button type="button" role="tab" id="tab-studio" data-tab="studio" aria-selected="false" tabindex="-1">Photo Studio</button>
   </nav>
   <button class="btn small" id="tabMove" type="button" aria-expanded="false" title="Change the order of the tabs. On a computer you can also drag a tab.">⇆ Move tabs</button>
   <span class="tabmove glass" id="tabMoveCtl" hidden><span id="tabMoveLbl"></span><button class="btn small" id="tabLeft" type="button" aria-label="Move tab left">‹ Left</button><button class="btn small" id="tabRight" type="button" aria-label="Move tab right">Right ›</button><button class="btn small primary" id="tabMoveDone" type="button">Done</button></span>
@@ -1993,6 +1994,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
       <section class="inv-preview-box" aria-label="Invoice preview"><div id="invPreview"></div></section>
     </div>
   </div>
+  <div class="view" id="view-studio" hidden></div>
   <div class="view" id="view-stock" hidden>
     <section class="ptools glass"><h3>Stock</h3><p>Type how many pieces of each product you have. You get a warning when a product is at or below its alert level. "New sales" counts orders dated after the day you set the number; tap Apply to subtract them. Saved automatically.</p></section>
     <section class="glass" style="padding:20px;display:grid;gap:14px">
@@ -2818,7 +2820,7 @@ function bindPay(){
   renderPay();
 }
 /* ---- movable tabs ---- */
-var TABS=['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','topten','stock'],TORD_KEY='ssc-tab-order';
+var TABS=['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','topten','stock','studio'],TORD_KEY='ssc-tab-order';
 function tabOrder(){
   var o=[];try{o=JSON.parse(localStorage.getItem(TORD_KEY)||'[]')}catch(e){}
   o=(Array.isArray(o)?o:[]).filter(function(t,i,a){return TABS.indexOf(t)>-1&&a.indexOf(t)===i});
@@ -3378,7 +3380,7 @@ function renderFestCard(){
   up.sort(function(a,b){return a.dl-b.dl});all.sort(function(a,b){return a.dl-b.dl});var shown=up.slice(0,4);
   var okTs=+(localStorage.getItem('ssc-fest-online-ts')||0),failTs=+(localStorage.getItem('ssc-fest-online-fail')||0);
   var src=okTs?'Dates updated from the internet on '+new Date(okTs).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+'.':'Dates are from the built-in list'+(failTs&&failTs>okTs?' (the internet update could not be reached).':'.');
-  var head='<div class="chan-head"><div><h3>Festival planner</h3><p>Upcoming festivals, what sold before them last year and what to prepare</p></div><div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn small" id="festAdd">+ Add festival</button><button type="button" class="btn small" id="festRef">Update dates</button></div></div>';
+  var head='<div class="chan-head"><div><h3>Festival planner</h3><p>Upcoming festivals, what sold before them last year and what to prepare</p></div><div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn small" id="festAll">All-India festival list</button><button type="button" class="btn small" id="festAdd">+ Add festival</button><button type="button" class="btn small" id="festRef">Update dates</button></div></div>';
   var cm=all.filter(function(x){return x.d.getMonth()===now.getMonth()||x.dl<=30}),mh=cm.length?'<div class="fest-month"><b>Coming up</b>'+cm.map(function(x){return '<span class="fest-chip'+(x.dl<=7?' soon':'')+'">'+esc(x.n)+' · '+x.d.getDate()+' '+MNF[x.d.getMonth()].slice(0,3)+'</span>'}).join('')+'</div>':'';
   if(!shown.length){card.innerHTML=head+mh+'<div class="chan-empty">No major festival in the next 4 months.</div><p class="today-note">'+src+'</p>';return}
   var recs=trkRecords(),MN=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],look=window.sscProductLookup?window.sscProductLookup():function(){return null},gr=festGrowth(recs);
@@ -3394,7 +3396,7 @@ function renderFestCard(){
     return '<div class="fest-i"><div class="fest-d"><b>'+u.d.getDate()+'</b><small>'+MN[u.d.getMonth()]+'</small></div><div class="fest-t"><b>'+esc(u.n)+'</b><span>'+info+'</span>'+plan+'</div><span class="fest-n'+(u.dl<=14?' soon':'')+'">'+(u.dl===0?'Today':u.dl===1?'Tomorrow':u.dl+' days')+'</span></div>'}).join('');
   card.innerHTML=head+mh+'<div class="fest-list">'+rows+'</div><p class="today-note">'+src+' '+(shown.length>1&&shown.some(function(x,i){return i&&x.dl-shown[i-1].dl<=10})?'Some festivals here are close together, so their stock plans overlap: do not add them up. ':'')+'Festival dates can move by a day; check the exact date before planning. Stock plan = last year’s sales in the 30 days before the festival, adjusted for how your recent orders compare with last year, plus 10%, minus the stock you have set in the Stock tab.</p>';
   if(!card._fb){card._fb=1;card.addEventListener('click',function(e){
-    if(e.target.id==='festRef'){var b=e.target;b.disabled=true;b.textContent='Updating…';festFetch(true).then(function(ok){b.disabled=false;b.textContent='Update dates';renderFestCard();if(window.sscApi&&window.sscApi.toast)window.sscApi.toast(ok?'Festival dates updated':'Could not reach the internet source. Showing the built-in list.')})}
+    if(e.target.id==='festAll'){if(window.sscFestCalendar)window.sscFestCalendar.open();return}if(e.target.id==='festRef'){var b=e.target;b.disabled=true;b.textContent='Updating…';festFetch(true).then(function(ok){b.disabled=false;b.textContent='Update dates';renderFestCard();if(window.sscApi&&window.sscApi.toast)window.sscApi.toast(ok?'Festival dates updated':'Could not reach the internet source. Showing the built-in list.')})}
     else if(e.target.id==='festAdd'){var n=prompt('Festival or event name (for example: Local mela, Wedding season)');if(!n)return;var d=prompt('Date as YYYY-MM-DD (for example 2027-02-14)');if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return;var a=festJson('ssc-fest-custom-v1',[]);a.push({n:n.trim(),d:d});try{localStorage.setItem('ssc-fest-custom-v1',JSON.stringify(a))}catch(x){}renderFestCard()}})}
 }
 setTimeout(function(){try{festFetch(false).then(function(ok){if(ok)renderFestCard()})}catch(e){}},5000);
@@ -4457,19 +4459,20 @@ function renderProducts(){
 window.sscApi={esc:esc,toast:toast,todayISO:todayISO,shortDate:shortDate,money:money,trkRecords:trkRecords,sales:function(){return state.sales},tab:function(){return state.tab}};
 function setTab(t){
   state.tab=t;
-  ['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','topten','stock'].forEach(function(v){$('#view-'+v).hidden=v!==t});
+  ['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','topten','stock','studio'].forEach(function(v){$('#view-'+v).hidden=v!==t});
   document.querySelectorAll('#tabs [role="tab"]').forEach(function(b){
     var on=b.dataset.tab===t;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;
   });
-  $('#pageTitle').textContent={orders:'Sales Dashboard',tracker:'Tracker',products:'Products',sales:'Sale entries',invoice:'Invoice',customers:'Customers',staff:'Staff Payment',recon:'Reconciliation',expenses:'Expenses',states:'State Sales',returns:'Return Tracking',purchases:'Purchase Records',topten:'Top 10 Sold Products',stock:'Stock'}[t];
+  $('#pageTitle').textContent={orders:'Sales Dashboard',tracker:'Tracker',products:'Products',sales:'Sale entries',invoice:'Invoice',customers:'Customers',staff:'Staff Payment',recon:'Reconciliation',expenses:'Expenses',states:'State Sales',returns:'Return Tracking',purchases:'Purchase Records',topten:'Top 10 Sold Products',stock:'Stock',studio:'Photo Studio'}[t];
   try{var pt=$('#pageTitle');pt.setAttribute('data-crumb','Home  /  '+(t==='orders'?'Overview':pt.textContent))}catch(e){}
-  $('#addBtn').textContent={orders:'+ New order',tracker:'',products:'+ New product',sales:'+ Manual entry',invoice:'',customers:'',staff:'',recon:'',expenses:'',states:'',returns:'',purchases:'',topten:'',stock:''}[t];
-  $('#addBtn').hidden=!state.canWrite||t==='invoice'||t==='customers'||t==='staff'||t==='recon'||t==='tracker'||t==='expenses'||t==='states'||t==='returns'||t==='purchases'||t==='topten'||t==='stock';
+  $('#addBtn').textContent={orders:'+ New order',tracker:'',products:'+ New product',sales:'+ Manual entry',invoice:'',customers:'',staff:'',recon:'',expenses:'',states:'',returns:'',purchases:'',topten:'',stock:'',studio:''}[t];
+  $('#addBtn').hidden=!state.canWrite||t==='invoice'||t==='customers'||t==='staff'||t==='recon'||t==='tracker'||t==='expenses'||t==='states'||t==='returns'||t==='purchases'||t==='topten'||t==='stock'||t==='studio';
   if(t==='recon')rcRender();
   if(t==='recon'&&window.__mpayDirty){window.__mpayDirty=false;try{mpayRender()}catch(e){}}
   try{if(t==='expenses'&&window.exRender)window.exRender();if(t==='states'&&window.stRender)window.stRender();if(t==='returns'&&window.rtRender)window.rtRender();if(t==='purchases'&&window.prRender)window.prRender();if(t==='topten'&&window.t10Render)window.t10Render()}catch(e){}
   if(t==='orders'){try{renderBusinessDashboard()}catch(e){}}
   if(t==='stock'){try{renderStockTab()}catch(e){}}
+  if(t==='studio'){try{window.studioRender&&window.studioRender()}catch(e){}}
   if(t==='tracker'){try{if(window.mfRefresh)window.mfRefresh()}catch(e){}}
   if(!$('#tabMoveCtl').hidden)updMoveLbl();
   try{localStorage.setItem(TAB_KEY,t)}catch(e){}
@@ -6249,7 +6252,7 @@ function init(){
   bindZoom();
   bindData();
   $('#today').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  var t0='orders';try{var sv=localStorage.getItem(TAB_KEY);if(sv==='products'||sv==='sales'||sv==='invoice'||sv==='customers'||sv==='staff'||sv==='recon'||sv==='expenses'||sv==='states'||sv==='returns'||sv==='purchases'||sv==='topten'||sv==='stock')t0=sv}catch(e){}
+  var t0='orders';try{var sv=localStorage.getItem(TAB_KEY);if(sv==='products'||sv==='sales'||sv==='invoice'||sv==='customers'||sv==='staff'||sv==='recon'||sv==='expenses'||sv==='states'||sv==='returns'||sv==='purchases'||sv==='topten'||sv==='stock'||sv==='studio')t0=sv}catch(e){}
   bind();render();setTab(t0);startData();
   var cab=$('#clearAllBtn');if(cab)cab.addEventListener('click',clearAllData);
 }
@@ -7466,6 +7469,322 @@ body.rem-on #bkBar{bottom:96px}
   else if(id==='bkOff'){if(confirm('Stop the weekly backup reminder? You can still back up any time from the Data menu.')){ls(OFF,'1');hide()}}});
  window.sscBkCheck=check;setInterval(check,60000);setTimeout(check,6000);
  document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});
+})();
+</script>
+<style id="fcalCss">
+.fc-ov{position:fixed;inset:0;z-index:9300;background:rgba(10,10,20,.55);display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow:auto}
+.fc-box{width:min(760px,100%);background:#fff;color:#1d1b24;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:18px 18px 14px}
+html[data-theme*="dark"] .fc-box{background:#1d1b26;color:#f1eef8}
+.fc-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fc-top h3{margin:0;font-size:19px;flex:1}
+.fc-x{border:0;background:transparent;font-size:24px;cursor:pointer;color:inherit;line-height:1}
+.fc-nav{display:flex;align-items:center;gap:8px;margin:12px 0 8px}
+.fc-nav b{flex:1;text-align:center;font-size:16px}
+.fc-nav button,.fc-bar button,.fc-ft button{border:1px solid rgba(120,110,150,.35);background:transparent;color:inherit;border-radius:10px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px}
+.fc-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.fc-bar select,.fc-bar input{border:1px solid rgba(120,110,150,.35);background:transparent;color:inherit;border-radius:10px;padding:6px 10px;font:inherit;font-size:13px;min-width:0}
+.fc-bar select option{color:#000}
+.fc-bar button.on{background:#6d4cff;color:#fff;border-color:#6d4cff}
+.fc-row{display:flex;gap:12px;padding:10px 4px;border-top:1px solid rgba(120,110,150,.2)}
+.fc-d{width:56px;flex:none;text-align:center}
+.fc-d b{display:block;font-size:22px;line-height:1}
+.fc-d span{font-size:11px;opacity:.7}
+.fc-m{flex:1;min-width:0}
+.fc-n{font-weight:600;font-size:15px}
+.fc-badge{display:inline-block;font-size:10px;font-weight:700;border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle;background:#ffe9a8;color:#6a4a00}
+.fc-badge.s{background:#e3e8ff;color:#2c3a8a}
+.fc-st{margin-top:4px;display:flex;gap:5px;flex-wrap:wrap}
+.fc-st i{font-style:normal;font-size:11.5px;border-radius:8px;padding:2px 8px;background:rgba(109,76,255,.12)}
+.fc-ap{font-size:11px;opacity:.7;margin-left:6px}
+.fc-ft{margin-top:10px;font-size:12px;opacity:.85;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fc-ft p{flex-basis:100%;margin:6px 0 0}
+.fc-emp{padding:26px;text-align:center;opacity:.7}
+</style>
+<script id="fcalJs">
+(function(){
+var RAW=[
+"2026-11-05|Govatsa Dwadashi (Vasu Baras)|S|Maharashtra, Gujarat",
+"2026-11-06|Dhanteras|B|All India",
+"2026-11-07|Narak Chaturdashi (Choti Diwali / Kali Chaudas)|B|All India, South India (Naraka Chaturdashi)",
+"2026-11-08|Diwali - Lakshmi Puja|B|All India",
+"2026-11-08|Kali Puja|B|West Bengal, Odisha, Assam",
+"2026-11-10|Govardhan Puja / Annakut|B|Uttar Pradesh, Rajasthan, Gujarat, Madhya Pradesh",
+"2026-11-10|Bali Padyami|S|Karnataka, Maharashtra",
+"2026-11-10|Gujarati New Year (Bestu Varas)|B|Gujarat",
+"2026-11-11|Bhai Dooj (Bhau Beej)|B|All India",
+"2026-11-15|Chhath Puja|B|Bihar, Jharkhand, Uttar Pradesh, Delhi, West Bengal",
+"2026-11-20|Devutthana (Prabodhini) Ekadashi|S|All India",
+"2026-11-21|Tulsi Vivah|S|All India, Maharashtra, Gujarat",
+"2026-11-24|Kartik Purnima / Dev Deepawali|B|Uttar Pradesh (Varanasi), Rajasthan (Pushkar Mela), All India",
+"2026-11-24|Bali Jatra / Boita Bandana|S|Odisha",
+"2026-11-24|Karthigai Deepam|B|Tamil Nadu, Kerala|~",
+"2026-11-30|Kalabhairav Jayanti|S|Uttar Pradesh, Madhya Pradesh, Karnataka",
+"2026-12-04|Utpanna Ekadashi|S|All India",
+"2026-12-07|Masik Shivaratri|S|All India",
+"2026-12-13|Vivah Panchami|S|Bihar (Mithila), Uttar Pradesh (Ayodhya)",
+"2026-12-16|Dhanu Sankranti / Margazhi begins|S|Odisha, Tamil Nadu, Kerala, Andhra Pradesh",
+"2026-12-19|Gita Jayanti (Mokshada Ekadashi)|S|Haryana (Kurukshetra), All India",
+"2026-12-23|Dattatreya Jayanti|S|Maharashtra, Karnataka, Gujarat, Andhra Pradesh, Telangana",
+"2027-01-13|Lohri|B|Punjab, Haryana, Delhi, Himachal Pradesh",
+"2027-01-14|Makar Sankranti|B|All India",
+"2027-01-14|Magh Bihu (Bhogali Bihu)|B|Assam",
+"2027-01-14|Uttarayan (Kite Festival)|B|Gujarat, Rajasthan",
+"2027-01-15|Pongal (Thai Pongal)|B|Tamil Nadu, Puducherry",
+"2027-01-15|Makara Sankranti (Sankranthi)|B|Andhra Pradesh, Telangana, Karnataka",
+"2027-01-16|Mattu Pongal|S|Tamil Nadu",
+"2027-01-22|Thaipusam|B|Tamil Nadu, Kerala|~",
+"2027-02-11|Vasant Panchami / Saraswati Puja|B|West Bengal, Bihar, Odisha, Uttar Pradesh, All India",
+"2027-02-13|Ratha Saptami|S|Andhra Pradesh, Karnataka, Odisha|~",
+"2027-02-14|Bhishma Ashtami|S|All India|~",
+"2027-02-20|Magha Purnima|S|All India|~",
+"2027-03-06|Maha Shivaratri|B|All India",
+"2027-03-21|Holika Dahan|B|All India",
+"2027-03-22|Holi|B|All India",
+"2027-03-23|Hola Mohalla|S|Punjab|~",
+"2027-03-26|Rang Panchami|S|Maharashtra, Madhya Pradesh|~",
+"2027-03-29|Sheetla Ashtami|S|Uttar Pradesh, Rajasthan, Gujarat, Haryana|~",
+"2027-04-07|Ugadi|B|Karnataka, Andhra Pradesh, Telangana",
+"2027-04-07|Gudi Padwa|B|Maharashtra, Goa",
+"2027-04-08|Cheti Chand|S|Sindhi community (Gujarat, Rajasthan, Maharashtra)|~",
+"2027-04-09|Gangaur|B|Rajasthan, Madhya Pradesh, Gujarat|~",
+"2027-04-14|Baisakhi / Vaisakhi|B|Punjab, Haryana, Himachal Pradesh",
+"2027-04-14|Tamil New Year (Puthandu / Chithirai)|B|Tamil Nadu",
+"2027-04-14|Bohag Bihu (Rongali Bihu)|B|Assam",
+"2027-04-15|Ram Navami|B|All India",
+"2027-04-15|Vishu|B|Kerala",
+"2027-04-15|Poila Boishakh (Bengali New Year)|B|West Bengal, Tripura",
+"2027-04-20|Hanuman Jayanti|B|All India|~",
+"2027-05-09|Akshaya Tritiya|B|All India",
+"2027-05-20|Narasimha Jayanti|S|Andhra Pradesh, Telangana, Karnataka|~",
+"2027-06-17|Nirjala Ekadashi|S|All India|~",
+"2027-06-22|Ambubachi Mela|B|Assam (Kamakhya)|~",
+"2027-07-05|Rath Yatra|B|Odisha (Puri), Gujarat, West Bengal",
+"2027-07-11|Bonalu|B|Telangana (Hyderabad)|~",
+"2027-07-18|Guru Purnima|B|All India",
+"2027-08-07|Hariyali Teej|B|Rajasthan, Uttar Pradesh, Haryana, Bihar|~",
+"2027-08-08|Nag Panchami|S|All India, Maharashtra, Karnataka|~",
+"2027-08-13|Varalakshmi Vratam|B|Karnataka, Andhra Pradesh, Telangana, Tamil Nadu|~",
+"2027-08-17|Raksha Bandhan|B|All India",
+"2027-08-25|Janmashtami|B|All India (Mathura, Maharashtra Dahi Handi, Gujarat)",
+"2027-09-04|Ganesh Chaturthi|B|Maharashtra, Goa, Karnataka, Telangana, Andhra Pradesh, Tamil Nadu",
+"2027-09-05|Rishi Panchami|S|Maharashtra, Gujarat, Rajasthan|~",
+"2027-09-09|Radha Ashtami|S|Uttar Pradesh (Barsana), Rajasthan|~",
+"2027-09-12|Onam (Thiruvonam)|B|Kerala",
+"2027-09-17|Vishwakarma Puja|S|West Bengal, Bihar, Odisha, Jharkhand, Assam, Tripura",
+"2027-09-30|Navratri begins (Sharad)|B|All India, Gujarat (Garba)",
+"2027-10-02|Mahalaya|B|West Bengal, Odisha, Assam|~",
+"2027-10-02|Bathukamma begins|B|Telangana|~",
+"2027-10-05|Durga Puja (Shashthi to Dashami)|B|West Bengal, Assam, Odisha, Tripura, Bihar, Jharkhand",
+"2027-10-08|Durga Ashtami / Maha Navami|B|All India|~",
+"2027-10-09|Dussehra / Vijayadashami|B|All India",
+"2027-10-09|Mysuru Dasara|B|Karnataka",
+"2027-10-09|Kullu Dussehra begins|B|Himachal Pradesh",
+"2027-10-14|Sharad / Kojagiri Purnima|S|Gujarat, Maharashtra, West Bengal, Odisha, Bihar",
+"2027-10-18|Karwa Chauth|B|Uttar Pradesh, Rajasthan, Punjab, Haryana, Delhi, Madhya Pradesh",
+"2027-10-27|Dhanteras|B|All India",
+"2027-10-28|Narak Chaturdashi (Choti Diwali)|B|All India|~",
+"2027-10-29|Diwali - Lakshmi Puja|B|All India",
+"2027-10-29|Kali Puja|B|West Bengal, Odisha, Assam",
+"2027-10-31|Bhai Dooj|B|All India",
+"2027-11-04|Chhath Puja|B|Bihar, Jharkhand, Uttar Pradesh, Delhi",
+"2027-11-04|Skanda Sashti|S|Tamil Nadu|~",
+"2027-11-13|Kartik Purnima / Dev Deepawali|B|Uttar Pradesh (Varanasi), Rajasthan (Pushkar Mela), Odisha|~"
+];
+var DB=RAW.map(function(s){var p=s.split('|');return{d:p[0],n:p[1],z:p[2],w:p[3],a:p[4]==='~'}}).sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0});
+var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var AREAS=['Andhra Pradesh','Assam','Bihar','Delhi','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Odisha','Puducherry','Punjab','Rajasthan','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','West Bengal'];
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var now=new Date(),ym=now.getFullYear()*12+now.getMonth(),F={size:'',st:'',q:'',all:false};
+var MIN=2026*12+10,MAX=2027*12+11;
+function inFilter(e){
+  if(F.size&&e.z!==F.size)return false;
+  if(F.st){var all=/All India/.test(e.w);if(!all&&e.w.indexOf(F.st)<0)return false;}
+  if(F.q&&(e.n+' '+e.w).toLowerCase().indexOf(F.q.toLowerCase())<0)return false;
+  return true;
+}
+function rows(){
+  var y=Math.floor(ym/12),m=ym%12,pre=y+'-'+('0'+(m+1)).slice(-2);
+  return DB.filter(function(e){return(F.all||e.d.indexOf(pre)===0)&&inFilter(e)});
+}
+function textList(r){
+  var h=(F.all?'Festivals':'Festivals - '+MN[ym%12]+' '+Math.floor(ym/12))+(F.st?' ('+F.st+')':'')+'\n';
+  r.forEach(function(e){var d=new Date(e.d+'T00:00:00');h+=('0'+d.getDate()).slice(-2)+' '+MN[d.getMonth()].slice(0,3)+' '+(e.a?'~':'')+' '+e.n+' ['+e.w+']\n'});
+  return h+'(dates approximate, confirm with panchang)';
+}
+function draw(){
+  var ov=document.getElementById('fcOv');if(!ov)return;
+  var r=rows(),y=Math.floor(ym/12),m=ym%12;
+  var body=r.length?r.map(function(e){
+    var d=new Date(e.d+'T00:00:00');
+    return '<div class="fc-row"><div class="fc-d"><b>'+d.getDate()+'</b><span>'+WD[d.getDay()]+(F.all?' '+MN[d.getMonth()].slice(0,3):'')+'</span></div><div class="fc-m"><div class="fc-n">'+esc(e.n)+'<span class="fc-badge'+(e.z==='S'?' s':'')+'">'+(e.z==='B'?'BIG':'SMALL')+'</span>'+(e.a?'<span class="fc-ap">date to confirm</span>':'')+'</div><div class="fc-st">'+e.w.split(/,\s*(?![^()]*\))/).map(function(s){return '<i>'+esc(s)+'</i>'}).join('')+'</div></div></div>';
+  }).join(''):'<div class="fc-emp">No festivals match for this selection.</div>';
+  ov.querySelector('.fc-box').innerHTML=
+   '<div class="fc-top"><h3>All-India Hindu festival calendar</h3><button class="fc-x" data-a="close" aria-label="Close">&times;</button></div>'+
+   (F.all?'<div class="fc-nav"><b>Nov 2026 - Dec 2027 (all)</b></div>':'<div class="fc-nav"><button data-a="prev"'+(ym<=MIN?' disabled':'')+'>&lsaquo; Prev</button><b>'+MN[m]+' '+y+'</b><button data-a="next"'+(ym>=MAX?' disabled':'')+'>Next &rsaquo;</button></div>')+
+   '<div class="fc-bar"><button data-a="size" data-v=""'+(F.size===''?' class="on"':'')+'>All</button><button data-a="size" data-v="B"'+(F.size==='B'?' class="on"':'')+'>Big</button><button data-a="size" data-v="S"'+(F.size==='S'?' class="on"':'')+'>Small</button>'+
+   '<select id="fcSt"><option value="">All states</option>'+AREAS.map(function(s){return '<option'+(F.st===s?' selected':'')+'>'+s+'</option>'}).join('')+'</select>'+
+   '<input id="fcQ" placeholder="Search festival" value="'+esc(F.q)+'" style="flex:1;min-width:120px">'+
+   '<button data-a="all"'+(F.all?' class="on"':'')+'>Whole list</button></div>'+
+   body+
+   '<div class="fc-ft"><button data-a="copy">Copy list</button><button data-a="wa">Share on WhatsApp</button><span>'+r.length+' festival'+(r.length===1?'':'s')+'</span><p>Dates follow the lunar calendar and can differ by 1 day between regions and panchangs. "date to confirm" items are estimates. Check a local panchang before ordering stock.</p></div>';
+  var q=document.getElementById('fcQ');
+  if(q&&F._f){q.focus();var l=q.value.length;q.setSelectionRange(l,l);}
+}
+function open(){
+  if(document.getElementById('fcOv'))return;
+  var ov=document.createElement('div');ov.className='fc-ov';ov.id='fcOv';ov.innerHTML='<div class="fc-box"></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){
+    if(e.target===ov){ov.remove();return}
+    var b=e.target.closest('[data-a]');if(!b||b.disabled)return;var a=b.getAttribute('data-a');
+    if(a==='close')ov.remove();
+    else if(a==='prev'){ym--;draw()}
+    else if(a==='next'){ym++;draw()}
+    else if(a==='size'){F.size=b.getAttribute('data-v');draw()}
+    else if(a==='all'){F.all=!F.all;draw()}
+    else if(a==='copy'){var t=textList(rows());try{navigator.clipboard.writeText(t).then(function(){tt('Copied')},function(){tt('Could not copy')})}catch(x){tt('Could not copy')}}
+    else if(a==='wa'){window.open('https://wa.me/?text='+encodeURIComponent(textList(rows())),'_blank')}
+  });
+  ov.addEventListener('change',function(e){if(e.target.id==='fcSt'){F.st=e.target.value;F._f=0;draw()}});
+  ov.addEventListener('input',function(e){if(e.target.id==='fcQ'){F.q=e.target.value;F._f=1;draw()}});
+  draw();
+}
+function tt(m){try{window.sscApi.toast(m)}catch(e){}}
+window.sscFestCalendar={open:open,db:DB};
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){var o=document.getElementById('fcOv');if(o)o.remove()}});
+})();
+</script>
+<style id="stuCss">
+#view-studio .stu-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
+@media(max-width:900px){#view-studio .stu-wrap{grid-template-columns:1fr}}
+.stu-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;max-height:640px;overflow:auto;padding:2px}
+.stu-c{border:2px solid transparent;border-radius:14px;padding:6px;cursor:pointer;background:rgba(120,110,150,.08);text-align:left;font:inherit;color:inherit}
+.stu-c.on{border-color:#b8863b;background:rgba(184,134,59,.14)}
+.stu-c .th{aspect-ratio:1;border-radius:10px;background:#f1e7dd center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:26px;color:#b9a28f}
+.stu-c b{display:block;font-size:12.5px;margin-top:6px;line-height:1.25;max-height:2.5em;overflow:hidden}
+.stu-c small{opacity:.7;font-size:11px}
+.stu-pv canvas{width:100%;height:auto;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.2);display:block}
+.stu-f{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.stu-f input{width:100%;box-sizing:border-box}
+.stu-f .w{grid-column:1/-1}
+.stu-th{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.stu-th button{width:52px;height:52px;border-radius:9px;border:2px solid transparent;background:#f1e7dd center/cover no-repeat;cursor:pointer;padding:0}
+.stu-th button.on{border-color:#b8863b}
+.stu-act{display:flex;gap:8px;flex-wrap:wrap}
+</style>
+<script id="stuJs">
+(function(){
+var KEY='ssc-studio-v1',B={name:'Shubh Shringar Creations',tag:'Crafted with love, made by hand.',phone:'+91 96256 45719',web:'www.shubhshringarcreations.in'};
+var cur=null,main=0,lastN=-1,tm=0;
+function $(s){return document.querySelector(s)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function toast(m){try{window.sscApi.toast(m)}catch(e){}}
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return{}}}
+function save(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+function plist(){try{return window.sscProductList()||[]}catch(e){return[]}}
+function key(p){return String(p.sku||p.id||p.name)}
+function det(p){var d=load()[key(p)]||{};return{size:d.size||'',colour:d.colour||'',material:d.material||'',notes:d.notes||''}}
+function limg(src){return new Promise(function(r){if(!src)return r(null);var i=new Image();i.onload=function(){r(i)};i.onerror=function(){r(null)};i.src=src})}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function wcount(c,t,mw,ml){var w=String(t).split(/\s+/),ln='',n=1;for(var i=0;i<w.length;i++){var s=ln?ln+' '+w[i]:w[i];if(c.measureText(s).width>mw&&ln){n++;ln=w[i]}else ln=s}return Math.min(n,ml)}
+function wrap(c,t,x,y,mw,lh,ml){var w=String(t).split(/\s+/),ln='',n=0,L=[];for(var i=0;i<w.length;i++){var s=ln?ln+' '+w[i]:w[i];if(c.measureText(s).width>mw&&ln){L.push(ln);ln=w[i]}else ln=s}if(ln)L.push(ln);if(L.length>ml){L=L.slice(0,ml);var l=L[ml-1];while(c.measureText(l+'…').width>mw&&l.length>1)l=l.slice(0,-1);L[ml-1]=l+'…'}L.forEach(function(s,i){c.fillText(s,x,y+i*lh)});return L.length}
+function cover(c,im,x,y,w,h,r){c.save();rr(c,x,y,w,h,r);c.clip();c.fillStyle='#f1e7dd';c.fillRect(x,y,w,h);if(im){var s=Math.max(w/im.width,h/im.height),dw=im.width*s,dh=im.height*s;c.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh)}c.restore()}
+var MR='#7a1f2b',GD='#c99a3a',CR='#fff8ec',F='system-ui,Segoe UI,Arial,sans-serif';
+function render(p,mi){
+  var W=1240,H=1754,logo=document.querySelector('img.logo'),d=det(p),imgs=(p.images||[]).slice(0,5);
+  var order=imgs.slice();if(mi>0&&mi<order.length){var m=order.splice(mi,1)[0];order.unshift(m)}
+  return Promise.all([limg(logo?(logo.currentSrc||logo.src):''),Promise.all(order.map(limg))]).then(function(r){
+    var lg=r[0],ims=r[1].filter(Boolean),cv=document.createElement('canvas');cv.width=W;cv.height=H;var c=cv.getContext('2d');
+    c.fillStyle=CR;c.fillRect(0,0,W,H);
+    // festive border
+    c.fillStyle=MR;c.fillRect(24,24,W-48,H-48);c.fillStyle=CR;c.fillRect(64,64,W-128,H-128);
+    c.fillStyle=GD;for(var x=44;x<W-30;x+=26){c.beginPath();c.arc(x,44,5,0,7);c.fill();c.beginPath();c.arc(x,H-44,5,0,7);c.fill()}
+    for(var y=44;y<H-30;y+=26){c.beginPath();c.arc(44,y,5,0,7);c.fill();c.beginPath();c.arc(W-44,y,5,0,7);c.fill()}
+    c.strokeStyle=GD;c.lineWidth=3;c.strokeRect(76,76,W-152,H-152);
+    [[44,44],[W-44,44],[44,H-44],[W-44,H-44]].forEach(function(q){c.fillStyle=GD;c.beginPath();c.arc(q[0],q[1],22,0,7);c.fill();c.fillStyle=MR;c.beginPath();c.arc(q[0],q[1],11,0,7);c.fill()});
+    // header
+    var hx=W/2;
+    if(lg){var lh=110,lw=lg.width*lh/lg.height;if(lw>260){lw=260;lh=lg.height*lw/lg.width}c.drawImage(lg,hx-lw/2,100,lw,lh);var ty=100+lh+44}else var ty=170;
+    c.textAlign='center';c.fillStyle=MR;c.font='800 52px '+F;c.fillText(B.name,hx,ty);
+    c.fillStyle='#8a6a2a';c.font='italic 500 26px '+F;c.fillText(B.tag,hx,ty+38);
+    var top=ty+70;
+    // photos
+    var nm=['Size','Colour','Material'].filter(function(k){return d[k.toLowerCase()]}).length;c.font='800 56px '+F;var nl0=wcount(c,p.name||'',980,2);c.font='500 28px '+F;var nt=d.notes?wcount(c,d.notes,960,2):0;
+    var bottomH=(nl0-1)*62+(p.sku?96:40)+nm*44+nt*38+(nt?10:0)+60,pb=Math.min(1250,1575-bottomH-30);
+    var many=ims.length>1,mh=many?(pb-top-190):(pb-top);
+    cover(c,ims[0]||null,120,top,1000,mh,22);c.strokeStyle=GD;c.lineWidth=6;rr(c,120,top,1000,mh,22);c.stroke();
+    if(!ims.length){c.fillStyle='#c9b4a3';c.font='800 160px '+F;c.fillText((p.name||'?').charAt(0).toUpperCase(),hx,top+mh/2+50)}
+    if(many){var th=ims.slice(1,5),tw=(1000-(th.length-1)*16)/th.length,ty2=top+mh+16;th.forEach(function(im,i){var x=120+i*(tw+16);cover(c,im,x,ty2,tw,174,14);c.strokeStyle=GD;c.lineWidth=3;rr(c,x,ty2,tw,174,14);c.stroke()})}
+    // name + sku
+    c.fillStyle=MR;c.font='800 56px '+F;c.textAlign='center';var ny=pb+80,nl=wrap(c,p.name||'',hx,ny,980,62,2);
+    var sy=ny+(nl-1)*62+30;
+    if(p.sku){var t='SKU: '+p.sku;c.font='700 30px '+F;var tw2=c.measureText(t).width+56;c.fillStyle=GD;rr(c,hx-tw2/2,sy,tw2,52,26);c.fill();c.fillStyle='#fff';c.fillText(t,hx,sy+37)}
+    // details
+    var rows=[['Size',d.size],['Colour',d.colour],['Material',d.material]].filter(function(x){return x[1]}),dy=sy+(p.sku?96:40);
+    c.textAlign='left';c.font='600 30px '+F;
+    rows.forEach(function(x,i){c.fillStyle='#8a6a2a';c.fillText(x[0]+':',150,dy+i*44);c.fillStyle='#2b1d14';c.fillText(x[1],310,dy+i*44)});
+    if(d.notes){c.fillStyle='#2b1d14';c.font='500 28px '+F;c.textAlign='center';wrap(c,d.notes,hx,dy+rows.length*44+6,960,38,2)}
+    // footer
+    c.fillStyle=MR;rr(c,120,1596,1000,70,16);c.fill();c.fillStyle='#fff';c.textAlign='center';c.font='600 27px '+F;c.fillText('Order on WhatsApp: '+B.phone+'   ·   '+B.web,hx,1641);
+    return cv;
+  });
+}
+function loadLib(u,t){return new Promise(function(res,rej){if(t())return res();var s=document.createElement('script');s.src=u;s.onload=function(){t()?res():rej()};s.onerror=rej;document.head.appendChild(s)})}
+function blobPdf(cv){
+  return loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',function(){return !!(window.jspdf&&window.jspdf.jsPDF)}).then(function(){
+    var J=window.jspdf.jsPDF,pdf=new J({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    pdf.addImage(cv.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297);return pdf.output('blob');
+  });
+}
+function fname(p){return String(p.sku||p.name||'product').replace(/[^\w\-]+/g,'_')+'.pdf'}
+function dl(b,n){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href)},2000)}
+function preview(){
+  var box=$('#stuPv');if(!box||!cur)return;
+  render(cur,main).then(function(cv){box.innerHTML='';box.appendChild(cv)});
+}
+function select(p){
+  cur=p;main=0;var d=det(p),im=p.images||[];
+  $('#stuEd').hidden=false;
+  $('#stuTitle').textContent=p.name+(p.sku?' · '+p.sku:'');
+  ['size','colour','material','notes'].forEach(function(k){$('#stu_'+k).value=d[k]});
+  $('#stuThumbs').innerHTML=im.length>1?im.map(function(s,i){return '<button type="button" data-i="'+i+'"'+(i===0?' class="on"':'')+' style="background-image:url('+s+')" title="Use as main photo"></button>'}).join(''):'';
+  $('#stuNoImg').hidden=im.length>0;
+  document.querySelectorAll('#stuList .stu-c').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-k')===key(p))});
+  preview();
+}
+function drawList(){
+  var q=($('#stuQ').value||'').toLowerCase(),L=plist().filter(function(p){return!q||(p.name+' '+p.sku).toLowerCase().indexOf(q)>-1});
+  $('#stuList').innerHTML=L.length?L.map(function(p){return '<button type="button" class="stu-c'+(cur&&key(cur)===key(p)?' on':'')+'" data-k="'+esc(key(p))+'"><div class="th"'+(p.images&&p.images[0]?' style="background-image:url('+p.images[0]+')"':'')+'>'+(p.images&&p.images[0]?'':esc((p.name||'?').charAt(0).toUpperCase()))+'</div><b>'+esc(p.name)+'</b><small>'+esc(p.sku||'no SKU')+'</small></button>'}).join(''):'<p style="opacity:.7">No products found. Add products in the Products tab first.</p>';
+  lastN=plist().length;
+}
+function init(){
+  var v=$('#view-studio');if(!v||v._i)return;v._i=1;
+  v.innerHTML='<section class="ptools glass"><h3>Photo Studio</h3><p>Pick a product to make a festive PDF page with its photos, SKU, size, colour and your contact details. Share it with anyone.</p></section>'+
+  '<div class="stu-wrap"><section class="glass" style="padding:16px"><input class="field-in" id="stuQ" type="search" placeholder="Search product or SKU" style="width:100%;box-sizing:border-box;margin-bottom:10px"><div class="stu-list" id="stuList"></div></section>'+
+  '<section class="glass" style="padding:16px" id="stuEd" hidden><h3 id="stuTitle" style="margin:0 0 8px"></h3><div class="stu-pv" id="stuPv"></div><p id="stuNoImg" hidden style="opacity:.7;font-size:13px">This product has no photo yet. Add photos in the Products tab.</p><div class="stu-th" id="stuThumbs"></div>'+
+  '<div class="stu-f"><input class="field-in" id="stu_size" placeholder="Size (e.g. 24 inch)"><input class="field-in" id="stu_colour" placeholder="Colour"><input class="field-in w" id="stu_material" placeholder="Material (e.g. Velvet, Zari)"><input class="field-in w" id="stu_notes" placeholder="Extra note (e.g. Set of 5, handmade)"></div>'+
+  '<div class="stu-act"><button class="btn" id="stuDl" type="button">Download PDF</button><button class="btn" id="stuSh" type="button">Share PDF</button></div></section></div>';
+  v.addEventListener('click',function(e){
+    var c=e.target.closest('.stu-c');if(c){var k=c.getAttribute('data-k'),p=plist().filter(function(x){return key(x)===k})[0];if(p)select(p);return}
+    var t=e.target.closest('#stuThumbs button');if(t){main=+t.getAttribute('data-i');document.querySelectorAll('#stuThumbs button').forEach(function(b){b.classList.toggle('on',b===t)});preview();return}
+    if(e.target.id==='stuDl'||e.target.id==='stuSh'){
+      if(!cur)return;var share=e.target.id==='stuSh',btn=e.target,old=btn.textContent;btn.disabled=true;btn.textContent='Making PDF…';
+      render(cur,main).then(blobPdf).then(function(b){
+        var n=fname(cur);
+        if(share&&navigator.canShare){var f=new File([b],n,{type:'application/pdf'});if(navigator.canShare({files:[f]})){return navigator.share({files:[f],title:cur.name}).catch(function(){})}}
+        dl(b,n);toast(share?'Sharing is not available here, so the PDF was downloaded':'PDF downloaded');
+      }).catch(function(){toast('Could not make the PDF. Check your internet and try again.')}).then(function(){btn.disabled=false;btn.textContent=old});
+    }
+  });
+  v.addEventListener('input',function(e){
+    if(e.target.id==='stuQ'){drawList();return}
+    var m=/^stu_(size|colour|material|notes)$/.exec(e.target.id);
+    if(m&&cur){var o=load(),k=key(cur);o[k]=o[k]||{};o[k][m[1]]=e.target.value;save(o);clearTimeout(tm);tm=setTimeout(preview,250)}
+  });
+}
+window.studioRender=function(){init();drawList();if(cur){var k=key(cur),p=plist().filter(function(x){return key(x)===k})[0];if(p){cur=p}}};
+setInterval(function(){var v=$('#view-studio');if(v&&!v.hidden&&v._i&&plist().length!==lastN)drawList()},1500);
 })();
 </script>
 </body></html>
@@ -9097,7 +9416,8 @@ window.sscAuth={signOut:function(){signOut('You have been signed out.')}};
     returns:'<path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8"/><path d="M3 3v5h5"/>',
     purchases:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
     topten:'<path d="M8 4h8v5a4 4 0 01-8 0z"/><path d="M8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8.5 20h7"/>',
-    stock:'<path d="M3 8l9-5 9 5-9 5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/>'
+    stock:'<path d="M3 8l9-5 9 5-9 5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/>',
+    studio:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'
   };
   function init(){
     var page=document.querySelector('main.page'),row=document.querySelector('.tabrow'),nav=document.getElementById('tabs');

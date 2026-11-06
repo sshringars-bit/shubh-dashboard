@@ -7672,7 +7672,2304 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){var o=docum
 .stu-th button{width:52px;height:52px;border-radius:9px;border:2px solid transparent;background:#f1e7dd center/cover no-repeat;cursor:pointer;padding:0}
 .stu-th button.on{border-color:#b8863b}
 .stu-act{display:flex;gap:8px;flex-wrap:wrap}
+.stu-bg{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.stu-bg button{display:flex;align-items:center;gap:7px;border:2px solid rgba(120,110,150,.3);background:transparent;color:inherit;border-radius:12px;padding:5px 10px 5px 6px;font:inherit;font-size:12.5px;cursor:pointer}
+.stu-bg button.on{border-color:#b8863b;background:rgba(184,134,59,.15)}
+.stu-bg i{width:22px;height:22px;border-radius:7px;display:block;border:1px solid rgba(0,0,0,.2)}
 </style>
+<script id="qrLib">
+window.sscQR=(function(){
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+
+return qrcode;})();
+</script>
 <script id="stuJs">
 (function(){
 var KEY='ssc-studio-v1',B={name:'Shubh Shringar Creations',tag:'Crafted with love, made by hand.',phone:'+91 96256 45719',web:'www.shubhshringarcreations.in'};
@@ -7684,49 +9981,265 @@ function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch
 function save(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
 function plist(){try{return window.sscProductList()||[]}catch(e){return[]}}
 function key(p){return String(p.sku||p.id||p.name)}
-function det(p){var d=load()[key(p)]||{};return{size:d.size||'',colour:d.colour||'',material:d.material||'',notes:d.notes||''}}
+function det(p){var d=load()[key(p)]||{};return{size:d.size||'',colour:d.colour||'',material:d.material||'',notes:d.notes||'',feat:d.feat||'',link:d.link||'',bg:d.bg||'',lay:d.lay||'',glass:(d.glass==null?'':d.glass)}}
 function limg(src){return new Promise(function(r){if(!src)return r(null);var i=new Image();i.onload=function(){r(i)};i.onerror=function(){r(null)};i.src=src})}
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
 function wcount(c,t,mw,ml){var w=String(t).split(/\s+/),ln='',n=1;for(var i=0;i<w.length;i++){var s=ln?ln+' '+w[i]:w[i];if(c.measureText(s).width>mw&&ln){n++;ln=w[i]}else ln=s}return Math.min(n,ml)}
 function wrap(c,t,x,y,mw,lh,ml){var w=String(t).split(/\s+/),ln='',n=0,L=[];for(var i=0;i<w.length;i++){var s=ln?ln+' '+w[i]:w[i];if(c.measureText(s).width>mw&&ln){L.push(ln);ln=w[i]}else ln=s}if(ln)L.push(ln);if(L.length>ml){L=L.slice(0,ml);var l=L[ml-1];while(c.measureText(l+'…').width>mw&&l.length>1)l=l.slice(0,-1);L[ml-1]=l+'…'}L.forEach(function(s,i){c.fillText(s,x,y+i*lh)});return L.length}
 function cover(c,im,x,y,w,h,r){c.save();rr(c,x,y,w,h,r);c.clip();c.fillStyle='#f1e7dd';c.fillRect(x,y,w,h);if(im){var s=Math.max(w/im.width,h/im.height),dw=im.width*s,dh=im.height*s;c.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh)}c.restore()}
-var MR='#7a1f2b',GD='#c99a3a',CR='#fff8ec',F='system-ui,Segoe UI,Arial,sans-serif';
+var MR='#7a1f2b',MD='#5a1220',GD='#c99a3a',GL='#e8c877',CR='#fbf3e4',F='system-ui,Segoe UI,Arial,sans-serif',SF='Georgia,"Times New Roman",serif';
+function mandala(c,cx,cy,R,al){c.save();c.translate(cx,cy);c.strokeStyle='rgba(184,134,59,'+al+')';c.lineWidth=2;
+  for(var ring=1;ring<=5;ring++){c.beginPath();c.arc(0,0,R*ring/5,0,7);c.stroke()}
+  for(var l=0;l<3;l++){var n=12+l*6,rr0=R*(0.35+l*0.22);for(var i=0;i<n;i++){c.save();c.rotate(i*2*Math.PI/n);c.beginPath();c.ellipse(0,-rr0,R*0.07,R*0.17,0,0,7);c.stroke();c.restore()}}
+  c.restore()}
+function diamond(c,x,y,r,col){c.fillStyle=col;c.beginPath();c.moveTo(x,y-r);c.lineTo(x+r,y);c.lineTo(x,y+r);c.lineTo(x-r,y);c.closePath();c.fill()}
+function divider(c,cx,y,w){c.strokeStyle=GD;c.lineWidth=2;c.beginPath();c.moveTo(cx-w/2,y);c.lineTo(cx-18,y);c.moveTo(cx+18,y);c.lineTo(cx+w/2,y);c.stroke();diamond(c,cx,y,9,GD);diamond(c,cx-26,y,4,GD);diamond(c,cx+26,y,4,GD)}
+
+function prng(seed){var a=seed;return function(){a=(a*1664525+1013904223)%4294967296;return a/4294967296}}
+function paisley(c,x,y,sz,rot){c.save();c.translate(x,y);c.rotate(rot);c.beginPath();c.moveTo(0,-sz);c.bezierCurveTo(sz*.9,-sz*.7,sz*.9,sz*.5,0,sz);c.bezierCurveTo(-sz*.7,sz*.6,-sz*.5,-sz*.2,-sz*.1,-sz*.1);c.stroke();c.beginPath();c.arc(0,sz*.25,sz*.18,0,7);c.stroke();c.restore()}
+function petalFlower(c,x,y,R,n,col,alpha){c.save();c.translate(x,y);c.globalAlpha=alpha;c.fillStyle=col;for(var i=0;i<n;i++){c.save();c.rotate(i*2*Math.PI/n);c.beginPath();c.ellipse(0,-R*.55,R*.22,R*.5,0,0,7);c.fill();c.restore()}c.fillStyle='#e8c877';c.beginPath();c.arc(0,0,R*.18,0,7);c.fill();c.restore()}
+function marigold(c,x,y,r,k){c.save();c.translate(x,y);for(var l=0;l<2;l++){c.fillStyle=l?(k%2?'#f59e0b':'#fb923c'):(k%2?'#ea7a0c':'#f59e0b');for(var i=0;i<10;i++){c.save();c.rotate(i*Math.PI/5+l*.3);c.beginPath();c.ellipse(0,-r*(.62-l*.2),r*.3*(1-l*.2),r*(.5-l*.15),0,0,7);c.fill();c.restore()}}c.fillStyle='#b45309';c.beginPath();c.arc(0,0,r*.2,0,7);c.fill();c.restore()}
+function jaali(c,W,H,col){c.save();c.strokeStyle=col;c.lineWidth=1.6;var st=96;for(var y=-st;y<H+st;y+=st)for(var x=-st;x<W+st;x+=st){var cx=x+(((y/st)|0)%2?st/2:0);c.beginPath();for(var i=0;i<8;i++){var a=i*Math.PI/4+Math.PI/8,r=st*.46,px=cx+Math.cos(a)*r,py=y+Math.sin(a)*r;i?c.lineTo(px,py):c.moveTo(px,py)}c.closePath();c.stroke();c.beginPath();c.arc(cx,y,st*.2,0,7);c.stroke()}c.restore()}
+
+function jharokhaBg(c,W,H){
+  c.fillStyle='#f1e2c3';c.fillRect(0,0,W,H);var r=prng(21),cols=['#0e7c7b','#8b1e3f','#e8a317','#3f6b2a','#d4552b','#5b2a86','#b0243f'],cw=118,ch=152,g=10;
+  for(var y=-20,ry=0;y<H;y+=ch+g,ry++)for(var x=(ry%2?-60:-6),cx=0;x<W;x+=cw+g,cx++){
+    var col=cols[(r()*cols.length)|0],bgc=r()<.5?'#e9d3a6':'#d9b97c';
+    c.fillStyle=bgc;rr(c,x,y,cw,ch,8);c.fill();
+    c.strokeStyle='rgba(120,70,30,.35)';c.lineWidth=1.5;for(var i=0;i<4;i++){c.beginPath();c.arc(x+10+i*32,y+10,4,0,7);c.stroke();c.beginPath();c.arc(x+10+i*32,y+ch-10,4,0,7);c.stroke()}
+    var ax=x+16,aw=cw-32,rad=aw/2,top=y+22,bot=y+ch-20;
+    c.beginPath();c.moveTo(ax,bot);c.lineTo(ax,top+rad);c.arc(ax+rad,top+rad,rad,Math.PI,0);c.lineTo(ax+aw,bot);c.closePath();
+    var gg=c.createLinearGradient(0,top,0,bot);gg.addColorStop(0,col);gg.addColorStop(1,'rgba(0,0,0,.35)');c.fillStyle=col;c.fill();c.fillStyle=gg;c.globalAlpha=.55;c.fill();c.globalAlpha=1;
+    c.strokeStyle='rgba(243,216,137,.9)';c.lineWidth=2.5;c.stroke();
+    c.save();c.beginPath();c.moveTo(ax+8,bot-8);c.lineTo(ax+8,top+rad);c.arc(ax+rad,top+rad,rad-8,Math.PI,0);c.lineTo(ax+aw-8,bot-8);c.closePath();c.strokeStyle='rgba(255,245,215,.55)';c.lineWidth=1.5;c.stroke();c.restore();
+    petalFlower(c,ax+rad,top+rad+6,26,8,'#fff3d1',.8);
+    c.fillStyle='rgba(255,243,209,.7)';for(var k=0;k<3;k++){c.beginPath();c.arc(ax+rad+(k-1)*18,bot-20,3.2,0,7);c.fill()}
+  }}
+function arabesqueBg(c,W,H){
+  var bg=c.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0b5a5c');bg.addColorStop(1,'#073d40');c.fillStyle=bg;c.fillRect(0,0,W,H);
+  var s=112,cols=['#13a0a0','#e5a32c','#c4563a','#1d7f86'],n=0;
+  for(var y=-s,ry=0;y<H+s;y+=s*.86,ry++)for(var x=(ry%2?s/2:0)-s;x<W+s;x+=s,n++){
+    var col=cols[(ry+((x/s)|0))%2?0:1];if((ry%3==0)&&(((x/s)|0)%3==0))col=cols[2];
+    c.save();c.translate(x,y);c.beginPath();[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(q){c.moveTo(q[0]*s*.2+s*.34,q[1]*s*.2);c.arc(q[0]*s*.2,q[1]*s*.2,s*.34,0,7)});
+    var g=c.createRadialGradient(-s*.1,-s*.1,2,0,0,s*.5);g.addColorStop(0,'rgba(255,255,255,.35)');g.addColorStop(1,'rgba(0,0,0,.25)');c.fillStyle=col;c.fill();c.fillStyle=g;c.fill();c.strokeStyle='rgba(250,235,190,.8)';c.lineWidth=2.5;c.stroke();
+    c.strokeStyle='rgba(250,235,190,.6)';c.lineWidth=1.5;c.beginPath();c.arc(0,0,s*.14,0,7);c.stroke();petalFlower(c,0,0,s*.2,8,'#fff3d1',.7);c.restore()}}
+function garlandLine(c,p0,p1,p2,r,seed){var rnd=prng(seed),len=Math.hypot(p2[0]-p0[0],p2[1]-p0[1])*1.15,n=Math.floor(len/(r*1.5));
+  for(var i=0;i<=n;i++){var t=i/n,a=(1-t)*(1-t),b=2*(1-t)*t,d=t*t,x=a*p0[0]+b*p1[0]+d*p2[0],y=a*p0[1]+b*p1[1]+d*p2[1];
+    c.fillStyle='#2f6b2a';c.beginPath();c.ellipse(x+r*.5,y+r*.3,r*.55,r*.22,.6,0,7);c.fill();marigold(c,x,y,r,i)}
+  var e=p2;petalFlower(c,e[0],e[1]+10,r*2.1,9,'#d6336c',1);petalFlower(c,e[0],e[1]+10,r*1.3,8,'#f8a5c2',1)}
+function garlandBg(c,W,H){
+  var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#ef8a2a');bg.addColorStop(1,'#c4561a');c.fillStyle=bg;c.fillRect(0,0,W,H);
+  c.fillStyle='rgba(255,214,140,.16)';for(var y=40;y<H;y+=120)for(var x=((y/120)%2?30:90);x<W;x+=120){c.save();c.translate(x,y);for(var i=0;i<6;i++){c.rotate(Math.PI/3);c.beginPath();c.ellipse(0,-22,9,22,0,0,7);c.fill()}c.beginPath();c.arc(0,0,7,0,7);c.fill();c.restore()}
+  garlandLine(c,[26,26],[240,520],[46,1010],17,5);garlandLine(c,[W-26,26],[W-240,520],[W-46,1010],17,9);
+  garlandLine(c,[26,H-30],[200,H-120],[300,H-26],15,13);garlandLine(c,[W-26,H-30],[W-200,H-120],[W-300,H-26],15,17)}
+function paisleyRedBg(c,W,H){
+  var bg=c.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#86172a');bg.addColorStop(1,'#4a0914');c.fillStyle=bg;c.fillRect(0,0,W,H);
+  var r=prng(31);c.lineWidth=3;for(var y=40;y<H+80;y+=140)for(var x=((y-40)/140%2?70:-10);x<W+80;x+=140){var rot=(((x+y)/140|0)%2?.7:-.7)+(r()-.5)*.3;c.strokeStyle='rgba(255,196,160,.26)';paisley(c,x,y,52,rot);c.strokeStyle='rgba(255,196,160,.14)';paisley(c,x+8,y+8,36,rot);c.fillStyle='rgba(232,190,110,.5)';c.beginPath();c.arc(x+70,y+70,4,0,7);c.fill()}}
+
+function eyeF(c,x,y,r){c.save();c.translate(x,y);c.strokeStyle='#2f6b2a';c.lineWidth=2;c.beginPath();c.moveTo(0,r);c.lineTo(0,r*1.7);c.stroke();[[r,'#e0aa3a'],[r*.82,'#0e7c7b'],[r*.6,'#2f8a5a'],[r*.38,'#14325c'],[r*.16,'#e8c877']].forEach(function(q){c.fillStyle=q[1];c.beginPath();c.ellipse(0,0,q[0]*.8,q[0]*1.1,0,0,7);c.fill()});c.restore()}
+function peacockBg(c,W,H){
+  var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#fbd9d6');bg.addColorStop(1,'#f3b4bd');c.fillStyle=bg;c.fillRect(0,0,W,H);
+  c.strokeStyle='rgba(190,70,110,.14)';c.lineWidth=2.5;var r=prng(41);for(var y=60;y<H;y+=170)for(var x=((y-60)/170%2?80:-5);x<W;x+=170)paisley(c,x,y,40,(r()-.5)*1.4);
+  c.fillStyle='#0e7c7b';for(var x2=0;x2<W;x2+=32){c.beginPath();c.moveTo(x2,0);c.lineTo(x2+16,22);c.lineTo(x2+32,0);c.fill();c.beginPath();c.moveTo(x2,H);c.lineTo(x2+16,H-22);c.lineTo(x2+32,H);c.fill()}
+  for(var y2=0;y2<H;y2+=32){c.beginPath();c.moveTo(0,y2);c.lineTo(22,y2+16);c.lineTo(0,y2+32);c.fill();c.beginPath();c.moveTo(W,y2);c.lineTo(W-22,y2+16);c.lineTo(W,y2+32);c.fill()}
+  c.fillStyle='#d6336c';for(var x3=16;x3<W;x3+=32){c.beginPath();c.arc(x3,6,4,0,7);c.fill();c.beginPath();c.arc(x3,H-6,4,0,7);c.fill()}
+  for(var y3=16;y3<H;y3+=32){c.beginPath();c.arc(6,y3,4,0,7);c.fill();c.beginPath();c.arc(W-6,y3,4,0,7);c.fill()}
+  for(var x4=50;x4<W-30;x4+=46){eyeF(c,x4,52,15);c.save();c.translate(x4,H-52);c.rotate(Math.PI);eyeF(c,0,0,15);c.restore()}
+  for(var y4=96;y4<H-60;y4+=46){c.save();c.translate(52,y4);c.rotate(-Math.PI/2);eyeF(c,0,0,15);c.restore();c.save();c.translate(W-52,y4);c.rotate(Math.PI/2);eyeF(c,0,0,15);c.restore()}}
+function damaskBg(c,W,H){
+  c.fillStyle='#0d3f3c';c.fillRect(0,0,W,H);var cols=['#7a1428','#0f6b66','#2b5a34','#8c1f3a','#14566b'],cw=150,ch=200,i=0;
+  for(var y=-ch/2,ry=0;y<H+ch;y+=ch/2,ry++)for(var x=(ry%2?cw/2:0)-cw/2,cx=0;x<W+cw;x+=cw,cx++){
+    var col=cols[(ry+cx*2)%cols.length];c.save();c.translate(x+cw/2,y);c.beginPath();c.moveTo(0,-98);c.bezierCurveTo(38,-68,72,-38,72,0);c.bezierCurveTo(72,38,38,68,0,98);c.bezierCurveTo(-38,68,-72,38,-72,0);c.bezierCurveTo(-72,-38,-38,-68,0,-98);
+    var g=c.createRadialGradient(0,-20,5,0,0,100);g.addColorStop(0,'rgba(255,255,255,.2)');g.addColorStop(1,'rgba(0,0,0,.3)');c.fillStyle=col;c.fill();c.fillStyle=g;c.fill();c.strokeStyle='#d9b45a';c.lineWidth=3;c.stroke();
+    c.save();c.scale(.78,.78);c.beginPath();c.moveTo(0,-98);c.bezierCurveTo(38,-68,72,-38,72,0);c.bezierCurveTo(72,38,38,68,0,98);c.bezierCurveTo(-38,68,-72,38,-72,0);c.bezierCurveTo(-72,-38,-38,-68,0,-98);c.strokeStyle='rgba(217,180,90,.7)';c.lineWidth=2;c.stroke();c.restore();
+    petalFlower(c,0,0,38,8,'#e8c877',.95);diamond(c,0,-58,9,'#e8c877');diamond(c,0,58,9,'#e8c877');c.restore();i++}}
+function colorMandala(c,x,y,R,al){c.save();c.translate(x,y);c.globalAlpha=al;var pal=['#e4572e','#0e7c7b','#d6336c','#e8a317','#5b2a86','#2f8a5a'];
+  for(var l=0;l<7;l++){var rad=R*(1-l*.135),n=12+l*2;for(var i=0;i<n;i++){c.save();c.rotate(i*2*Math.PI/n+l*.1);c.fillStyle=pal[(i+l)%pal.length];c.beginPath();c.ellipse(0,-rad*.82,rad*.09,rad*.2,0,0,7);c.fill();c.fillStyle='rgba(255,244,214,.9)';c.beginPath();c.arc(0,-rad*.95,rad*.025,0,7);c.fill();c.restore()}
+    c.strokeStyle='rgba(60,30,20,.5)';c.lineWidth=2;c.beginPath();c.arc(0,0,rad*.66,0,7);c.stroke()}
+  c.fillStyle='#e8a317';c.beginPath();c.arc(0,0,R*.12,0,7);c.fill();c.restore()}
+function folkBg(c,W,H){
+  var bg=c.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#f8edd6');bg.addColorStop(1,'#f0dfbf');c.fillStyle=bg;c.fillRect(0,0,W,H);
+  c.fillStyle='rgba(150,100,50,.06)';var r=prng(51);for(var i=0;i<260;i++){c.beginPath();c.arc(r()*W,r()*H,1+r()*2.5,0,7);c.fill()}
+  colorMandala(c,0,0,430,1);colorMandala(c,W,H,430,1);colorMandala(c,W,0,250,1);colorMandala(c,0,H,250,1)}
+function bandK(c,w,h){c.fillStyle='#1d1612';c.fillRect(0,0,w,h);var rows=Math.floor(h/18),cols=['#b3261e','#0e7c7b','#e0a326','#f3e6c8'];
+  for(var k=0;k<rows;k++){var y=k*18+2;for(var x=0;x<w;x+=18){c.fillStyle=cols[k%4];c.beginPath();if(k%2){c.moveTo(x,y+14);c.lineTo(x+9,y);c.lineTo(x+18,y+14)}else{c.moveTo(x,y);c.lineTo(x+9,y+14);c.lineTo(x+18,y)}c.fill()}}}
+function kilimBg(c,W,H){
+  var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#f1e3c3');bg.addColorStop(1,'#e6d3a8');c.fillStyle=bg;c.fillRect(0,0,W,H);
+  c.fillStyle='rgba(120,80,40,.06)';var r=prng(61);for(var i=0;i<300;i++){c.beginPath();c.arc(r()*W,r()*H,1+r()*2,0,7);c.fill()}
+  c.save();bandK(c,W,72);c.translate(0,H-72);bandK(c,W,72);c.restore();c.save();c.translate(72,0);c.rotate(Math.PI/2);bandK(c,H,72);c.restore();c.save();c.translate(W,0);c.rotate(Math.PI/2);bandK(c,H,72);c.restore();
+  c.strokeStyle='#e8c877';c.lineWidth=3;c.strokeRect(72,72,W-144,H-144)}
+function goldMandalaBg(c,W,H){
+  var bg=c.createRadialGradient(W/2,H/2,100,W/2,H/2,H*.75);bg.addColorStop(0,'#fffaf0');bg.addColorStop(1,'#eadcc0');c.fillStyle=bg;c.fillRect(0,0,W,H);
+  c.save();c.translate(W/2,H/2);for(var l=0;l<9;l++){var R=700-l*70,n=16+l*4;c.strokeStyle='rgba(176,128,40,'+(.28-l*.015)+')';c.lineWidth=2.4;for(var i=0;i<n;i++){c.save();c.rotate(i*2*Math.PI/n+(l%2)*Math.PI/n);c.beginPath();c.moveTo(0,-R*.6);c.bezierCurveTo(R*.12,-R*.8,R*.1,-R*.92,0,-R);c.bezierCurveTo(-R*.1,-R*.92,-R*.12,-R*.8,0,-R*.6);c.stroke();var g=c.createLinearGradient(0,-R,0,-R*.6);g.addColorStop(0,'rgba(233,196,106,.16)');g.addColorStop(1,'rgba(233,196,106,0)');c.fillStyle=g;c.fill();c.restore()}c.beginPath();c.arc(0,0,R*.6,0,7);c.stroke()}c.restore();
+  mandala(c,0,0,400,.15);mandala(c,W,H,400,.15)}
+var THEMES={
+ classic:{name:'Royal Maroon',pri:'#7a1f2b',pri2:'#5a1220',gd:'#c99a3a',gl:'#e8c877',b1:'#7a1f2b',ink:'#3b2a20',ink2:'#5a4a3c',title:'#7a1f2b',sw:['#fbf0dc','#7a1f2b'],
+  draw:function(c,W,H){var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#fff8ea');bg.addColorStop(.5,'#fbf0dc');bg.addColorStop(1,'#f6e7c9');c.fillStyle=bg;c.fillRect(0,0,W,H);mandala(c,W/2,H/2,660,.07);mandala(c,0,0,430,.13);mandala(c,W,H,430,.13);mandala(c,W,0,260,.09);mandala(c,0,H,260,.09)}},
+ blossom:{name:'Ivory Blossom',pri:'#8b2a4a',pri2:'#5f1a33',gd:'#c79a52',gl:'#ecd08f',b1:'#8b2a4a',ink:'#4a2c36',ink2:'#6b4a55',title:'#8b2a4a',sw:['#fff6ef','#d98aa5'],
+  draw:function(c,W,H){var bg=c.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#fffaf3');bg.addColorStop(1,'#fdeee6');c.fillStyle=bg;c.fillRect(0,0,W,H);
+   [[160,200,620,'rgba(244,170,150,.38)'],[1100,1500,700,'rgba(232,130,165,.30)'],[1150,260,420,'rgba(250,205,160,.35)'],[120,1560,460,'rgba(250,190,190,.32)']].forEach(function(b){var g=c.createRadialGradient(b[0],b[1],0,b[0],b[1],b[2]);g.addColorStop(0,b[3]);g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,0,W,H)});
+   c.strokeStyle='rgba(176,110,120,.14)';c.lineWidth=2;var r=prng(7);for(var y=60;y<H;y+=150)for(var x=((y/150)%2?60:-10);x<W;x+=150)paisley(c,x+r()*10,y+r()*10,34,(r()-.5)*1.2+(((x+y)/150|0)%2?.6:-.6));
+   [[70,70,1,1],[W-70,70,-1,1],[70,H-70,1,-1],[W-70,H-70,-1,-1]].forEach(function(q){petalFlower(c,q[0]+q[2]*70,q[1]+q[3]*70,150,12,'#e9a0b4',.5);petalFlower(c,q[0]+q[2]*70,q[1]+q[3]*70,95,10,'#f6c7a8',.6)})}},
+ emerald:{name:'Emerald Jaali',pri:'#0f5a43',pri2:'#083a2b',gd:'#d2a64a',gl:'#f1d98f',b1:'#d2a64a',ink:'#f6e9c4',ink2:'#e6d6a8',title:'#f1d98f',dark:1,sw:['#0b3d2e','#d2a64a'],
+  draw:function(c,W,H){var bg=c.createRadialGradient(W/2,H*.45,100,W/2,H*.5,H*.8);bg.addColorStop(0,'#14694f');bg.addColorStop(1,'#06261c');c.fillStyle=bg;c.fillRect(0,0,W,H);jaali(c,W,H,'rgba(241,217,143,.16)');var v=c.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.75);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.35)');c.fillStyle=v;c.fillRect(0,0,W,H)}},
+ marigold:{name:'Rose & Marigold',pri:'#a3174f',pri2:'#6f0e35',gd:'#d4a13c',gl:'#f3d889',b1:'#a3174f',ink:'#4a1d2e',ink2:'#6b3a4b',title:'#a3174f',sw:['#ffe3ea','#f59e0b'],chain:1,
+  draw:function(c,W,H){var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#fff3f5');bg.addColorStop(.5,'#ffe3ea');bg.addColorStop(1,'#ffd3de');c.fillStyle=bg;c.fillRect(0,0,W,H);
+   var g=c.createRadialGradient(W/2,H*.5,50,W/2,H*.5,H*.6);g.addColorStop(0,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,0,W,H);
+   c.fillStyle='rgba(163,23,79,.06)';var r=prng(3);for(var i=0;i<70;i++){c.beginPath();c.arc(r()*W,r()*H,4+r()*14,0,7);c.fill()}}},
+ jharokha:{name:'Jharokha Patchwork',pri:'#7a1f35',pri2:'#521224',gd:'#d6a23c',gl:'#f3d889',b1:'#521224',ink:'#3b2a20',ink2:'#5a4a3c',title:'#7a1f35',sw:['#0e7c7b','#d4552b'],panel:1,draw:jharokhaBg},
+ arabesque:{gdk:1,name:'Jewel Arabesque',pri:'#0e5f63',pri2:'#08403f',gd:'#dba743',gl:'#f6dd96',b1:'#08403f',ink:'#2a3a38',ink2:'#4a5a58',title:'#0e5f63',sw:['#13a0a0','#e5a32c'],panel:1,draw:arabesqueBg},
+ garland:{gdk:1,name:'Marigold Garland',pri:'#b8470f',pri2:'#7f2f08',gd:'#e0aa3a',gl:'#f8dc92',b1:'#7f2f08',ink:'#4a2410',ink2:'#6b4020',title:'#b8470f',sw:['#ef8a2a','#2f6b2a'],panel:1,draw:garlandBg},
+ paisleyred:{gdk:1,name:'Deep Paisley',pri:'#6e1020',pri2:'#4a0914',gd:'#d9a74a',gl:'#f3d889',b1:'#4a0914',ink:'#3b2220',ink2:'#5a3c38',title:'#6e1020',sw:['#86172a','#e8be6e'],panel:1,draw:paisleyRedBg},
+ peacock:{name:'Peacock Pink',pri:'#0e6b6a',pri2:'#084645',gd:'#dba743',gl:'#f6dd96',b1:'#084645',ink:'#4a2430',ink2:'#6b4450',title:'#0e6b6a',sw:['#f6c3c6','#0e7c7b'],panel:1,draw:peacockBg},
+ damask:{gdk:1,name:'Jewel Damask',pri:'#7a1428',pri2:'#520b1b',gd:'#d9b45a',gl:'#f3dc9a',b1:'#520b1b',ink:'#3b2220',ink2:'#5a3c38',title:'#7a1428',sw:['#0f6b66','#7a1428'],panel:1,draw:damaskBg},
+ folk:{name:'Folk Mandala',pri:'#b3321e',pri2:'#7c1f10',gd:'#e0a326',gl:'#f6d98a',b1:'#7c1f10',ink:'#3b2a20',ink2:'#5a4a3c',title:'#b3321e',sw:['#f6ead2','#d6336c'],draw:folkBg},
+ kilim:{name:'Kilim Stripes',pri:'#9a2a1c',pri2:'#6a1a10',gd:'#e0a326',gl:'#f3dc9a',b1:'#1d1612',ink:'#3b2a20',ink2:'#5a4a3c',title:'#9a2a1c',sw:['#b3261e','#0e7c7b'],panel:1,draw:kilimBg},
+ goldmandala:{name:'Golden Mandala',pri:'#6b4a14',pri2:'#47300a',gd:'#c99a3a',gl:'#ecd08f',b1:'#6b4a14',ink:'#3f2f14',ink2:'#6b5a3a',title:'#6b4a14',sw:['#fffaf0','#c99a3a'],draw:goldMandalaBg},
+ midnight:{name:'Midnight Diwali',pri:'#27397e',pri2:'#162152',gd:'#e0b04c',gl:'#fbe29a',b1:'#e0b04c',ink:'#f4ead0',ink2:'#dcd0b0',title:'#fbe29a',dark:1,sw:['#141c4a','#e0b04c'],
+  draw:function(c,W,H){var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0a0f2e');bg.addColorStop(.6,'#161d52');bg.addColorStop(1,'#241a48');c.fillStyle=bg;c.fillRect(0,0,W,H);var r=prng(11);
+   for(var i=0;i<46;i++){var x=r()*W,y=r()*H,R=14+r()*70,a=.05+r()*.12,g=c.createRadialGradient(x,y,0,x,y,R);g.addColorStop(0,'rgba(251,226,154,'+a*2+')');g.addColorStop(.7,'rgba(251,226,154,'+a+')');g.addColorStop(1,'rgba(251,226,154,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,R,0,7);c.fill()}
+   c.fillStyle='rgba(255,244,205,.85)';for(var j=0;j<90;j++){var x2=r()*W,y2=r()*H,s2=1+r()*2.4;c.beginPath();c.arc(x2,y2,s2,0,7);c.fill()}
+   mandala(c,W/2,H/2,640,.06)}}
+};
+var THEME_KEYS=['classic','blossom','emerald','marigold','midnight','jharokha','arabesque','garland','paisleyred','peacock','damask','folk','kilim','goldmandala'];
+function defGlass(){try{var v=localStorage.getItem('ssc-studio-glass-v1');return /^[0-3]$/.test(v||'')?v:'0'}catch(e){return'0'}}
+var GLASS=[0,{t:.62,b:6},{t:.34,b:14},{t:.16,b:20}],GLASS_N=['Off','Soft','Glass','Clear'];
+function defLay(){try{var v=localStorage.getItem('ssc-studio-lay-v1');return LAYS[v]?v:'classic'}catch(e){return'classic'}}
+var LAYS={classic:'Classic',hero:'Hero + strip',grid:'Grid',bento:'Mosaic',polaroid:'Polaroids',diamond:'Diamonds',triangles:'Triangles',bubbles:'Bubbles',diagonal:'Diagonal',arch:'Arch + circles',mirror:'Mirror'};
+function defBg(){try{var v=localStorage.getItem('ssc-studio-bg-v1');return THEMES[v]?v:'classic'}catch(e){return'classic'}}
+
+function phot(c,im,x,y,w,h){c.fillStyle='#e9dcc8';c.fillRect(x,y,w,h);if(im){var sc=Math.max(w/im.width,h/im.height),dw=im.width*sc,dh=im.height*sc;c.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh)}}
+function poly(c,pts){c.beginPath();pts.forEach(function(q,i){i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])});c.closePath()}
+function inPoly(c,im,pts,bx,by,bw,bh){c.save();poly(c,pts);c.clip();phot(c,im,bx,by,bw,bh);c.restore();c.strokeStyle='#fff';c.lineWidth=6;c.lineJoin='round';poly(c,pts);c.stroke();c.strokeStyle=GD;c.lineWidth=2;poly(c,pts);c.stroke()}
+var CL={
+ polaroid:function(c,ims,X,Y,W,H){var n=Math.min(5,Math.max(2,ims.length)),two=n>3,r1=two?Math.ceil(n/2):n,ph2=two?H*.6:Math.min(H*.9,W/((n-1)*.7+1)*1.2),pw=ph2/1.2,rots=[-6,4,-3,6,-5],pos=[];
+  for(var i=0;i<n;i++){var inRow1=!two||i<r1,idx=inRow1?i:i-r1,cnt=inRow1?r1:n-r1,step=Math.min(pw*.95,(W-pw)/Math.max(1,cnt-1)),cx=X+W/2+(idx-(cnt-1)/2)*step,cy=two?(inRow1?Y+ph2/2+4:Y+H-ph2/2-4):Y+H/2+(i%2?-1:1)*H*.03;pos.push([cx,cy])}
+  for(var j=0;j<n;j++){var cx2=pos[j][0],cy2=pos[j][1];c.save();c.translate(cx2,cy2);c.rotate(rots[j]*Math.PI/180);
+   c.shadowColor='rgba(40,20,10,.38)';c.shadowBlur=22;c.shadowOffsetY=8;c.fillStyle='#fff';c.fillRect(-pw/2,-ph2/2,pw,ph2);c.shadowColor='transparent';
+   c.save();c.beginPath();c.rect(-pw/2+12,-ph2/2+12,pw-24,pw-24);c.clip();phot(c,ims[j%ims.length],-pw/2+12,-ph2/2+12,pw-24,pw-24);c.restore();
+   c.strokeStyle='rgba(0,0,0,.08)';c.lineWidth=2;c.strokeRect(-pw/2+12,-ph2/2+12,pw-24,pw-24);
+   c.fillStyle=j%2?'rgba(201,154,58,.8)':'rgba(214,51,108,.7)';c.save();c.translate(0,-ph2/2+2);c.rotate((j%2?-1:1)*.06);c.fillRect(-42,-14,84,28);c.restore();
+   c.fillStyle='#8a7a6c';c.font='italic 500 24px '+SF;c.textAlign='center';c.fillText('♥',0,ph2/2-16);c.restore()}},
+ diamond:function(c,ims,X,Y,W,H){var D=H/2,g=8,k=0,h=D/2-g/2;c.save();c.beginPath();c.rect(X,Y,W,H);c.clip();
+  for(var r=0;r<3;r++){var cy=Y+D/2+r*D/2,off=(r%2)*D/2;for(var j=-1;j<Math.ceil(W/D)+1;j++){var cx=X+D/2+j*D+off;inPoly(c,ims[k++%ims.length],[[cx,cy-h],[cx+h,cy],[cx,cy+h],[cx-h,cy]],cx-h,cy-h,2*h,2*h)}}c.restore()},
+ triangles:function(c,ims,X,Y,W,H){var cols=3,tw=W/cols,th=(H-8)/2,k=0;c.save();c.beginPath();c.rect(X,Y,W,H);c.clip();
+  for(var r=0;r<2;r++){var y0=Y+r*(th+8);for(var j=-1;j<cols*2+1;j++){var up=(j+r)%2===0,x0=X+j*tw/2,pts=up?[[x0,y0+th],[x0+tw/2,y0],[x0+tw,y0+th]]:[[x0,y0],[x0+tw,y0],[x0+tw/2,y0+th]];
+   if(!up)pts=[[x0,y0],[x0+tw,y0],[x0+tw/2,y0+th]];inPoly(c,ims[k++%ims.length],pts,x0,y0,tw,th)}}c.restore()},
+ bento:function(c,ims,X,Y,W,H){var g=12,C=[[0,0,.38,.58],[.39,0,.30,.34],[.70,0,.30,.58],[0,.59,.30,.41],[.31,.35,.38,.65],[.70,.59,.30,.41]];
+  C.forEach(function(q,i){var x=X+q[0]*W,y=Y+q[1]*H,w=q[2]*W-(q[2]<1?0:0),h=q[3]*H;x+=g/2*(q[0]>0?1:0);w-=g/2*((q[0]>0?1:0)+(q[0]+q[2]<.99?1:0));y+=g/2*(q[1]>0?1:0);h-=g/2*((q[1]>0?1:0)+(q[1]+q[3]<.99?1:0));
+   c.save();rr(c,x,y,w,h,10);c.clip();phot(c,ims[i%ims.length],x,y,w,h);c.restore();c.strokeStyle=GD;c.lineWidth=2.5;rr(c,x,y,w,h,10);c.stroke()})},
+ bubbles:function(c,ims,X,Y,W,H){var d0=Math.min(H,W*.55),S=[[X+d0/2,Y+H/2,d0],[X+W*.74,Y+H*.27,H*.52],[X+W*.82,Y+H*.76,H*.44],[X+W*.55,Y+H*.8,H*.3],[X+W*.57,Y+H*.13,H*.25]];
+  S.forEach(function(q,i){var r=q[2]/2;c.save();c.shadowColor='rgba(40,20,10,.3)';c.shadowBlur=18;c.shadowOffsetY=5;c.fillStyle='#fff';c.beginPath();c.arc(q[0],q[1],r+(i?7:9),0,7);c.fill();c.restore();
+   c.save();c.beginPath();c.arc(q[0],q[1],r,0,7);c.clip();phot(c,ims[i%ims.length],q[0]-r,q[1]-r,2*r,2*r);c.restore();c.strokeStyle=GD;c.lineWidth=3;c.beginPath();c.arc(q[0],q[1],r+(i?7:9),0,7);c.stroke()})},
+ diagonal:function(c,ims,X,Y,W,H){var n=Math.min(5,Math.max(3,ims.length)),sk=Math.min(110,H*.18),sw=(W-sk)/n,g=10;
+  for(var i=0;i<n;i++){var x=X+i*sw;inPoly(c,ims[i%ims.length],[[x+sk+g/2,Y],[x+sk+sw-g/2,Y],[x+sw-g/2,Y+H],[x+g/2,Y+H]],x,Y,sw+sk,H)}}
+};
+function goldG(c,y0,y1){var g=c.createLinearGradient(0,y0,0,y1);g.addColorStop(0,'#a97a1f');g.addColorStop(.35,'#f6e2a0');g.addColorStop(.6,'#c99a3a');g.addColorStop(1,'#8f6a17');return g}
+function icon(c,t,cx,cy){
+  c.save();c.fillStyle=MR;c.beginPath();c.arc(cx,cy,34,0,7);c.fill();c.strokeStyle=GD;c.lineWidth=3;c.beginPath();c.arc(cx,cy,34,0,7);c.stroke();c.strokeStyle=GL;c.lineWidth=1.5;c.beginPath();c.arc(cx,cy,28,0,7);c.stroke();
+  c.fillStyle=GL;c.strokeStyle=GL;c.lineWidth=3;c.lineJoin='round';
+  if(t==='heart'){c.beginPath();c.moveTo(cx,cy+13);c.bezierCurveTo(cx-24,cy-2,cx-12,cy-19,cx,cy-7);c.bezierCurveTo(cx+12,cy-19,cx+24,cy-2,cx,cy+13);c.fill()}
+  else if(t==='gem'){c.beginPath();c.moveTo(cx-15,cy-5);c.lineTo(cx-8,cy-13);c.lineTo(cx+8,cy-13);c.lineTo(cx+15,cy-5);c.lineTo(cx,cy+15);c.closePath();c.fill();c.strokeStyle=MR;c.lineWidth=2;c.beginPath();c.moveTo(cx-15,cy-5);c.lineTo(cx+15,cy-5);c.moveTo(cx-5,cy-5);c.lineTo(cx,cy+15);c.lineTo(cx+5,cy-5);c.stroke()}
+  else if(t==='gift'){c.fillRect(cx-13,cy-3,26,17);c.fillRect(cx-16,cy-10,32,8);c.fillStyle=MR;c.fillRect(cx-2.5,cy-10,5,24);c.strokeStyle=GL;c.lineWidth=2.5;c.beginPath();c.moveTo(cx,cy-10);c.bezierCurveTo(cx-12,cy-22,cx-15,cy-8,cx,cy-10);c.moveTo(cx,cy-10);c.bezierCurveTo(cx+12,cy-22,cx+15,cy-8,cx,cy-10);c.stroke()}
+  else if(t==='truck'){c.fillRect(cx-19,cy-10,20,17);c.beginPath();c.moveTo(cx+3,cy-5);c.lineTo(cx+12,cy-5);c.lineTo(cx+19,cy+2);c.lineTo(cx+19,cy+7);c.lineTo(cx+3,cy+7);c.closePath();c.fill();c.fillStyle=MR;[[-10,9],[10,9]].forEach(function(w){c.beginPath();c.arc(cx+w[0],cy+w[1],5.5,0,7);c.fill();c.strokeStyle=GL;c.lineWidth=2;c.stroke()})}
+  else{c.beginPath();for(var i=0;i<10;i++){var r=i%2?7:16,a=-Math.PI/2+i*Math.PI/5;c.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}c.closePath();c.fill()}
+  c.restore()}
+function iconFor(t,i){t=t.toLowerCase();if(/gift/.test(t))return'gift';if(/deliver|ship|cod|dispatch/.test(t))return'truck';if(/quality|premium|luxury|finish/.test(t))return'gem';if(/hand|craft|made/.test(t))return'heart';return['heart','gem','gift','truck'][i%4]}
+var DEF_FEAT='Handmade with love, Premium quality, Gift ready, Pan-India delivery';
+function qrDraw(c,txt,x,y,sz){
+  var q=null;try{q=window.sscQR(0,'M');q.addData(txt);q.make()}catch(e){try{q=window.sscQR(0,'L');q.addData(txt);q.make()}catch(e2){return false}}
+  var n=q.getModuleCount(),m=sz/n;c.fillStyle='#fff';c.fillRect(x,y,sz,sz);c.fillStyle=MD;for(var r=0;r<n;r++)for(var k=0;k<n;k++)if(q.isDark(r,k))c.fillRect(x+k*m,y+r*m,Math.ceil(m),Math.ceil(m));return true}
+function defLink(){try{return localStorage.getItem('ssc-studio-link-v1')||''}catch(e){return''}}
+function normLink(u){u=String(u||'').trim();if(!u)return'';if(!/^[a-z][a-z0-9+.-]*:/i.test(u)&&/\./.test(u))u='https://'+u;return u}
+function orderInfo(p,d){
+  var u=normLink(d.link)||normLink(defLink());
+  if(!u)return{url:'https://wa.me/'+B.phone.replace(/\D/g,'')+'?text='+encodeURIComponent('Hi, I am interested in '+(p.name||'')+(p.sku?' (SKU: '+p.sku+')':'')),label:'Order on WhatsApp',show:B.phone};
+  var wa=/wa\.me|whatsapp/i.test(u),show=u.replace(/^https?:\/\//i,'').replace(/^www\./i,'').replace(/\/$/,'');
+  return{url:u,label:wa?'Order on WhatsApp':'Order on our website',show:show.length>30?show.slice(0,29)+'…':show};
+}
+function corners(c,x,y,w,h,len,col){c.strokeStyle=col;c.lineWidth=5;c.lineCap='round';[[x,y,1,1],[x+w,y,-1,1],[x,y+h,1,-1],[x+w,y+h,-1,-1]].forEach(function(q){c.beginPath();c.moveTo(q[0],q[1]+q[3]*len);c.lineTo(q[0],q[1]);c.lineTo(q[0]+q[2]*len,q[1]);c.stroke()});c.lineCap='butt'}
 function render(p,mi){
   var W=1240,H=1754,logo=document.querySelector('img.logo'),d=det(p),imgs=(p.images||[]).slice(0,5);
   var order=imgs.slice();if(mi>0&&mi<order.length){var m=order.splice(mi,1)[0];order.unshift(m)}
   return Promise.all([limg(logo?(logo.currentSrc||logo.src):''),Promise.all(order.map(limg))]).then(function(r){
-    var lg=r[0],ims=r[1].filter(Boolean),cv=document.createElement('canvas');cv.width=W;cv.height=H;var c=cv.getContext('2d');
-    c.fillStyle=CR;c.fillRect(0,0,W,H);
-    // festive border
-    c.fillStyle=MR;c.fillRect(24,24,W-48,H-48);c.fillStyle=CR;c.fillRect(64,64,W-128,H-128);
-    c.fillStyle=GD;for(var x=44;x<W-30;x+=26){c.beginPath();c.arc(x,44,5,0,7);c.fill();c.beginPath();c.arc(x,H-44,5,0,7);c.fill()}
-    for(var y=44;y<H-30;y+=26){c.beginPath();c.arc(44,y,5,0,7);c.fill();c.beginPath();c.arc(W-44,y,5,0,7);c.fill()}
-    c.strokeStyle=GD;c.lineWidth=3;c.strokeRect(76,76,W-152,H-152);
-    [[44,44],[W-44,44],[44,H-44],[W-44,H-44]].forEach(function(q){c.fillStyle=GD;c.beginPath();c.arc(q[0],q[1],22,0,7);c.fill();c.fillStyle=MR;c.beginPath();c.arc(q[0],q[1],11,0,7);c.fill()});
+    var lg=r[0],ims=r[1].filter(Boolean),cv=document.createElement('canvas');cv.width=W*2;cv.height=H*2;var c=cv.getContext('2d'),hx=W/2;c.scale(2,2);
+    var T=THEMES[d.bg||defBg()]||THEMES.classic;MR=T.pri;MD=T.pri2;GD=T.gd;GL=T.gl;
+    var gi=parseInt(d.glass!==''&&d.glass!=null?d.glass:defGlass(),10)||0,G=GLASS[gi]||0,dk=!!(T.dark||(T.gdk&&G));
+    if(G){T=Object.assign({},T);if(dk&&!T.dark){T.ink='#fff6e0';T.ink2='#f0e2c0';T.title=T.gl}}
+    T.draw(c,W,H);
+    if(T.panel){c.strokeStyle=T.b1;c.lineWidth=8;c.strokeRect(22,22,W-44,H-44);c.strokeStyle=GD;c.lineWidth=3;c.strokeRect(36,36,W-72,H-72);if(!G){c.save();c.shadowColor='rgba(0,0,0,.3)';c.shadowBlur=20;c.fillStyle='rgba(255,249,236,.95)';rr(c,84,330,1072,1260,22);c.fill();c.restore();c.strokeStyle=GD;c.lineWidth=3;rr(c,84,330,1072,1260,22);c.stroke();c.strokeStyle='rgba(201,154,58,.55)';c.lineWidth=1.5;rr(c,92,338,1056,1244,16);c.stroke()}}
+    if(!T.panel){c.strokeStyle=T.b1;c.lineWidth=12;c.strokeRect(30,30,W-60,H-60);c.strokeStyle=GD;c.lineWidth=3;c.strokeRect(52,52,W-104,H-104);c.strokeStyle=T.b1;c.lineWidth=1.5;c.strokeRect(62,62,W-124,H-124);
+    if(T.chain){var k=0;for(var x=84;x<=W-84;x+=36){marigold(c,x,41,15,k++);marigold(c,x,H-41,15,k++)}for(var y=84;y<=H-84;y+=36){marigold(c,41,y,15,k++);marigold(c,W-41,y,15,k++)}}
+    [[52,52,1,1],[W-52,52,-1,1],[52,H-52,1,-1],[W-52,H-52,-1,-1]].forEach(function(q){c.fillStyle=T.b1;c.beginPath();c.arc(q[0],q[1],24,0,7);c.fill();c.fillStyle=GD;c.beginPath();c.arc(q[0],q[1],15,0,7);c.fill();c.fillStyle=T.b1;c.beginPath();c.arc(q[0],q[1],7,0,7);c.fill();diamond(c,q[0]+q[2]*48,q[1],6,GD);diamond(c,q[0],q[1]+q[3]*48,6,GD)})}
+    if(G){c.save();rr(c,84,330,1072,1260,22);c.clip();
+      try{c.filter='blur('+(G.b*2)+'px)';c.drawImage(cv,0,0,W*2,H*2,-40,-40,W+80,H+80);c.filter='none'}catch(e){c.filter='none'}
+      c.fillStyle=(dk?(T.dark?'rgba(255,255,255,'+(G.t*.3)+')':'rgba(14,8,10,'+(G.t*1.1)+')'):'rgba(255,255,255,'+G.t+')');c.fillRect(84,330,1072,1260);
+      var hl=c.createLinearGradient(0,330,0,700);hl.addColorStop(0,'rgba(255,255,255,'+(dk?.12:.35)+')');hl.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=hl;c.fillRect(84,330,1072,370);c.restore();
+      c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=2.5;rr(c,84,330,1072,1260,22);c.stroke();c.strokeStyle=GD;c.lineWidth=1.5;rr(c,90,336,1060,1248,17);c.stroke()}
     // header
-    var hx=W/2;
-    if(lg){var lh=110,lw=lg.width*lh/lg.height;if(lw>260){lw=260;lh=lg.height*lw/lg.width}c.drawImage(lg,hx-lw/2,100,lw,lh);var ty=100+lh+44}else var ty=170;
-    c.textAlign='center';c.fillStyle=MR;c.font='800 52px '+F;c.fillText(B.name,hx,ty);
-    c.fillStyle='#8a6a2a';c.font='italic 500 26px '+F;c.fillText(B.tag,hx,ty+38);
-    var top=ty+70;
+    var g=c.createLinearGradient(0,92,0,296);g.addColorStop(0,T.pri);g.addColorStop(1,MD);
+    c.save();c.shadowColor='rgba(60,20,20,.3)';c.shadowBlur=18;c.shadowOffsetY=6;c.fillStyle=g;rr(c,100,96,1040,200,18);c.fill();c.restore();
+    c.strokeStyle=goldG(c,100,290);c.lineWidth=3;rr(c,110,106,1020,180,12);c.stroke();c.strokeStyle='rgba(232,200,119,.5)';c.lineWidth=1;rr(c,116,112,1008,168,9);c.stroke();
+    var tx=hx;
+    if(lg){var lh=140,lw=lg.width*lh/lg.height;if(lw>230){lw=230;lh=lg.height*lw/lg.width}c.fillStyle='#fff';rr(c,134,126,lw+28,lh+28,16);c.fill();c.strokeStyle=GD;c.lineWidth=3;rr(c,134,126,lw+28,lh+28,16);c.stroke();c.drawImage(lg,148,140,lw,lh);tx=134+lw+28+(1130-(134+lw+28))/2}
+    c.textAlign='center';c.fillStyle=goldG(c,140,240);c.font='700 52px '+SF;try{c.letterSpacing='3px'}catch(e){}c.fillText('SHUBH SHRINGAR',tx,176);c.fillText('CREATIONS',tx,232);try{c.letterSpacing='0px'}catch(e){}
+    c.fillStyle='#f7e8c4';c.font='italic 500 24px '+SF;if(lg)c.fillText(B.tag,tx,268);
+    // toran pendants
+    for(var x=140,i=0;x<=1100;x+=40,i++){c.fillStyle=i%2?MR:GD;c.beginPath();c.moveTo(x-15,296);c.lineTo(x+15,296);c.lineTo(x,296+(i%2?22:30));c.closePath();c.fill();c.fillStyle=i%2?GD:MR;c.beginPath();c.arc(x,296+(i%2?27:35),4,0,7);c.fill()}
+    // layout (bottom-up)
+    var rows=[['Size',d.size],['Colour',d.colour],['Material',d.material]].filter(function(x){return x[1]}),
+        fts=(d.feat||DEF_FEAT).split(',').map(function(x){return x.trim()}).filter(Boolean).slice(0,4);
+    var tblH=rows.length*58,noteH=d.notes?44:0,featH=fts.length?128:0,leftH=tblH+noteH+(tblH+noteH&&featH?14:0)+featH;
+    var footY=1592,midH=Math.max(304,leftH),midY=footY-26-midH;
+    c.font='800 58px '+SF;var nl=wcount(c,p.name||'',960,2),skuY=midY-20-52,titleY=skuY-28-(nl-1)*66,pt=372,pb=titleY-62-22;
     // photos
-    var nm=['Size','Colour','Material'].filter(function(k){return d[k.toLowerCase()]}).length;c.font='800 56px '+F;var nl0=wcount(c,p.name||'',980,2);c.font='500 28px '+F;var nt=d.notes?wcount(c,d.notes,960,2):0;
-    var bottomH=(nl0-1)*62+(p.sku?96:40)+nm*44+nt*38+(nt?10:0)+60,pb=Math.min(1250,1575-bottomH-30);
-    var many=ims.length>1,mh=many?(pb-top-190):(pb-top);
-    cover(c,ims[0]||null,120,top,1000,mh,22);c.strokeStyle=GD;c.lineWidth=6;rr(c,120,top,1000,mh,22);c.stroke();
-    if(!ims.length){c.fillStyle='#c9b4a3';c.font='800 160px '+F;c.fillText((p.name||'?').charAt(0).toUpperCase(),hx,top+mh/2+50)}
-    if(many){var th=ims.slice(1,5),tw=(1000-(th.length-1)*16)/th.length,ty2=top+mh+16;th.forEach(function(im,i){var x=120+i*(tw+16);cover(c,im,x,ty2,tw,174,14);c.strokeStyle=GD;c.lineWidth=3;rr(c,x,ty2,tw,174,14);c.stroke()})}
-    // name + sku
-    c.fillStyle=MR;c.font='800 56px '+F;c.textAlign='center';var ny=pb+80,nl=wrap(c,p.name||'',hx,ny,980,62,2);
-    var sy=ny+(nl-1)*62+30;
-    if(p.sku){var t='SKU: '+p.sku;c.font='700 30px '+F;var tw2=c.measureText(t).width+56;c.fillStyle=GD;rr(c,hx-tw2/2,sy,tw2,52,26);c.fill();c.fillStyle='#fff';c.fillText(t,hx,sy+37)}
-    // details
-    var rows=[['Size',d.size],['Colour',d.colour],['Material',d.material]].filter(function(x){return x[1]}),dy=sy+(p.sku?96:40);
-    c.textAlign='left';c.font='600 30px '+F;
-    rows.forEach(function(x,i){c.fillStyle='#8a6a2a';c.fillText(x[0]+':',150,dy+i*44);c.fillStyle='#2b1d14';c.fillText(x[1],310,dy+i*44)});
-    if(d.notes){c.fillStyle='#2b1d14';c.font='500 28px '+F;c.textAlign='center';wrap(c,d.notes,hx,dy+rows.length*44+6,960,38,2)}
+    var ph=pb-pt,many=ims.length>1,lay=d.lay||defLay(),X0=120,AW=1000,g=14,cells=[],nI=ims.length;
+    c.save();c.shadowColor='rgba(60,20,20,.3)';c.shadowBlur=28;c.shadowOffsetY=9;c.fillStyle='#fff';rr(c,102,pt-14,1036,ph+28,22);c.fill();c.restore();
+    c.strokeStyle=GD;c.lineWidth=4;rr(c,102,pt-14,1036,ph+28,22);c.stroke();c.strokeStyle=GL;c.lineWidth=1.5;rr(c,110,pt-6,1020,ph+12,16);c.stroke();
+    function col(n,x,y,w,h,sh){var q=(h-(n-1)*g)/n,o=[];for(var i=0;i<n;i++)o.push({x:x,y:y+i*(q+g),w:w,h:q,sh:sh||'r'});return o}
+    function row(n,x,y,w,h){var q=(w-(n-1)*g)/n,o=[];for(var i=0;i<n;i++)o.push({x:x+i*(q+g),y:y,w:q,h:h,sh:'r'});return o}
+    if(CL[lay]&&many){c.save();rr(c,X0-6,pt-6,AW+12,ph+12,16);c.fillStyle='#fbf3e2';c.fill();c.restore();CL[lay](c,ims,X0,pt,AW,ph)}
+    else if(!many){cells=[{x:X0,y:pt,w:AW,h:ph,sh:lay==='arch'?'a':'r'}];if(lay==='arch'){var aw=Math.min(720,ph*.9);cells=[{x:X0+(AW-aw)/2,y:pt,w:aw,h:ph,sh:'a'}]}}
+    else if(lay==='hero'){var n=Math.min(4,nI-1),th=Math.min(170,ph*.26);cells=[{x:X0,y:pt,w:AW,h:ph-th-g,sh:'r'}].concat(row(n,X0,pt+ph-th,AW,th))}
+    else if(lay==='mirror'){var n2=Math.min(4,nI-1);cells=col(n2,X0,pt,AW-650-g,ph).concat([{x:X0+AW-650,y:pt,w:650,h:ph,sh:'r'}]);cells.unshift(cells.pop())}
+    else if(lay==='grid'){
+      if(nI===2)cells=row(2,X0,pt,AW,ph);
+      else if(nI===3)cells=[{x:X0,y:pt,w:650,h:ph,sh:'r'}].concat(col(2,X0+650+g,pt,AW-650-g,ph));
+      else if(nI===4){var hh=(ph-g)/2;cells=row(2,X0,pt,AW,hh).concat(row(2,X0,pt+hh+g,AW,hh))}
+      else{var h2=(ph-g)/2;cells=row(2,X0,pt,AW,h2).concat(row(3,X0,pt+h2+g,AW,h2))}}
+    else if(lay==='arch'){var n3=Math.min(4,nI-1),cwid=AW-640-g,dd=Math.min(cwid,(ph-(n3-1)*g)/n3),tot=n3*dd+(n3-1)*g;cells=[{x:X0,y:pt,w:640,h:ph,sh:'a'}];for(var i3=0;i3<n3;i3++)cells.push({x:X0+640+g+(cwid-dd)/2,y:pt+(ph-tot)/2+i3*(dd+g),w:dd,h:dd,sh:'c'})}
+    else{var n4=Math.min(4,nI-1);cells=[{x:X0,y:pt,w:650,h:ph,sh:'r'}].concat(col(n4,X0+650+g,pt,AW-650-g,ph))}
+    function shp(q){var x=q.x,y=q.y,w=q.w,h=q.h;if(q.sh==='c'){c.beginPath();c.arc(x+w/2,y+h/2,Math.min(w,h)/2,0,7);c.closePath()}else if(q.sh==='a'){var r=w/2;c.beginPath();c.moveTo(x,y+h-14);c.lineTo(x,y+r);c.arc(x+r,y+r,r,Math.PI,0);c.lineTo(x+w,y+h-14);c.arcTo(x+w,y+h,x+w-14,y+h,14);c.lineTo(x+14,y+h);c.arcTo(x,y+h,x,y+h-14,14);c.closePath()}else rr(c,x,y,w,h,q===cells[0]?14:12)}
+    cells.forEach(function(q,i){var im=ims[i]||null;c.save();shp(q);c.clip();c.fillStyle='#f1e7dd';c.fillRect(q.x,q.y,q.w,q.h);if(im){var sc=Math.max(q.w/im.width,q.h/im.height),dw=im.width*sc,dh=im.height*sc;c.drawImage(im,q.x+(q.w-dw)/2,q.y+(q.h-dh)/2,dw,dh)}c.restore();
+      c.strokeStyle=GD;c.lineWidth=i?3:(q.sh==='a'?5:3);shp(q);c.stroke();if(q.sh!=='r'){c.strokeStyle=GL;c.lineWidth=1.5;c.save();c.translate(q.x+q.w/2,q.y+q.h/2);c.scale(1-10/q.w,1-10/q.h);c.translate(-(q.x+q.w/2),-(q.y+q.h/2));shp(q);c.stroke();c.restore()}});
+    if(!ims.length&&cells.length){c.fillStyle='#c9b4a3';c.font='800 160px '+F;c.textAlign='center';c.fillText((p.name||'?').charAt(0).toUpperCase(),cells[0].x+cells[0].w/2,pt+ph/2+50)}
+    corners(c,92,pt-24,1056,ph+48,46,GD);
+    // title + SKU ribbon
+    c.fillStyle=T.title;c.font='800 58px '+SF;c.textAlign='center';wrap(c,p.name||'',hx,titleY,960,66,2);
+    if(p.sku){var t='SKU: '+p.sku;c.font='700 30px '+F;try{c.letterSpacing='2px'}catch(e){}var tw=c.measureText(t).width+60,x0=hx-tw/2,x1=hx+tw/2;
+      c.fillStyle=MD;c.beginPath();c.moveTo(x0-34,skuY+8);c.lineTo(x0-4,skuY+8);c.lineTo(x0-4,skuY+60);c.lineTo(x0-34,skuY+60);c.lineTo(x0-20,skuY+34);c.closePath();c.fill();c.beginPath();c.moveTo(x1+34,skuY+8);c.lineTo(x1+4,skuY+8);c.lineTo(x1+4,skuY+60);c.lineTo(x1+34,skuY+60);c.lineTo(x1+20,skuY+34);c.closePath();c.fill();
+      c.fillStyle=MR;rr(c,x0,skuY,tw,52,6);c.fill();c.strokeStyle=GD;c.lineWidth=2.5;rr(c,x0+5,skuY+5,tw-10,42,4);c.stroke();c.fillStyle=goldG(c,skuY,skuY+52);c.fillText(t,hx+1,skuY+37);try{c.letterSpacing='0px'}catch(e){}}
+    // left column: table + notes + features
+    var ty=midY;c.textAlign='left';
+    rows.forEach(function(x,i){var y=ty+i*58;c.save();c.shadowColor='rgba(60,20,20,.12)';c.shadowBlur=8;c.shadowOffsetY=2;c.fillStyle='#fff';rr(c,120,y,680,50,12);c.fill();c.restore();
+      c.save();rr(c,120,y,680,50,12);c.clip();c.fillStyle=MR;c.fillRect(120,y,196,50);c.fillStyle=GD;c.fillRect(316,y,4,50);c.restore();c.strokeStyle=GD;c.lineWidth=2;rr(c,120,y,680,50,12);c.stroke();
+      c.fillStyle=GL;c.font='700 25px '+F;try{c.letterSpacing='2px'}catch(e){}c.fillText(x[0].toUpperCase(),142,y+34);try{c.letterSpacing='0px'}catch(e){}
+      c.fillStyle='#2b1d14';c.font='600 29px '+F;c.fillText(String(x[1]).slice(0,30),340,y+34)});
+    if(d.notes){c.fillStyle=T.ink2;c.font='italic 500 25px '+SF;wrap(c,d.notes,124,ty+tblH+28,676,32,1)}
+    if(fts.length){var fy=midY+midH-featH,cw=680/fts.length;fts.forEach(function(t,i){var cx=120+cw*i+cw/2;if(i){c.strokeStyle='rgba(201,154,58,.5)';c.lineWidth=1.5;c.beginPath();c.moveTo(120+cw*i,fy+14);c.lineTo(120+cw*i,fy+112);c.stroke()}icon(c,iconFor(t,i),cx,fy+36);c.fillStyle=T.ink;c.font='700 20px '+F;c.textAlign='center';wrap(c,t,cx,fy+96,cw-10,24,2)})}
+    // QR card
+    var qx=830,qw=290,qh=midH,oi=orderInfo(p,d);
+    c.save();c.shadowColor='rgba(60,20,20,.32)';c.shadowBlur=22;c.shadowOffsetY=8;c.fillStyle='#fff';rr(c,qx,midY,qw,qh,18);c.fill();c.restore();
+    c.save();rr(c,qx,midY,qw,qh,18);c.clip();var hg=c.createLinearGradient(0,midY,0,midY+50);hg.addColorStop(0,T.pri);hg.addColorStop(1,MD);c.fillStyle=hg;c.fillRect(qx,midY,qw,52);c.restore();
+    c.strokeStyle=GD;c.lineWidth=3;rr(c,qx,midY,qw,qh,18);c.stroke();
+    c.fillStyle=goldG(c,midY+10,midY+44);c.font='800 24px '+F;c.textAlign='center';try{c.letterSpacing='4px'}catch(e){}c.fillText('SCAN TO ORDER',qx+qw/2+2,midY+35);try{c.letterSpacing='0px'}catch(e){}
+    var qs=Math.min(180,qh-52-96),qxx=qx+(qw-qs)/2,qyy=midY+52+16;
+    qrDraw(c,oi.url,qxx,qyy,qs);corners(c,qxx-10,qyy-10,qs+20,qs+20,26,MR);
+    c.fillStyle=MR;c.font='800 22px '+F;c.textAlign='center';c.fillText(oi.label,qx+qw/2,qyy+qs+36);
+    c.fillStyle='#7a6a5c';c.font='500 17px '+F;c.fillText(oi.show,qx+qw/2,qyy+qs+62);
     // footer
-    c.fillStyle=MR;rr(c,120,1596,1000,70,16);c.fill();c.fillStyle='#fff';c.textAlign='center';c.font='600 27px '+F;c.fillText('Order on WhatsApp: '+B.phone+'   ·   '+B.web,hx,1641);
+    var fg=c.createLinearGradient(0,footY,0,footY+72);fg.addColorStop(0,T.pri);fg.addColorStop(1,MD);c.fillStyle=fg;rr(c,100,footY,1040,72,16);c.fill();c.strokeStyle=GD;c.lineWidth=2;rr(c,108,footY+6,1024,60,11);c.stroke();
+    c.fillStyle='#fff';c.font='600 26px '+F;c.textAlign='right';c.fillText('WhatsApp: '+B.phone,hx-26,footY+46);c.textAlign='left';c.fillText(B.web,hx+26,footY+46);diamond(c,hx,footY+36,8,GL);c.textAlign='center';
     return cv;
   });
 }
@@ -7747,11 +10260,23 @@ function select(p){
   cur=p;main=0;var d=det(p),im=p.images||[];
   $('#stuEd').hidden=false;
   $('#stuTitle').textContent=p.name+(p.sku?' · '+p.sku:'');
-  ['size','colour','material','notes'].forEach(function(k){$('#stu_'+k).value=d[k]});
+  ['size','colour','material','notes','feat','link'].forEach(function(k){$('#stu_'+k).value=d[k]});
   $('#stuThumbs').innerHTML=im.length>1?im.map(function(s,i){return '<button type="button" data-i="'+i+'"'+(i===0?' class="on"':'')+' style="background-image:url('+s+')" title="Use as main photo"></button>'}).join(''):'';
-  $('#stuNoImg').hidden=im.length>0;
+  $('#stuNoImg').hidden=im.length>0;drawBg();drawGl();drawLay();
   document.querySelectorAll('#stuList .stu-c').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-k')===key(p))});
   preview();
+}
+function drawBg(){
+  var cb=$('#stuBg');if(!cb)return;var on=(cur&&det(cur).bg)||defBg();
+  cb.innerHTML='<span style="width:100%;font-size:12.5px;opacity:.8">Background style</span>'+THEME_KEYS.map(function(k){var t=THEMES[k];return '<button type="button" data-bg="'+k+'" class="'+(k===on?'on':'')+'"><i style="background:linear-gradient(135deg,'+t.sw[0]+' 50%,'+t.sw[1]+' 50%)"></i>'+t.name+'</button>'}).join('');
+}
+function drawGl(){
+  var cb=$('#stuGl');if(!cb)return;var d=cur?det(cur):{},on=String(d.glass!==''&&d.glass!=null?d.glass:defGlass());
+  cb.innerHTML='<span style="width:100%;font-size:12.5px;opacity:.8">Glass effect (see the background through the page)</span>'+GLASS_N.map(function(n,i){return '<button type="button" data-gl="'+i+'" class="'+(String(i)===on?'on':'')+'">'+n+'</button>'}).join('');
+}
+function drawLay(){
+  var cb=$('#stuLay');if(!cb)return;var on=(cur&&det(cur).lay)||defLay();
+  cb.innerHTML='<span style="width:100%;font-size:12.5px;opacity:.8">Photo layout</span>'+Object.keys(LAYS).map(function(k){return '<button type="button" data-lay="'+k+'" class="'+(k===on?'on':'')+'">'+LAYS[k]+'</button>'}).join('');
 }
 function drawList(){
   var q=($('#stuQ').value||'').toLowerCase(),L=plist().filter(function(p){return!q||(p.name+' '+p.sku).toLowerCase().indexOf(q)>-1});
@@ -7761,12 +10286,15 @@ function drawList(){
 function init(){
   var v=$('#view-studio');if(!v||v._i)return;v._i=1;
   v.innerHTML='<section class="ptools glass"><h3>Photo Studio</h3><p>Pick a product to make a festive PDF page with its photos, SKU, size, colour and your contact details. Share it with anyone.</p></section>'+
-  '<div class="stu-wrap"><section class="glass" style="padding:16px"><input class="field-in" id="stuQ" type="search" placeholder="Search product or SKU" style="width:100%;box-sizing:border-box;margin-bottom:10px"><div class="stu-list" id="stuList"></div></section>'+
+  '<div class="stu-wrap"><section class="glass" style="padding:16px"><input class="field-in" id="stuQ" type="search" placeholder="Search product or SKU" style="width:100%;box-sizing:border-box;margin-bottom:10px"><label style="display:block;font-size:12.5px;opacity:.8;margin:0 0 4px">Default order link for the QR code on every product (optional)</label><input class="field-in" id="stuDef" type="url" placeholder="https://www.shubhshringarcreations.in" style="width:100%;box-sizing:border-box;margin-bottom:10px"><div class="stu-list" id="stuList"></div></section>'+
   '<section class="glass" style="padding:16px" id="stuEd" hidden><h3 id="stuTitle" style="margin:0 0 8px"></h3><div class="stu-pv" id="stuPv"></div><p id="stuNoImg" hidden style="opacity:.7;font-size:13px">This product has no photo yet. Add photos in the Products tab.</p><div class="stu-th" id="stuThumbs"></div>'+
-  '<div class="stu-f"><input class="field-in" id="stu_size" placeholder="Size (e.g. 24 inch)"><input class="field-in" id="stu_colour" placeholder="Colour"><input class="field-in w" id="stu_material" placeholder="Material (e.g. Velvet, Zari)"><input class="field-in w" id="stu_notes" placeholder="Extra note (e.g. Set of 5, handmade)"></div>'+
+  '<div class="stu-bg" id="stuLay"></div><div class="stu-bg" id="stuBg"></div><div class="stu-bg" id="stuGl"></div><div class="stu-f"><input class="field-in" id="stu_size" placeholder="Size (e.g. 24 inch)"><input class="field-in" id="stu_colour" placeholder="Colour"><input class="field-in w" id="stu_material" placeholder="Material (e.g. Velvet, Zari)"><input class="field-in w" id="stu_notes" placeholder="Extra note (e.g. Set of 5, handmade)"><input class="field-in w" id="stu_link" placeholder="Order link for the QR code (website or product page). Empty = use default / WhatsApp"><input class="field-in w" id="stu_feat" placeholder="Highlights, comma separated (max 4). Empty = standard four"></div>'+
   '<div class="stu-act"><button class="btn" id="stuDl" type="button">Download PDF</button><button class="btn" id="stuSh" type="button">Share PDF</button></div></section></div>';
   v.addEventListener('click',function(e){
     var c=e.target.closest('.stu-c');if(c){var k=c.getAttribute('data-k'),p=plist().filter(function(x){return key(x)===k})[0];if(p)select(p);return}
+    var bgb=e.target.closest('#stuBg button');if(bgb&&cur){var k=bgb.getAttribute('data-bg'),o=load(),kk=key(cur);o[kk]=o[kk]||{};o[kk].bg=k;save(o);try{localStorage.setItem('ssc-studio-bg-v1',k)}catch(x){}drawBg();preview();return}
+    var lyb=e.target.closest('#stuLay button');if(lyb&&cur){var lk=lyb.getAttribute('data-lay'),o3=load(),k3=key(cur);o3[k3]=o3[k3]||{};o3[k3].lay=lk;save(o3);try{localStorage.setItem('ssc-studio-lay-v1',lk)}catch(x){}drawLay();preview();return}
+    var glb=e.target.closest('#stuGl button');if(glb&&cur){var gv=glb.getAttribute('data-gl'),o2=load(),k2=key(cur);o2[k2]=o2[k2]||{};o2[k2].glass=gv;save(o2);try{localStorage.setItem('ssc-studio-glass-v1',gv)}catch(x){}drawGl();preview();return}
     var t=e.target.closest('#stuThumbs button');if(t){main=+t.getAttribute('data-i');document.querySelectorAll('#stuThumbs button').forEach(function(b){b.classList.toggle('on',b===t)});preview();return}
     if(e.target.id==='stuDl'||e.target.id==='stuSh'){
       if(!cur)return;var share=e.target.id==='stuSh',btn=e.target,old=btn.textContent;btn.disabled=true;btn.textContent='Making PDF…';
@@ -7779,11 +10307,12 @@ function init(){
   });
   v.addEventListener('input',function(e){
     if(e.target.id==='stuQ'){drawList();return}
-    var m=/^stu_(size|colour|material|notes)$/.exec(e.target.id);
+    if(e.target.id==='stuDef'){try{localStorage.setItem('ssc-studio-link-v1',e.target.value.trim())}catch(x){}clearTimeout(tm);tm=setTimeout(preview,250);return}
+    var m=/^stu_(size|colour|material|notes|feat|link)$/.exec(e.target.id);
     if(m&&cur){var o=load(),k=key(cur);o[k]=o[k]||{};o[k][m[1]]=e.target.value;save(o);clearTimeout(tm);tm=setTimeout(preview,250)}
   });
 }
-window.studioRender=function(){init();drawList();if(cur){var k=key(cur),p=plist().filter(function(x){return key(x)===k})[0];if(p){cur=p}}};
+window.studioRender=function(){init();try{$('#stuDef').value=defLink()}catch(e){}drawList();if(cur){var k=key(cur),p=plist().filter(function(x){return key(x)===k})[0];if(p){cur=p}}};
 setInterval(function(){var v=$('#view-studio');if(v&&!v.hidden&&v._i&&plist().length!==lastN)drawList()},1500);
 })();
 </script>

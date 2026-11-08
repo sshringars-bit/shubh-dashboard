@@ -7462,6 +7462,7 @@ html[data-theme*="dark"] #osBox{background:#17211f;color:#e6f2ee}
 #bkBar button.pri{background:#0f7a5a;color:#fff;border-color:#0f7a5a}
 html[data-theme*="dark"] #bkBar{background:#17211f;color:#e6f2ee;border-color:#8a6d1a}html[data-theme*="dark"] #bkBar button{background:#1f2c29;color:#e6f2ee;border-color:#2c403a}
 body.rem-on #bkBar{bottom:96px}
+@media(max-width:520px){#bkBar{left:10px;right:10px;transform:none;max-width:none;padding:10px 12px;gap:6px}#bkBar b{flex-basis:100%;text-align:center}#bkBar button{flex:1 1 auto;padding:8px 6px;font-size:.78rem}#bkBar span{font-size:.74rem}}
 </style>
 <script id="bkJs">
 (function(){
@@ -10458,18 +10459,34 @@ function sugg(){var o=load(),col={},mat={};['Red','Maroon','Gold','Green','Blue'
 
 function grShort(n){return String(n||'').split(/\s+[-–\/(]/)[0].replace(/\s+begins.*$/i,'').trim()}
 function grMsg(n){return 'May '+(grShort(n)||'this festival')+' bring light, joy and prosperity to you and your family. Warm wishes from our family to yours.'}
-function renderGreeting(o){var T=themeFor(),W=1240,H=1754;return logoImg().then(function(lg){var pg=pageBase(T,lg,W,H),c=pg.c,cx=W/2,name=grShort(o.name)||'Festival';
-  c.translate(0,90);mandala(c,cx,720,340,.26);mandala(c,cx,720,230,.2);
-  c.textAlign='center';c.fillStyle=T.ink2||'#6b4a2f';c.font='600 34px '+F;try{c.letterSpacing='8px'}catch(e){}c.fillText('WISHING YOU A',cx+4,520);try{c.letterSpacing='0px'}catch(e){}
-  var t1='Happy',t2=name,fs=130;c.font='800 '+fs+'px '+SF;while(c.measureText(t2).width>940&&fs>56){fs-=4;c.font='800 '+fs+'px '+SF}
-  c.fillStyle=T.title||MR;c.font='italic 700 70px '+SF;c.fillText(t1,cx,640);c.font='800 '+fs+'px '+SF;c.fillStyle=T.title||MR;c.fillText(t2,cx,640+fs*.95);
-  var dy=640+fs*.95+54;divider(c,cx,dy,520);
-  c.fillStyle=T.ink||'#2b1d14';c.font='500 40px '+SF;var my=dy+80;var lines=wrap(c,o.msg||grMsg(name),cx,my,880,58,6);
-  var ny=my+58*(lines||3)+30;
-  if(o.offer){c.font='800 34px '+F;try{c.letterSpacing='1px'}catch(e){}var ow=Math.min(980,c.measureText(o.offer).width+110);c.save();c.shadowColor='rgba(0,0,0,.4)';c.shadowBlur=16;c.shadowOffsetY=6;var og=c.createLinearGradient(0,ny,0,ny+76);og.addColorStop(0,T.pri);og.addColorStop(1,MD);c.fillStyle=og;rr(c,cx-ow/2,ny,ow,76,38);c.fill();c.restore();c.strokeStyle=GD;c.lineWidth=3;rr(c,cx-ow/2+6,ny+6,ow-12,64,32);c.stroke();c.fillStyle=goldG(c,ny,ny+76);c.fillText(o.offer,cx,ny+50);try{c.letterSpacing='0px'}catch(e){}ny+=110}
-  var fy=Math.max(ny+60,1330);c.fillStyle=T.ink2||'#6b4a2f';c.font='italic 600 36px '+SF;c.fillText('With love,',cx,fy);c.fillStyle=T.title||MR;c.font='700 44px '+SF;c.fillText('Shubh Shringar Creations',cx,fy+56);
+var HF='"Noto Serif Devanagari","Noto Sans Devanagari","Nirmala UI",Mangal,"Kohinoor Devanagari",serif';
+var HI_FEST=[['maha shivaratri','महाशिवरात्रि'],['shivaratri','महाशिवरात्रि'],['dhanteras','धनतेरस'],['diwali','दिवाली'],['deepavali','दीपावली'],['lakshmi','लक्ष्मी पूजा'],['laxmi','लक्ष्मी पूजा'],['govardhan','गोवर्धन पूजा'],['bhai dooj','भाई दूज'],['chhath','छठ पूजा'],['navratri','नवरात्रि'],['durga puja','दुर्गा पूजा'],['kali puja','काली पूजा'],['saraswati','सरस्वती पूजा'],['vishwakarma','विश्वकर्मा पूजा'],['jagannath','जगन्नाथ रथ यात्रा'],['dussehra','दशहरा'],['vijayadashami','विजयादशमी'],['karva','करवा चौथ'],['ahoi','अहोई अष्टमी'],['holi','होली'],['raksha','रक्षाबंधन'],['janmashtami','जन्माष्टमी'],['ganesh','गणेश चतुर्थी'],['makar sankranti','मकर संक्रांति'],['sankranti','संक्रांति'],['pongal','पोंगल'],['lohri','लोहड़ी'],['basant','बसंत पंचमी'],['vasant','वसंत पंचमी'],['ram navami','राम नवमी'],['hanuman','हनुमान जयंती'],['ugadi','उगादी'],['gudi padwa','गुड़ी पड़वा'],['baisakhi','बैसाखी'],['vaisakhi','बैसाखी'],['onam','ओणम'],['akshaya','अक्षय तृतीया'],['guru purnima','गुरु पूर्णिमा'],['teej','तीज'],['vat savitri','वट सावित्री'],['gangaur','गणगौर'],['ekadashi','एकादशी'],['christmas','क्रिसमस'],['new year','नव वर्ष'],['eid','ईद'],['guru nanak','गुरु नानक जयंती'],['mahavir','महावीर जयंती'],['buddha','बुद्ध पूर्णिमा'],['rath yatra','रथ यात्रा'],['skanda','स्कंद षष्ठी'],['kartik','कार्तिक पूर्णिमा'],['tulsi','तुलसी विवाह'],['annakut','अन्नकूट']];
+function grHiName(n){var l=String(n||'').toLowerCase();for(var i=0;i<HI_FEST.length;i++)if(l.indexOf(HI_FEST[i][0])>-1)return HI_FEST[i][1];return ''}
+function grMsgHi(h){return 'आपको और आपके परिवार को '+(h||'इस पावन पर्व')+' की हार्दिक शुभकामनाएँ। यह त्योहार आपके जीवन में सुख, समृद्धि और ढेर सारी खुशियाँ लाए।'}
+function loadHiFont(){try{if(!document.getElementById('hiFontLink')){var l=document.createElement('link');l.id='hiFontLink';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@500;700;800&display=swap';document.head.appendChild(l)}
+  return Promise.race([Promise.all([document.fonts.load('500 40px "Noto Serif Devanagari"','शुभकामनाएँ'),document.fonts.load('700 40px "Noto Serif Devanagari"','शुभ'),document.fonts.load('800 60px "Noto Serif Devanagari"','शुभ')]),new Promise(function(r){setTimeout(r,3500)})]).catch(function(){})}catch(e){return Promise.resolve()}}
+function renderGreeting(o){var lang=o.lang||'en',hi=lang!=='en',en=lang!=='hi';return (hi?loadHiFont():Promise.resolve()).then(function(){return logoImg()}).then(function(lg){var T=themeFor(),W=1240,H=1754,pg=pageBase(T,lg,W,H),c=pg.c,cx=W/2,name=grShort(o.name)||'Festival',hn=(o.hiName||grHiName(o.name)||name).trim(),ink=T.ink||'#2b1d14',ink2=T.ink2||'#6b4a2f',tc=T.title||MR;
+  c.translate(0,90);mandala(c,cx,720,340,.26);mandala(c,cx,720,230,.2);c.textAlign='center';
+  var y=520,ny;
+  function fit(txt,wt,fam,start,min,maxw){var f=start;c.font=wt+' '+f+'px '+fam;while(c.measureText(txt).width>maxw&&f>min){f-=4;c.font=wt+' '+f+'px '+fam}return f}
+  if(lang==='en'){
+    c.fillStyle=ink2;c.font='600 34px '+F;try{c.letterSpacing='8px'}catch(e){}c.fillText('WISHING YOU A',cx+4,y);try{c.letterSpacing='0px'}catch(e){}
+    var fs=fit(name,'800',SF,130,56,940);c.fillStyle=tc;c.font='italic 700 70px '+SF;c.fillText('Happy',cx,640);c.font='800 '+fs+'px '+SF;c.fillText(name,cx,640+fs*.95);
+    var dy=640+fs*.95+54;divider(c,cx,dy,520);c.fillStyle=ink;c.font='500 40px '+SF;var my=dy+80,ln=wrap(c,o.msg||grMsg(name),cx,my,880,58,6);ny=my+58*(ln||3)+30}
+  else if(lang==='hi'){
+    c.fillStyle=ink2;c.font='600 44px '+HF;c.fillText('हार्दिक शुभकामनाएँ',cx,y+4);
+    var fh=fit(hn,'800',HF,150,64,940);c.fillStyle=tc;c.font='700 78px '+HF;c.fillText('शुभ',cx,668);c.font='800 '+fh+'px '+HF;c.fillText(hn,cx,668+fh*1.12);
+    var dy2=668+fh*1.12+54;divider(c,cx,dy2,520);c.fillStyle=ink;c.font='500 42px '+HF;var my2=dy2+84,ln2=wrap(c,o.msgHi||grMsgHi(hn),cx,my2,900,72,6);ny=my2+72*(ln2||3)+30}
+  else{
+    c.fillStyle=ink2;c.font='600 38px '+HF;c.fillText('हार्दिक शुभकामनाएँ',cx,y+4);
+    var ttl='शुभ '+hn,fb=fit(ttl,'800',HF,130,56,960);c.fillStyle=tc;c.font='800 '+fb+'px '+HF;c.fillText(ttl,cx,610+fb*.9);
+    c.font='italic 700 54px '+SF;var f2=fit('Happy '+name,'italic 700',SF,54,34,900);c.fillText('Happy '+name,cx,610+fb*.9+72);
+    var dy3=610+fb*.9+72+44;divider(c,cx,dy3,520);c.fillStyle=ink;c.font='500 36px '+HF;var my3=dy3+70,ln3=wrap(c,o.msgHi||grMsgHi(hn),cx,my3,900,62,3);
+    c.fillStyle=ink2;c.font='500 30px '+SF;var my4=my3+62*(ln3||3)+14,ln4=wrap(c,o.msg||grMsg(name),cx,my4,880,44,3);ny=my4+44*(ln4||2)+24}
+  if(o.offer){c.font='800 34px '+(hi&&/[ऀ-ॿ]/.test(o.offer)?HF:F);try{c.letterSpacing='1px'}catch(e){}var ow=Math.min(980,c.measureText(o.offer).width+110);c.save();c.shadowColor='rgba(0,0,0,.4)';c.shadowBlur=16;c.shadowOffsetY=6;var og=c.createLinearGradient(0,ny,0,ny+76);og.addColorStop(0,T.pri);og.addColorStop(1,MD);c.fillStyle=og;rr(c,cx-ow/2,ny,ow,76,38);c.fill();c.restore();c.strokeStyle=GD;c.lineWidth=3;rr(c,cx-ow/2+6,ny+6,ow-12,64,32);c.stroke();c.fillStyle=goldG(c,ny,ny+76);c.fillText(o.offer,cx,ny+50);try{c.letterSpacing='0px'}catch(e){}ny+=110}
+  var fy=Math.max(ny+60,1330);c.fillStyle=ink2;c.font=hi?'600 38px '+HF:'italic 600 36px '+SF;c.fillText(hi?'सप्रेम,':'With love,',cx,fy);c.fillStyle=tc;c.font='700 44px '+SF;c.fillText('Shubh Shringar Creations',cx,fy+(hi?64:56));
   return pg.cv})}
-function grVals(){return{name:$('#stuGrName').value.trim(),msg:$('#stuGrMsg').value.trim(),offer:$('#stuGrOffer').value.trim()}}
+function grVals(){return{name:$('#stuGrName').value.trim(),msg:$('#stuGrMsg').value.trim(),offer:$('#stuGrOffer').value.trim(),lang:$('#stuGrLang').value,hiName:$('#stuGrNameHi').value.trim(),msgHi:$('#stuGrMsgHi').value.trim()}}
 function grInit(){var sel=$('#stuGrSel');if(!sel||sel._i)return;sel._i=1;var db=(window.sscFestCalendar&&window.sscFestCalendar.db)||[],t=new Date().toISOString().slice(0,10),L=db.filter(function(e){return e.d>=t}).slice(0,40),M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   sel.innerHTML='<option value="">Pick an upcoming festival…</option>'+L.map(function(e,i){var d=new Date(e.d+'T00:00:00');return '<option value="'+i+'">'+d.getDate()+' '+M[d.getMonth()]+' · '+e.n.replace(/</g,'&lt;')+'</option>'}).join('');sel._L=L}
 
@@ -10495,11 +10512,11 @@ function init(){
   '<section class="glass stu-tools"><div><b>Catalogue PDF</b><span>Tick products in the list, then make one PDF with a cover page and a page for each product, or a price list (ticked products, or all products that have a price).</span><div class="stu-act"><button class="btn" id="stuAll" type="button">Select all</button><button class="btn" id="stuNone" type="button">Clear</button><button class="btn" id="stuCat" type="button">Catalogue PDF (0)</button><button class="btn" id="stuBulk" type="button">Bulk price / offer (ticked)</button><button class="btn" id="stuPL" type="button">Price list PDF</button></div></div>'+
   '<div><b>Sales report for partners</b><span>Product-wise units sold and returns in the same festive style.</span><div class="stu-act"><select class="field-in" id="stuPer"><option value="month">This month</option><option value="last">Last month</option><option value="q3">Last 3 months</option><option value="year">This year</option><option value="all">All time</option></select><select class="field-in" id="stuTop"><option value="0">All products</option><option value="10">Top 10</option><option value="20">Top 20</option></select><label><input type="checkbox" id="stuRev"> Revenue</label><label><input type="checkbox" id="stuPro"> Profit</label><button class="btn" id="stuSales" type="button">Sales report PDF</button></div></div>'+
   '<div><b>Prepared for (customer name)</b><span>Shows on every page header, for example when you share a catalogue with one customer. Leave empty for the normal tagline.</span><div class="stu-act"><input class="field-in" id="stuCust" placeholder="e.g. Mrs. Sharma" style="flex:1;min-width:140px"></div></div>'+
-  '<div><b>Festival greeting</b><span>Make a festive wishes page to send to customers (PDF or image).</span><div class="stu-gr"><select class="field-in" id="stuGrSel"></select><input class="field-in" id="stuGrName" placeholder="Festival name, e.g. Diwali"><textarea class="field-in" id="stuGrMsg" rows="3" placeholder="Your message"></textarea><input class="field-in" id="stuGrOffer" placeholder="Offer line (optional), e.g. Festive offer: 20% OFF till 15 Nov"></div><div class="stu-act"><button class="btn" id="stuGrPrev" type="button">Preview</button><button class="btn" id="stuGrPdf" type="button">Greeting PDF</button><button class="btn" id="stuGrImg" type="button">Share image</button></div></div>'+
+  '<div><b>Festival greeting</b><span>Make a festive wishes page to send to customers (PDF or image).</span><div class="stu-gr"><select class="field-in" id="stuGrLang" aria-label="Greeting language"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option><option value="both">English + हिन्दी</option></select><select class="field-in" id="stuGrSel"></select><input class="field-in" id="stuGrName" placeholder="Festival name, e.g. Diwali"><input class="field-in" id="stuGrNameHi" placeholder="त्योहार का नाम, e.g. दिवाली" lang="hi"><textarea class="field-in" id="stuGrMsg" rows="3" placeholder="Your message (English)"></textarea><textarea class="field-in" id="stuGrMsgHi" rows="3" placeholder="आपका संदेश (हिन्दी)" lang="hi"></textarea><input class="field-in" id="stuGrOffer" placeholder="Offer line (optional), e.g. Festive offer: 20% OFF till 15 Nov"></div><div class="stu-act"><button class="btn" id="stuGrPrev" type="button">Preview</button><button class="btn" id="stuGrPdf" type="button">Greeting PDF</button><button class="btn" id="stuGrImg" type="button">Share image</button></div></div>'+
   '<div><b>Backup studio settings</b><span>Save all sizes, colours, links, prices, offers and looks to a file, or restore them from one.</span><div class="stu-act"><button class="btn" id="stuBk" type="button">Download backup</button><button class="btn" id="stuRs" type="button">Restore from file</button><input type="file" id="stuRsF" accept=".json,application/json" hidden></div></div></section>'+
   '<div class="stu-wrap"><section class="glass" style="padding:16px"><input class="field-in" id="stuQ" type="search" placeholder="Search product or SKU" style="width:100%;box-sizing:border-box;margin-bottom:8px"><select class="field-in" id="stuFlt" style="width:100%;box-sizing:border-box;margin-bottom:10px"><option value="">All products</option><option value="photo">With photos</option><option value="nophoto">Without photos</option><option value="ticked">Ticked only</option></select><label style="display:block;font-size:12.5px;opacity:.8;margin:0 0 4px">Default order link for the QR code on every product (optional)</label><input class="field-in" id="stuDef" type="url" placeholder="https://www.shubhshringarcreations.in" style="width:100%;box-sizing:border-box;margin-bottom:10px"><div class="stu-list" id="stuList"></div></section>'+
   '<section class="glass" style="padding:16px" id="stuEd" hidden><h3 id="stuTitle" style="margin:0 0 8px"></h3><div class="stu-pv" id="stuPv"></div><p id="stuNoImg" hidden style="opacity:.7;font-size:13px">This product has no photo yet. Add photos in the Products tab.</p><div class="stu-th" id="stuThumbs"></div>'+
-  '<div class="stu-bg" id="stuTag"></div><div class="stu-pr"><label><input type="checkbox" id="stu_sp"> Show price badge</label><input class="field-in" id="stu_price" placeholder="Price e.g. 499"></div><div class="stu-pr"><input class="field-in" id="stu_offer" placeholder="Offer banner (e.g. FESTIVE SALE 20% OFF)"><input class="field-in" id="stu_offend" type="date" title="Offer ends on" style="max-width:150px"></div><input class="field-in w" id="stu_tagtxt" placeholder="Custom ribbon text (optional, e.g. 20% OFF)" style="width:100%;box-sizing:border-box;margin-bottom:6px"><div class="stu-bg" id="stuLay"></div><div class="stu-bg" id="stuBg"></div><div class="stu-bg" id="stuGl"></div><div class="stu-f"><input class="field-in" id="stu_size" placeholder="Size (e.g. 24 inch)"><input class="field-in" id="stu_colour" list="stuColL" placeholder="Colour"><input class="field-in w" id="stu_material" list="stuMatL" placeholder="Material (e.g. Velvet, Zari)"><input class="field-in w" id="stu_notes" placeholder="Extra note (e.g. Set of 5, handmade)"><input class="field-in w" id="stu_link" placeholder="Order link for the QR code (website or product page). Empty = use default / WhatsApp"><input class="field-in w" id="stu_feat" placeholder="Highlights, comma separated (max 4). Empty = standard four"></div>'+
+  '<div class="stu-bg" id="stuTag"></div><div class="stu-pr"><label><input type="checkbox" id="stu_sp"> Show price badge</label><input class="field-in" id="stu_price" placeholder="Price e.g. 499"></div><div class="stu-pr"><input class="field-in" id="stu_offer" placeholder="Offer, e.g. SALE 20% OFF"><input class="field-in" id="stu_offend" type="date" title="Offer ends on" style="max-width:150px"></div><input class="field-in w" id="stu_tagtxt" placeholder="Custom ribbon text (optional, e.g. 20% OFF)" style="width:100%;box-sizing:border-box;margin-bottom:6px"><div class="stu-bg" id="stuLay"></div><div class="stu-bg" id="stuBg"></div><div class="stu-bg" id="stuGl"></div><div class="stu-f"><input class="field-in" id="stu_size" placeholder="Size (e.g. 24 inch)"><input class="field-in" id="stu_colour" list="stuColL" placeholder="Colour"><input class="field-in w" id="stu_material" list="stuMatL" placeholder="Material (e.g. Velvet, Zari)"><input class="field-in w" id="stu_notes" placeholder="Extra note (e.g. Set of 5, handmade)"><input class="field-in w" id="stu_link" placeholder="Order link for the QR code (website or product page). Empty = use default / WhatsApp"><input class="field-in w" id="stu_feat" placeholder="Highlights, comma separated (max 4). Empty = standard four"></div>'+
   '<div class="stu-act"><button class="btn" id="stuDl" type="button">Download PDF</button><button class="btn" id="stuSh" type="button">Share PDF</button><button class="btn" id="stuSt" type="button">WhatsApp status image</button><button class="btn" id="stuPost" type="button">Instagram post (4:5)</button><button class="btn" id="stuCopy" type="button">Copy WhatsApp text</button><button class="btn" id="stuApply" type="button">Use this look for ticked products</button></div><p style="font-size:12px;opacity:.7;margin:8px 0 0">Size, colour and material fill in from the product name when they are found. Type your own to change them, or type - to leave one blank.</p><datalist id="stuColL"></datalist><datalist id="stuMatL"></datalist></section></div>';
   v.addEventListener('click',function(e){
     if(e.target.id==='stuApply'){if(!cur)return;var ks=Object.keys(sel).filter(function(k){return sel[k]});if(!ks.length){toast('Tick the products first');return}var dd=det(cur),o7=load();ks.forEach(function(k){o7[k]=o7[k]||{};o7[k].bg=dd.bg;o7[k].lay=dd.lay;o7[k].glass=dd.glass});save(o7);toast('Look applied to '+ks.length+' product'+(ks.length===1?'':'s'));return}
@@ -10517,7 +10534,7 @@ function init(){
       save(o6);toast('Updated '+bk.length+' product'+(bk.length===1?'':'s'));if(cur)select(cur);return}
     if(e.target.id==='stuBk'){var bd={kind:'ssc-studio-backup',v:1,at:new Date().toISOString(),data:{}};for(var bi=0;bi<localStorage.length;bi++){var bkk=localStorage.key(bi);if(/^ssc-(studio|fest-(edit|custom))/.test(bkk))bd.data[bkk]=localStorage.getItem(bkk)}dl(new Blob([JSON.stringify(bd)],{type:'application/json'}),'shubh-studio-backup-'+new Date().toISOString().slice(0,10)+'.json');toast('Backup downloaded');return}
     if(e.target.id==='stuRs'){$('#stuRsF').click();return}
-    if(e.target.id==='stuGrPrev'||e.target.id==='stuGrPdf'||e.target.id==='stuGrImg'){var gv=grVals();if(!gv.name){toast('Pick a festival or type its name');return}var gb=e.target,go=gb.textContent;gb.disabled=true;gb.textContent='Making…';var gid=gb.id,gnm='greeting-'+grShort(gv.name).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+    if(e.target.id==='stuGrPrev'||e.target.id==='stuGrPdf'||e.target.id==='stuGrImg'){var gv=grVals();if(!gv.name&&!(gv.lang==='hi'&&gv.hiName)){toast('Pick a festival or type its name');return}if(gv.lang!=='en'&&!gv.hiName&&!grHiName(gv.name)){toast('Type the festival name in Hindi in the हिन्दी box');return}var gb=e.target,go=gb.textContent;gb.disabled=true;gb.textContent='Making…';var gid=gb.id,gnm='greeting-'+grShort(gv.name).toLowerCase().replace(/[^a-z0-9]+/g,'-');
       renderGreeting(gv).then(function(cv){if(gid==='stuGrPrev'){var zo2=document.createElement('div');zo2.style.cssText='position:fixed;inset:0;z-index:9400;background:rgba(10,10,20,.85);overflow:auto;padding:16px;display:flex;justify-content:center;cursor:zoom-out';zo2.innerHTML='<img alt="" style="max-width:min(820px,100%);height:auto;border-radius:8px;align-self:flex-start" src="'+cv.toDataURL('image/jpeg',.9)+'">';zo2.addEventListener('click',function(){zo2.remove()});document.body.appendChild(zo2);return}
         if(gid==='stuGrPdf')return blobPdf(cv).then(function(b){return shareOrDl(b,gnm+'.pdf',gv.name+' greeting','application/pdf')});
         return new Promise(function(r){cv.toBlob(r,'image/jpeg',.92)}).then(function(b){return shareOrDl(b,gnm+'.jpg',gv.name+' greeting','image/jpeg')})}).catch(function(){toast('Could not make the greeting')}).then(function(){gb.disabled=false;gb.textContent=go});return}
@@ -10546,7 +10563,7 @@ function init(){
       }).catch(function(){toast('Could not make the PDF. Check your internet and try again.')}).then(function(){btn.disabled=false;btn.textContent=old});
     }
   });
-  v.addEventListener('change',function(e){if(e.target.id==='stuGrSel'){var gs=e.target,ge=(gs._L||[])[+gs.value];if(ge){$('#stuGrName').value=grShort(ge.n);$('#stuGrMsg').value=grMsg(ge.n)}}
+  v.addEventListener('change',function(e){if(e.target.id==='stuGrSel'){var gs=e.target,ge=(gs._L||[])[+gs.value];if(ge){$('#stuGrName').value=grShort(ge.n);$('#stuGrMsg').value=grMsg(ge.n);var hh=grHiName(ge.n);$('#stuGrNameHi').value=hh;$('#stuGrMsgHi').value=hh?grMsgHi(hh):''}}
     if(e.target.id==='stuRsF'){var fl2=e.target.files&&e.target.files[0];if(!fl2)return;var rd=new FileReader();rd.onload=function(){try{var j=JSON.parse(rd.result);if(!j||j.kind!=='ssc-studio-backup'||!j.data)throw 0;var ks2=Object.keys(j.data).filter(function(k){return /^ssc-(studio|fest-(edit|custom))/.test(k)&&typeof j.data[k]==='string'});if(!ks2.length)throw 0;if(!confirm('Restore '+ks2.length+' saved setting groups from this backup? Your current studio settings will be replaced.'))return;ks2.forEach(function(k){localStorage.setItem(k,j.data[k])});cur=null;main=0;sel={};$('#stuEd').hidden=true;try{$('#stuDef').value=defLink();$('#stuCust').value=custName()}catch(x){}drawList();toast('Backup restored')}catch(x){toast('That is not a studio backup file')}};rd.readAsText(fl2);e.target.value=''}
     if(e.target.id==='stuFlt')drawList();if(e.target.id==='stu_sp'&&cur){var o8=load(),k8=key(cur);o8[k8]=o8[k8]||{};o8[k8].sp=e.target.checked?'1':'';save(o8);preview()}});
   v.addEventListener('input',function(e){
@@ -10584,7 +10601,7 @@ html body.ssc-shell.ssc-shell .headline{box-shadow:0 6px 20px rgba(20,30,28,.10)
 .stu-tools select{padding:6px 8px}
 .stu-c{position:relative}
 .stu-gr{display:grid;gap:6px;margin:6px 0}.stu-gr textarea{resize:vertical;font:inherit}
-.stu-pr{display:flex;gap:8px;align-items:center;margin:8px 0}.stu-pr label{display:flex;gap:6px;align-items:center;font-size:13px;white-space:nowrap}.stu-pr input.field-in{flex:1;min-width:0}
+.stu-pr{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}.stu-pr label{display:flex;gap:6px;align-items:center;font-size:13px;white-space:nowrap;flex:none}.stu-pr input.field-in{flex:1 1 150px;min-width:0;width:auto;box-sizing:border-box}.stu-pr input[type=date]{flex:0 1 160px;max-width:none!important}
 #stuPv canvas{cursor:zoom-in}
 @media(max-width:700px){#stuEd .stu-act{position:sticky;bottom:8px;z-index:6;background:rgba(255,255,255,.96);padding:8px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}html[data-theme*="dark"] #stuEd .stu-act{background:rgba(24,28,30,.96)}}
 .stu-ck{position:absolute;top:10px;left:10px;width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.92);border:2px solid #b8863b;color:transparent;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
@@ -12142,7 +12159,7 @@ function render(m,msg,ok){
   if(m==='setup'){
     h=head('Set up your admin account','First time here. Create the administrator login for this dashboard.')+
     '<form class="ssc-form" novalidate><div class="ssc-grid2"><label>Your name<input class="ssc-in" id="sscN" autocomplete="name"></label><label>Username<input class="ssc-in" id="sscU" value="admin" autocomplete="username" autocapitalize="none" spellcheck="false"></label></div>'+
-    pwField('sscP','Password (min 6 characters)','new-password')+pwField('sscP2','Confirm password','new-password')+qaFields(false)+
+    pwField('sscP','Password (min 8, letters &amp; numbers)','new-password')+pwField('sscP2','Confirm password','new-password')+qaFields(false)+
     '<p class="ssc-err" id="sscE" role="alert"></p><button class="btn primary ssc-go" type="submit">Create admin &amp; continue</button><p class="ssc-note">The security question lets you reset your password if you forget it.</p></form>';
   }else if(m==='signin'){
     h=head(BRAND,'Sign in to open the dashboard')+seg('signin')+
@@ -12155,11 +12172,11 @@ function render(m,msg,ok){
   }else if(m==='forgot2'){
     h=head('Reset password','Answer your security question, then choose a new password.')+
     '<form class="ssc-form" novalidate><label>Security question<input class="ssc-in" value="'+esc(pending.qa.q)+'" readonly></label><label>Your answer<input class="ssc-in" id="sscA" autocomplete="off"></label>'+
-    pwField('sscP','New password (min 6 characters)','new-password')+pwField('sscP2','Confirm new password','new-password')+
+    pwField('sscP','New password (min 8, letters &amp; numbers)','new-password')+pwField('sscP2','Confirm new password','new-password')+
     '<p class="ssc-err" id="sscE" role="alert"></p><button class="btn primary ssc-go" type="submit">Reset password</button><p class="ssc-note"><button type="button" class="ssc-link" data-m="signin">Back to sign in</button></p></form>';
   }else if(m==='force'){
     h=head('Choose your own password','Hi '+pending.name+', please replace the temporary password before continuing.')+
-    '<form class="ssc-form" novalidate>'+pwField('sscP','New password (min 6 characters)','new-password')+pwField('sscP2','Confirm new password','new-password')+(pending.qa?'':qaFields(false))+
+    '<form class="ssc-form" novalidate>'+pwField('sscP','New password (min 8, letters &amp; numbers)','new-password')+pwField('sscP2','Confirm new password','new-password')+(pending.qa?'':qaFields(false))+
     '<p class="ssc-err" id="sscE" role="alert"></p><button class="btn primary ssc-go" type="submit">Save &amp; continue</button></form>';
   }
   card.className='ssc-card';card.innerHTML=h;
@@ -12167,10 +12184,33 @@ function render(m,msg,ok){
   var f=card.querySelector('input:not([readonly]):not([value=""])');var first=card.querySelector('#sscU,#sscN,#sscA,#sscP');
   var target=(m==='signin'&&$('#sscU').value)?$('#sscP'):first;setTimeout(function(){try{target&&target.focus()}catch(e){}},60);
 }
+
+/* ---- security extras: stronger passwords, escalating lockout, login history, auto sign-out when idle ---- */
+var LOGK='ssc-loginlog-v1',IDLEK='ssc-idle-min-v1',COMMON=['password','password1','12345678','123456789','1234567890','qwertyui','qwerty123','abcd1234','iloveyou','admin123','welcome1','11111111','00000000'];
+function pwMsg(p){if(!p||p.length<8)return 'Password must be at least 8 characters.';if(!/[A-Za-z]/.test(p)||!/\d/.test(p))return 'Password needs both letters and numbers.';if(COMMON.indexOf(p.toLowerCase())>-1)return 'That password is too common. Please choose another.';return ''}
+function devName(){var u=navigator.userAgent||'',o=/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Device',b=/Edg\//.test(u)?'Edge':/OPR\//.test(u)?'Opera':/Chrome\//.test(u)?'Chrome':/Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'browser';return o+' · '+b}
+function logEv(type,who){try{var a=JSON.parse(localStorage.getItem(LOGK)||'[]');if(!Array.isArray(a))a=[];a.push({t:type,u:who||'',ts:Date.now(),d:devName()});if(a.length>200)a=a.slice(-200);localStorage.setItem(LOGK,JSON.stringify(a))}catch(e){}}
+function idleMin(){try{var v=localStorage.getItem(IDLEK);return v==null?60:Math.max(0,+v||0)}catch(e){return 60}}
+var lastAct=Date.now(),idleWarn=null;
+function touchAct(){if(!idleWarn)lastAct=Date.now()}
+['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(ev){window.addEventListener(ev,touchAct,{passive:true,capture:true})});
+setInterval(function(){
+  if(!cur){if(idleWarn){idleWarn.remove();idleWarn=null}return}
+  var lim=idleMin()*60000;if(!lim){if(idleWarn){idleWarn.remove();idleWarn=null;lastAct=Date.now()}return}
+  var idle=Date.now()-lastAct,left=lim-idle;
+  if(left<=0){if(idleWarn){idleWarn.remove();idleWarn=null}logEv('auto-signout',cur.username);signOut('You were signed out because you were inactive for '+idleMin()+' minutes.');return}
+  if(left<=60000){if(!idleWarn){idleWarn=document.createElement('div');idleWarn.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99999;background:#17352b;color:#fff;border-radius:16px;padding:14px 18px;box-shadow:0 14px 40px rgba(0,0,0,.45);display:flex;gap:14px;align-items:center;font:600 14px system-ui,sans-serif;max-width:92vw';idleWarn.innerHTML='<span>Still there? Signing out in <b id="idleSec"></b>s because of inactivity.</span><button type="button" style="font:inherit;font-weight:800;border:0;border-radius:999px;padding:8px 16px;background:#2fd072;color:#06281b;cursor:pointer">Stay signed in</button>';idleWarn.querySelector('button').onclick=function(){idleWarn.remove();idleWarn=null;lastAct=Date.now()};document.body.appendChild(idleWarn)}
+    var sp=idleWarn.querySelector('#idleSec');if(sp)sp.textContent=Math.max(0,Math.ceil(left/1000))}
+},1000);
+function openLog(){
+  var a=[];try{a=JSON.parse(localStorage.getItem(LOGK)||'[]')||[]}catch(e){}a=a.slice().reverse().slice(0,80);
+  var L={login:['Signed in','ok'],logout:['Signed out',''],'auto-signout':['Signed out (inactive)',''],failed:['Wrong password','bad'],locked:['Locked after many tries','bad'],reset:['Password reset','ok']};
+  var rows=a.map(function(x){var d=new Date(x.ts),l=L[x.t]||[x.t,''];return '<div class="ssc-urow"><span class="ssc-uinfo"><b>'+esc(x.u||'unknown')+'</b><small>'+d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+' · '+esc(x.d||'')+'</small></span><span class="ssc-pill'+(l[1]==='bad'?' u':'')+'" style="'+(l[1]==='bad'?'background:#fde8e6;color:#b3261e':'')+'">'+esc(l[0])+'</span></div>'}).join('')||'<p class="ssc-sub" style="text-align:left">No sign-ins recorded yet.</p>';
+  openModal('<h3>Login history</h3><p class="ssc-sub" style="text-align:left">The latest sign-ins and failed attempts, newest first. It records what happened on every device that uses this dashboard.</p><div class="ssc-ulist">'+rows+'</div><div class="ssc-row end"><button class="btn" type="button" data-close>Close</button></div>')}
 function setErr(t,ok){var e=$('#sscE');if(!e)return;e.textContent=t||'';e.className='ssc-err'+(ok?' ok':'')}
 function throttle(key){var a=att[key];if(a&&a.until>Date.now()){setErr('Too many attempts. Try again in '+Math.ceil((a.until-Date.now())/1000)+'s.');return true}return false}
-function fail(key){var a=att[key]||(att[key]={n:0,until:0});a.n++;if(a.n>=5){a.n=0;a.until=Date.now()+30000}}
-function chkPw(p,p2){if(!p||p.length<6){setErr('Password must be at least 6 characters.');return false}if(p!==p2){setErr('The two passwords do not match.');return false}return true}
+function fail(key){var a=att[key]||(att[key]={n:0,until:0,lv:0});a.n++;logEv('failed',key);if(a.n>=5){a.n=0;var D=[30000,120000,600000,1800000];a.until=Date.now()+D[Math.min(a.lv||0,3)];a.lv=(a.lv||0)+1;logEv('locked',key)}}
+function chkPw(p,p2){var pm=pwMsg(p);if(pm){setErr(pm);return false}if(p!==p2){setErr('The two passwords do not match.');return false}return true}
 
 card.addEventListener('click',function(e){
   var m=e.target.closest('[data-m]');if(m){render(m.dataset.m);return}
@@ -12192,7 +12232,7 @@ card.addEventListener('submit',function(e){
     if(throttle(un2))return;
     var us=byName(un2);
     if(!us||hp(pw,us.salt)!==us.hash){fail(un2);return setErr('Incorrect username or password.')}
-    att[un2]=null;
+    att[un2]=null;logEv('login',us.username);
     if(us.mustChange){pending=us;return render('force')}
     enter(us,false);
   }else if(mode==='forgot1'){
@@ -12217,6 +12257,7 @@ card.addEventListener('submit',function(e){
 /* ---- entering / leaving ---- */
 var welTimers=[];
 function enter(u,isNew){
+  if(isNew)logEv('login',u.username);lastAct=Date.now();
   cur=u;ssSet(SK,u.id);lsSet(LK,u.username);
   card.classList.add('out');
   $('#sscWelHi').textContent=isNew?'Welcome':'Welcome back';$('#sscWelName').textContent=u.name;
@@ -12228,6 +12269,7 @@ function enter(u,isNew){
 }
 function enterSilently(u){cur=u;lock.hidden=true;applyAccess(u);renderBar();lockPage(false)}
 function signOut(msg){
+  if(cur&&!/inactive/.test(msg||''))logEv('logout',cur.username);
   welTimers.forEach(clearTimeout);welTimers=[];wel.classList.remove('on');wel.hidden=true;
   ssSet(SK,null);cur=null;pending=null;closeModals();bar.hidden=true;lockPage(true);lock.hidden=false;
   render(users.length?'signin':'setup',msg,true);
@@ -12275,12 +12317,12 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!modal.hidd
 modal.addEventListener('click',function(e){if(e.target.closest('[data-close]'))closeModals();var s=e.target.closest('[data-show]');if(s){var i=s.parentNode.querySelector('input');var sh=i.type==='password';i.type=sh?'text':'password';s.textContent=sh?'Hide':'Show'}});
 
 function openPw(){
-  openModal('<h3>Change password</h3><p class="ssc-sub" style="text-align:left">Signed in as '+esc(cur.name)+'</p><form class="ssc-form" id="sscPwF" novalidate>'+pwField('mC','Current password')+pwField('mN','New password (min 6 characters)','new-password')+pwField('mN2','Confirm new password','new-password')+
+  openModal('<h3>Change password</h3><p class="ssc-sub" style="text-align:left">Signed in as '+esc(cur.name)+'</p><form class="ssc-form" id="sscPwF" novalidate>'+pwField('mC','Current password')+pwField('mN','New password (min 8, letters &amp; numbers)','new-password')+pwField('mN2','Confirm new password','new-password')+
   '<details><summary style="cursor:pointer;font-size:.82rem;font-weight:700">Update security question (optional)</summary><div class="ssc-form" style="margin-top:10px">'+qaFields(true)+'</div></details><p class="ssc-err" id="mE" role="alert"></p><div class="ssc-row end"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary" type="submit">Save</button></div></form>',true);
   $('#mC',modal).focus();
   $('#sscPwF',modal).addEventListener('submit',function(e){e.preventDefault();var er=$('#mE',modal);function bad(t){er.className='ssc-err';er.textContent=t}
     var u=byId(cur.id);if(hp($('#mC',modal).value,u.salt)!==u.hash)return bad('Current password is incorrect.');
-    var n=$('#mN',modal).value;if(n.length<6)return bad('New password must be at least 6 characters.');if(n!==$('#mN2',modal).value)return bad('The two new passwords do not match.');
+    var n=$('#mN',modal).value;if(pwMsg(n))return bad(pwMsg(n));if(n!==$('#mN2',modal).value)return bad('The two new passwords do not match.');
     setPw(u,n);u.mustChange=false;var a=$('#sscA',modal).value;if(normA(a))setQA(u,$('#sscQ',modal).value,a);save();cur=u;
     er.className='ssc-err ok';er.textContent='Password updated.';setTimeout(closeModals,900)});
 }
@@ -12291,7 +12333,8 @@ function openUsers(msg){
   if(!cur||cur.role!=='admin')return;
   var rows=users.map(function(u){var me=u.id===cur.id;
     return '<div class="ssc-urow">'+avHtml(u)+'<span class="ssc-uinfo"><b>'+esc(u.name)+(me?' (you)':'')+'</b><small>@'+esc(u.username)+' · '+esc(tabSummary(u))+(u.mustChange?' · must change password':'')+'</small></span><span class="ssc-pill'+(u.role==='admin'?'':' u')+'">'+(u.role==='admin'?'Admin':'User')+'</span><button class="btn small" type="button" data-edit="'+u.id+'">Edit</button>'+(me?'':'<button class="btn small danger" type="button" data-del="'+u.id+'">Delete</button>')+'</div>'}).join('');
-  openModal('<h3>Users &amp; access</h3><p class="ssc-sub" style="text-align:left">Create users, set passwords and choose which tabs each person can open. Admins always see every tab.</p><div class="ssc-ulist">'+rows+'</div><p class="ssc-err'+(msg?' ok':'')+'" role="alert">'+esc(msg||'')+'</p><div class="ssc-row end"><button class="btn primary" type="button" data-add>+ Add user</button></div>');
+  openModal('<h3>Users &amp; access</h3><p class="ssc-sub" style="text-align:left">Create users, set passwords and choose which tabs each person can open. Admins always see every tab.</p><div class="ssc-ulist">'+rows+'</div><p class="ssc-err'+(msg?' ok':'')+'" role="alert">'+esc(msg||'')+'</p><div class="ssc-row" style="justify-content:space-between;align-items:center;margin:8px 0"><label style="font-size:13px;font-weight:600">Auto sign-out when idle <select class="ssc-in" id="sscIdle" style="width:auto;display:inline-block;margin-left:6px"><option value="0">Never</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hour</option><option value="120">2 hours</option></select></label><button class="btn small" type="button" data-log>Login history</button></div><div class="ssc-row end"><button class="btn primary" type="button" data-add>+ Add user</button></div>');
+  (function(){var sl=modal.querySelector('#sscIdle');if(sl){sl.value=String(idleMin());if(sl.value!==String(idleMin()))sl.value='60';sl.onchange=function(){try{localStorage.setItem(IDLEK,sl.value)}catch(e){}lastAct=Date.now()}}var lb=modal.querySelector('[data-log]');if(lb)lb.onclick=openLog})();
   modal.querySelector('[data-add]').onclick=function(){userForm(null)};
   [].forEach.call(modal.querySelectorAll('[data-edit]'),function(b){b.onclick=function(){userForm(b.dataset.edit)}});
   [].forEach.call(modal.querySelectorAll('[data-del]'),function(b){b.onclick=function(){

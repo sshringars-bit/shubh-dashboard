@@ -346,6 +346,19 @@ textarea.field-in{resize:vertical;font:inherit}
 .pcard .mk span{font-size:.62rem;line-height:1.2;margin:0}
 .pcard .mk b{line-height:1.25;margin:0}
 .pcard .mk a{color:var(--accent);font-weight:700;text-decoration:underline}
+.pcard .mk{text-align:left}
+.pcard .mk.wide{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pcard .mk.wide b{text-align:right}
+.pgrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,760px),1fr))}
+.pcard{grid-template-columns:230px minmax(0,1fr);gap:8px 16px;align-items:start}
+.pcard>.pimg{grid-column:1;grid-row:1}
+.pcard>.pthumbs{grid-column:1;grid-row:2}
+.pcard>.pbody{grid-column:2;grid-row:1/span 2;padding:0}
+.pcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px 18px;align-items:start}
+.pcol{display:grid;gap:8px;align-content:start;min-width:0}
+.pbody{gap:8px}
+.phead h4{font-size:1.15rem}
+@media(max-width:720px){.pcard{grid-template-columns:1fr}.pcard>.pimg,.pcard>.pthumbs,.pcard>.pbody{grid-column:1;grid-row:auto}.pcols{grid-template-columns:1fr}}
 .pcard .btn{justify-self:start}
 .sheet.wide{width:min(640px,100%)}
 .imgfield{display:grid;justify-items:center;gap:10px;margin-bottom:18px}
@@ -4581,15 +4594,15 @@ var PH_SVG=(function(){
   var e='';for(var i=0;i<8;i++)e+='<ellipse cx="24" cy="11" rx="4.4" ry="9" transform="rotate('+(i*45)+' 24 24)"/>';
   return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">'+e+'<circle cx="24" cy="24" r="3.2" fill="currentColor"/></svg>';
 })();
-function mk(l,v){return '<div class="mk'+(v?'':' empty')+'"><span>'+l+'</span><b>'+(v?esc(v):'—')+'</b></div>'}
+function mk(l,v,c){return '<div class="mk'+(v?'':' empty')+(c?' '+c:'')+'"><span>'+l+'</span><b>'+(v?esc(v):'—')+'</b></div>'}
 function pcard(p){
   var im=p.images,img=im.length?'<div class="pimg" data-zoom="1" data-pid="'+esc(p.id)+'" data-cur="0" role="button" tabindex="0" aria-label="View full size images of '+esc(p.name)+'"><div class="blur" style="background-image:url('+im[0]+')"></div><img src="'+im[0]+'" alt="'+esc(p.name)+'">'+(im.length>1?'<span class="cnt">'+im.length+' images</span>':'')+'</div>':'<div class="pimg ph">'+PH_SVG+'</div>';
   if(im.length>1)img+='<div class="pthumbs">'+im.map(function(d,i){return '<button type="button" class="pt'+(i===0?' on':'')+'" data-pi="'+i+'" aria-label="Show image '+(i+1)+'"><img src="'+d+'" alt=""></button>'}).join('')+'</div>';
   return '<article class="pcard glass">'+img+'<div class="pbody"><div class="phead"><h4>'+esc(p.name)+'</h4>'+(p.sku?'<span class="sku">'+esc(p.sku)+'</span>':'')+'</div>'+
     '<div class="muted">Batch '+(p.batch?esc(p.batch):'—')+'</div>'+(p.cats&&p.cats.length?'<div class="catshow">'+p.cats.map(function(c){return '<span>'+esc(c)+'</span>'}).join('')+'</div>':'')+
-    '<dl class="costs"><div><dt>Material cost</dt><dd>'+money(p.orig)+'</dd></div><div><dt>Pasting / decoration</dt><dd>'+money(p.paste)+'</dd></div><div><dt>Making / Karigar</dt><dd>'+money(p.karigar)+'</dd></div><div><dt>Packaging</dt><dd>'+money(p.pack)+'</dd></div><div class="total"><dt>Total cost invested</dt><dd>'+money(pTotal(p))+'</dd></div></dl>'+
+    '<div class="pcols"><div class="pcol"><dl class="costs"><div><dt>Material cost</dt><dd>'+money(p.orig)+'</dd></div><div><dt>Pasting / decoration</dt><dd>'+money(p.paste)+'</dd></div><div><dt>Making / Karigar</dt><dd>'+money(p.karigar)+'</dd></div><div><dt>Packaging</dt><dd>'+money(p.pack)+'</dd></div><div class="total"><dt>Total cost invested</dt><dd>'+money(pTotal(p))+'</dd></div></dl></div><div class="pcol">'+
     '<div class="mkts mk3">'+mk('HSN code',p.hsn)+mk('Weight',p.weight)+mk('Dimension',p.dim)+'</div>'+(p.desc?'<p class="muted pdesc" style="margin:0;white-space:pre-line">'+esc(p.desc)+'</p>':'')+
-    '<div class="mkts">'+mk('Amazon SKU',p.amz)+mk('Flipkart SKU',p.fk)+mk('Meesho SKU',p.meesho)+mk('Myntra SKU',p.myntra)+mk('Own website name',p.web)+mk('Own website price',p.webPrice>0?money(p.webPrice)+' (cost + '+(Math.round(p.webPct*100)/100)+'%)':'')+(/^https?:\/\//i.test(p.webLink)?'<div class="mk wide"><span>Own website link</span><b><a href="'+esc(p.webLink)+'" target="_blank" rel="noopener">'+esc(p.webLink.replace(/^https?:\/\/(www\.)?/i,'').slice(0,60))+'</a></b></div>':mk('Own website link',''))+'</div>'+
+    '<div class="mkts">'+mk('Amazon SKU',p.amz)+mk('Flipkart SKU',p.fk)+mk('Meesho SKU',p.meesho)+mk('Myntra SKU',p.myntra)+mk('Own website name',p.web,'wide')+mk('Own website price',p.webPrice>0?money(p.webPrice)+' (cost + '+(Math.round(p.webPct*100)/100)+'%)':'','wide')+(/^https?:\/\//i.test(p.webLink)?'<div class="mk wide"><span>Own website link</span><b><a href="'+esc(p.webLink)+'" target="_blank" rel="noopener">'+esc(p.webLink.replace(/^https?:\/\/(www\.)?/i,'').slice(0,60))+'</a></b></div>':mk('Own website link','','wide'))+'</div></div></div>'+
     '<div class="pact">'+(state.canWrite?'<button class="btn small" type="button" data-pedit="'+esc(p.id)+'">Edit</button>':'')+(im.length&&canSave()?'<button class="btn small" type="button" data-pdl="'+esc(p.id)+'">Download '+(im.length>1?'images':'image')+'</button>':'')+'</div></div></article>';
 }
 function renderProducts(){

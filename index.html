@@ -338,6 +338,14 @@ textarea.field-in{resize:vertical;font:inherit}
 .mk span{display:block;font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .mk b{display:block;font-size:.84rem;font-weight:600;overflow-wrap:anywhere}
 .mk.empty b{color:var(--ink-3);font-weight:400}
+.pbody{align-content:start}
+.mkts{align-content:start;align-items:start}
+.mkts.mk3{grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}
+.mkts .mk.wide{grid-column:1/-1}
+.pcard .mk{padding:5px 10px;border-radius:12px;min-height:0;height:auto}
+.pcard .mk span{font-size:.62rem;line-height:1.2;margin:0}
+.pcard .mk b{line-height:1.25;margin:0}
+.pcard .mk a{color:var(--accent);font-weight:700;text-decoration:underline}
 .pcard .btn{justify-self:start}
 .sheet.wide{width:min(640px,100%)}
 .imgfield{display:grid;justify-items:center;gap:10px;margin-bottom:18px}
@@ -2354,8 +2362,9 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
       <label for="p-myntra">Myntra SKU<input class="field-in" id="p-myntra" type="text" autocomplete="off"></label>
       <p class="sec">Own website</p>
       <label class="full" for="p-web">Own website name<input class="field-in" id="p-web" type="text" autocomplete="off" placeholder="Product name on your own website"></label>
-      <label for="p-webpct">% of Total cost invested<input class="field-in" id="p-webpct" type="number" inputmode="decimal" min="0" step="any" value="80"></label>
-      <label for="p-webprice">Own website price (₹)<input class="field-in" id="p-webprice" type="number" inputmode="decimal" min="0" step="any" placeholder="Auto from the % and total cost"></label>
+      <label class="full" for="p-weblink">Own website link<input class="field-in" id="p-weblink" type="text" inputmode="url" autocomplete="off" placeholder="https://www.shubhshringarcreations.in/product/..."></label>
+      <label for="p-webpct">Markup % on Total cost<input class="field-in" id="p-webpct" type="number" inputmode="decimal" min="0" step="any" value="80"></label>
+      <label for="p-webprice">Own website price (₹)<input class="field-in" id="p-webprice" type="number" inputmode="decimal" min="0" step="any" placeholder="Auto: Total cost + markup %"></label>
     </div>
     <div class="preview"><span>Total cost per piece <b id="pp-total">₹0</b></span></div>
     <p class="err" id="pErr" role="alert"></p>
@@ -3017,7 +3026,7 @@ function doExport(raw){
   try{localStorage.setItem('ssc-last-backup',String(Date.now()))}catch(e){}
   var data={app:'shubh-shringar-dashboard',version:2,full:!!raw,exportedAt:new Date().toISOString(),
     orders:state.orders.map(norm).filter(function(o){return !o.sample}).map(function(o){delete o.sample;return o}),
-    products:state.products.map(normP).filter(function(p){return !p.sample}).map(function(p){return {id:p.id,name:p.name,sku:p.sku,batch:p.batch,orig:p.orig,paste:p.paste,karigar:p.karigar,pack:p.pack,amz:p.amz,fk:p.fk,meesho:p.meesho,myntra:p.myntra,hsn:p.hsn,price:p.price,gst:p.gst,desc:p.desc,dim:p.dim,weight:p.weight,web:p.web,webPct:p.webPct,webPrice:p.webPrice,cats:p.cats,created:p.created,images:p.images}}),
+    products:state.products.map(normP).filter(function(p){return !p.sample}).map(function(p){return {id:p.id,name:p.name,sku:p.sku,batch:p.batch,orig:p.orig,paste:p.paste,karigar:p.karigar,pack:p.pack,amz:p.amz,fk:p.fk,meesho:p.meesho,myntra:p.myntra,hsn:p.hsn,price:p.price,gst:p.gst,desc:p.desc,dim:p.dim,weight:p.weight,web:p.web,webLink:p.webLink,webPct:p.webPct,webPrice:p.webPrice,cats:p.cats,created:p.created,images:p.images}}),
     sales:state.sales.map(normS).filter(function(e){return !e.sample}).map(function(e){delete e.sample;delete e.paymentPending;return e}),
     customers:state.cflags.map(normFlag).filter(function(f){return f.blacklisted}),
     tracker:(window.mfGetRows?window.mfGetRows():[]),expenses:(window.exGet?window.exGet():[]),raw:raw||undefined};
@@ -3042,7 +3051,7 @@ function parseBackup(txt){
   arr(d.products).forEach(function(p){
     if(!p||typeof p!=='object')return;
     var im=arr(p.images).filter(function(x){return typeof x==='string'&&IMG_RE.test(x)}).slice(0,5);out.images+=im.length;
-    out.products.push({id:id(p),name:tx(p.name),sku:tx(p.sku),batch:tx(p.batch),orig:nm(p.orig),paste:nm(p.paste),karigar:nm(p.karigar),pack:nm(p.pack),amz:tx(p.amz),fk:tx(p.fk),meesho:tx(p.meesho),myntra:tx(p.myntra),hsn:tx(p.hsn),price:nm(p.price),gst:tx(p.gst),desc:tx(p.desc),dim:tx(p.dim),weight:tx(p.weight),web:tx(p.web),webPct:(p.webPct===undefined||p.webPct===null||p.webPct==='')?80:nm(p.webPct),webPrice:nm(p.webPrice),cats:(Array.isArray(p.cats)?p.cats.map(tx).filter(Boolean):[]),created:+p.created||Date.now(),images:im});
+    out.products.push({id:id(p),name:tx(p.name),sku:tx(p.sku),batch:tx(p.batch),orig:nm(p.orig),paste:nm(p.paste),karigar:nm(p.karigar),pack:nm(p.pack),amz:tx(p.amz),fk:tx(p.fk),meesho:tx(p.meesho),myntra:tx(p.myntra),hsn:tx(p.hsn),price:nm(p.price),gst:tx(p.gst),desc:tx(p.desc),dim:tx(p.dim),weight:tx(p.weight),web:tx(p.web),webLink:tx(p.webLink),webPct:(p.webPct===undefined||p.webPct===null||p.webPct==='')?80:nm(p.webPct),webPrice:nm(p.webPrice),cats:(Array.isArray(p.cats)?p.cats.map(tx).filter(Boolean):[]),created:+p.created||Date.now(),images:im});
   });
   arr(d.sales).forEach(function(x){if(!x||typeof x!=='object')return;var s=normS(x);s.id=id(x);s.sample=false;out.sales.push(s)});
   arr(d.customers).forEach(function(x){if(!x||typeof x!=='object')return;var f=normFlag(x);if(f.id&&f.blacklisted)out.customers.push(f)});
@@ -4404,14 +4413,18 @@ function pImgs(p){
 function normP(p){
   var n=function(v){return Math.max(0,+v||0)},t=function(v){return String(v==null?'':v)};
   var imgs=pImgs(p);
-  return {id:p.id,name:t(p.name),sku:t(p.sku),batch:t(p.batch),
+  var o={id:p.id,name:t(p.name),sku:t(p.sku),batch:t(p.batch),
     images:imgs,image:imgs[0]||'',
     orig:n(p.orig),paste:n(p.paste),karigar:n(p.karigar),pack:n(p.pack),
     amz:t(p.amz),fk:t(p.fk),meesho:t(p.meesho),myntra:t(p.myntra),
     hsn:t(p.hsn),price:n(p.price),gst:t(p.gst),
-    desc:t(p.desc),dim:t(p.dim),weight:t(p.weight),web:t(p.web),webPct:(p.webPct===undefined||p.webPct===null||p.webPct==='')?80:n(p.webPct),webPrice:n(p.webPrice),
+    desc:t(p.desc),dim:t(p.dim),weight:t(p.weight),web:t(p.web),webLink:t(p.webLink),webPct:(p.webPct===undefined||p.webPct===null||p.webPct==='')?80:n(p.webPct),webPrice:n(p.webPrice),
     cats:(Array.isArray(p.cats)?p.cats:[]).map(function(c){return String(c).trim()}).filter(Boolean),
     sample:!!p.sample,created:+p.created||0};
+  /* old auto price was Total x %; new auto price is Total + Total x % */
+  var tt=o.orig+o.paste+o.karigar+o.pack;
+  if(o.webPrice>0&&o.webPct>0&&tt>0&&Math.abs(o.webPrice-Math.round(tt*o.webPct)/100)<0.006)o.webPrice=Math.round(tt*(100+o.webPct))/100;
+  return o;
 }
 function pTotal(p){return p.orig+p.paste+p.karigar+p.pack}
 
@@ -4575,8 +4588,8 @@ function pcard(p){
   return '<article class="pcard glass">'+img+'<div class="pbody"><div class="phead"><h4>'+esc(p.name)+'</h4>'+(p.sku?'<span class="sku">'+esc(p.sku)+'</span>':'')+'</div>'+
     '<div class="muted">Batch '+(p.batch?esc(p.batch):'—')+'</div>'+(p.cats&&p.cats.length?'<div class="catshow">'+p.cats.map(function(c){return '<span>'+esc(c)+'</span>'}).join('')+'</div>':'')+
     '<dl class="costs"><div><dt>Material cost</dt><dd>'+money(p.orig)+'</dd></div><div><dt>Pasting / decoration</dt><dd>'+money(p.paste)+'</dd></div><div><dt>Making / Karigar</dt><dd>'+money(p.karigar)+'</dd></div><div><dt>Packaging</dt><dd>'+money(p.pack)+'</dd></div><div class="total"><dt>Total cost invested</dt><dd>'+money(pTotal(p))+'</dd></div></dl>'+
-    '<div class="mkts">'+mk('HSN code',p.hsn)+mk('Weight',p.weight)+mk('Dimension',p.dim)+'</div>'+(p.desc?'<p class="muted pdesc" style="margin:0;white-space:pre-line">'+esc(p.desc)+'</p>':'')+
-    '<div class="mkts">'+mk('Amazon SKU',p.amz)+mk('Flipkart SKU',p.fk)+mk('Meesho SKU',p.meesho)+mk('Myntra SKU',p.myntra)+mk('Own website name',p.web)+mk('Own website price',p.webPrice>0?money(p.webPrice)+' ('+(Math.round(p.webPct*100)/100)+'% of cost)':'')+'</div>'+
+    '<div class="mkts mk3">'+mk('HSN code',p.hsn)+mk('Weight',p.weight)+mk('Dimension',p.dim)+'</div>'+(p.desc?'<p class="muted pdesc" style="margin:0;white-space:pre-line">'+esc(p.desc)+'</p>':'')+
+    '<div class="mkts">'+mk('Amazon SKU',p.amz)+mk('Flipkart SKU',p.fk)+mk('Meesho SKU',p.meesho)+mk('Myntra SKU',p.myntra)+mk('Own website name',p.web)+mk('Own website price',p.webPrice>0?money(p.webPrice)+' (cost + '+(Math.round(p.webPct*100)/100)+'%)':'')+(/^https?:\/\//i.test(p.webLink)?'<div class="mk wide"><span>Own website link</span><b><a href="'+esc(p.webLink)+'" target="_blank" rel="noopener">'+esc(p.webLink.replace(/^https?:\/\/(www\.)?/i,'').slice(0,60))+'</a></b></div>':mk('Own website link',''))+'</div>'+
     '<div class="pact">'+(state.canWrite?'<button class="btn small" type="button" data-pedit="'+esc(p.id)+'">Edit</button>':'')+(im.length&&canSave()?'<button class="btn small" type="button" data-pdl="'+esc(p.id)+'">Download '+(im.length>1?'images':'image')+'</button>':'')+'</div></div></article>';
 }
 function renderProducts(){
@@ -4642,7 +4655,7 @@ window.catDraw=function(){var box=document.getElementById('p-cats');if(!box)retu
 function saveProduct(p,orig){
   if(db){
     var imgs=p.images||[],old=orig||[];
-    var body={name:p.name,sku:p.sku,batch:p.batch,orig:p.orig,paste:p.paste,karigar:p.karigar,pack:p.pack,amz:p.amz,fk:p.fk,meesho:p.meesho,myntra:p.myntra,hsn:p.hsn||'',price:p.price||0,gst:p.gst==null?'':String(p.gst),desc:p.desc||'',dim:p.dim||'',weight:p.weight||'',web:p.web||'',webPct:p.webPct==null?80:p.webPct,webPrice:p.webPrice||0,cats:p.cats||[],created:p.created,imgs:imgs.length};
+    var body={name:p.name,sku:p.sku,batch:p.batch,orig:p.orig,paste:p.paste,karigar:p.karigar,pack:p.pack,amz:p.amz,fk:p.fk,meesho:p.meesho,myntra:p.myntra,hsn:p.hsn||'',price:p.price||0,gst:p.gst==null?'':String(p.gst),desc:p.desc||'',dim:p.dim||'',weight:p.weight||'',web:p.web||'',webLink:p.webLink||'',webPct:p.webPct==null?80:p.webPct,webPrice:p.webPrice||0,cats:p.cats||[],created:p.created,imgs:imgs.length};
     var chain=Promise.resolve();
     imgs.forEach(function(d,k){if(old[k]!==d)chain=chain.then(function(){return db.collection('pimages').doc(p.id+'_'+k).set({pid:p.id,k:k,data:d})})});
     if(old.length>imgs.length){for(var k=imgs.length;k<5;k++){(function(k){chain=chain.then(function(){return db.doc('pimages/'+p.id+'_'+k).delete()})})(k)}}
@@ -4722,7 +4735,7 @@ function updatePPreview(){
   var t=['#p-orig','#p-paste','#p-karigar','#p-pack'].reduce(function(a,s){return a+(+pv(s)||0)},0);
   $('#pp-total').textContent=money(t);
   var wp=$('#p-webprice');
-  if(wp&&wp.dataset.manual!=='1'){var pc=pv('#p-webpct');pc=pc===''?80:(+pc||0);wp.value=t>0?(Math.round(t*pc)/100):''}
+  if(wp&&wp.dataset.manual!=='1'){var pc=pv('#p-webpct');pc=pc===''?80:(+pc||0);wp.value=t>0?(Math.round(t*(100+pc))/100):''}
 }
 var pArmT=null;
 function setPArmed(on){
@@ -4739,9 +4752,9 @@ function openProduct(id){
   $('#p-orig').value=p?p.orig:'';$('#p-paste').value=p?p.paste:'';$('#p-karigar').value=p?p.karigar:'';$('#p-pack').value=p?p.pack:'';
   $('#p-hsn').value=p?p.hsn:'';$('#p-price').value=p&&p.price?p.price:'';$('#p-gst').value=p?p.gst:'';
   $('#p-amz').value=p?p.amz:'';$('#p-fk').value=p?p.fk:'';$('#p-meesho').value=p?p.meesho:'';$('#p-myntra').value=p?p.myntra:'';
-  $('#p-weight').value=p?p.weight:'';$('#p-dim').value=p?p.dim:'';$('#p-desc').value=p?p.desc:'';$('#p-web').value=p?p.web:'';
+  $('#p-weight').value=p?p.weight:'';$('#p-dim').value=p?p.dim:'';$('#p-desc').value=p?p.desc:'';$('#p-web').value=p?p.web:'';$('#p-weblink').value=p?p.webLink:'';
   $('#p-webpct').value=p?p.webPct:80;
-  (function(){var wp=$('#p-webprice'),tot=p?pTotal(p):0,auto=Math.round(tot*(p?p.webPct:80))/100;wp.value=p&&p.webPrice?p.webPrice:'';wp.dataset.manual=(p&&p.webPrice&&Math.abs(p.webPrice-auto)>0.005)?'1':'0'})();
+  (function(){var wp=$('#p-webprice'),tot=p?pTotal(p):0,auto=Math.round(tot*(100+(p?p.webPct:80)))/100;wp.value=p&&p.webPrice?p.webPrice:'';wp.dataset.manual=(p&&p.webPrice&&Math.abs(p.webPrice-auto)>0.005)?'1':'0'})();
   state.pCats=p?(p.cats||[]).slice():[];if(window.catDraw)window.catDraw();
   $('#pErr').textContent='';$('#pDelBtn').hidden=!p;setPArmed(false);
   renderThumbs();updatePPreview();
@@ -4762,7 +4775,7 @@ function submitProduct(e){
     orig:+pv('#p-orig')||0,paste:+pv('#p-paste')||0,karigar:+pv('#p-karigar')||0,pack:+pv('#p-pack')||0,
     amz:pv('#p-amz').trim(),fk:pv('#p-fk').trim(),meesho:pv('#p-meesho').trim(),myntra:pv('#p-myntra').trim(),
     hsn:pv('#p-hsn').trim(),price:+pr||0,gst:gs.trim(),cats:(state.pCats||[]).slice(),
-    weight:pv('#p-weight').trim(),dim:pv('#p-dim').trim(),desc:pv('#p-desc').trim(),web:pv('#p-web').trim(),webPct:(pv('#p-webpct')===''?80:(+pv('#p-webpct')||0)),webPrice:+pv('#p-webprice')||0,
+    weight:pv('#p-weight').trim(),dim:pv('#p-dim').trim(),desc:pv('#p-desc').trim(),web:pv('#p-web').trim(),webLink:(function(){var u=pv('#p-weblink').trim();return u&&!/^https?:\/\//i.test(u)?'https://'+u:u})(),webPct:(pv('#p-webpct')===''?80:(+pv('#p-webpct')||0)),webPrice:+pv('#p-webprice')||0,
     created:ed&&ed.created?ed.created:Date.now()};
   var btn=$('#pSave');btn.disabled=true;
   saveProduct(p,state.pOrig).then(function(r){

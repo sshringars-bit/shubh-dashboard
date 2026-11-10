@@ -11614,18 +11614,18 @@ html[data-theme*="dark"] #instOv .in{background:#14231d;color:#e9f3ee}html[data-
   if(!file)return;
   if(!rows.length)throw Error('Import the Myntra Order file first, then the payment file.');
   const sheets=await readAllSheets(file);
-  const byLine=new Map();let fwdN=0,revN=0,otherN=0,others=[];
+  const byLine=new Map(),byRel=new Map(),relDate=new Map();let fwdN=0,revN=0,otherN=0,others=[];
   /* sheets are recognised by their headers, not by their names */
   sheets.forEach(aoa=>{
-   const hi=aoa.findIndex(r=>r&&r.some(c=>norm(c)==='orderlineid'));
+   const hi=aoa.findIndex(r=>r&&r.some(c=>{const n=norm(c);return n==='orderlineid'||n==='orderreleaseid'}));
    if(hi>=0){
     const h=aoa[hi].map(norm),ix=n=>h.indexOf(n);
-    const cl=ix('orderlineid'),ct=ix('totalsettledamount'),cp=ix('settledamountpostpaid'),cq=ix('settledamountprepaid');
-    const isRev=h.some(c=>c==='trackingnorvs'||/reverse/.test(c));   /* reverse sheet has tracking_no_rvs and *_Reverse_* columns; the forward sheet also has return_type, so that column is not used */
+    const cl=ix('orderlineid'),crl=ix('orderreleaseid'),cod=ix('orderdate'),ct=ix('totalsettledamount'),cp=ix('settledamountpostpaid'),cq=ix('settledamountprepaid');
+    const isRev=h.some(c=>c==='trackingnorvs'||/reverse/.test(c))||(cl<0&&h.indexOf('sellerorderid')<0&&h.indexOf('skuid')<0);   /* new release-id format: the reverse sheet has no seller_order_id / sku_id columns */   /* reverse sheet has tracking_no_rvs and *_Reverse_* columns; the forward sheet also has return_type, so that column is not used */
     for(let i=hi+1;i<aoa.length;i++){
-     const r=aoa[i]||[];const id=cleanId(r[cl]);if(!id)continue;
+     const r=aoa[i]||[];const useRel=cl<0;const id=cleanId(r[useRel?crl:cl]);if(!id)continue;const mp=useRel?byRel:byLine;
      const amt=ct>=0&&String(r[ct]??'').trim()!==''?num(r[ct]):num(cp>=0?r[cp]:0)+num(cq>=0?r[cq]:0);
-     let o=byLine.get(id);if(!o){o={fwd:0,rev:0};byLine.set(id,o)}
+     let o=mp.get(id);if(!o){o={fwd:0,rev:0};mp.set(id,o)}if(useRel&&cod>=0&&!relDate.get(id))relDate.set(id,ymd(r[cod]));
      if(isRev){o.rev+=amt;revN++}else{o.fwd+=amt;fwdN++}}
     return}
    const oi=aoa.findIndex(r=>r&&r.some(c=>norm(c)==='settlementamount'));
@@ -11635,19 +11635,22 @@ html[data-theme*="dark"] #instOv .in{background:#14231d;color:#e9f3ee}html[data-
      const type=String(r[ix('settlementtype')]??'').trim(),ref=String(r[ix('invoiceref')]??'').trim(),desc=String(r[ix('settlementdescription')]??'').trim();
      others.push({ref:ref||desc,type:type,desc:desc,date:ymd(r[ix('settlementdate')]),a:r2(a)});otherN++}}
   });
-  if(!byLine.size&&!others.length)throw Error('This does not look like a Myntra payment report (needs an "order_line_id" column in forward_settled / reverse_settled).');
+  if(!byLine.size&&!byRel.size&&!others.length)throw Error('This does not look like a Myntra payment report (needs an "order_release_id" column in forward_settled / reverse_settled).');
   let matched=0,returned=0;const seen=new Set();
+  const usedRel=new Set();
   rows.forEach(r=>{
-   if(r.other||!r.lineId)return;const o=byLine.get(r.lineId);if(!o)return;
-   seen.add(r.lineId);matched++;
+   if(r.other)return;let o=r.lineId?byLine.get(r.lineId):null,key=r.lineId;
+   if(!o&&r.orderId&&byRel.has(r.orderId)&&!usedRel.has(r.orderId)){o=byRel.get(r.orderId);key='R|'+r.orderId;usedRel.add(r.orderId);if(!r.date&&relDate.get(r.orderId))r.date=relDate.get(r.orderId)}
+   if(!o)return;
+   seen.add(key);matched++;
    r.fwd=r2(o.fwd);r.rev=r2(o.rev);r.net=r2(o.fwd+o.rev);   /* Total (INR) = forward settlement + reverse (return) settlement */
    if(o.rev!==0){r.status='Returned';returned++}});
-  const orphan=Array.from(byLine.keys()).filter(id=>!seen.has(id));
+  const orphan=Array.from(byLine.keys()).filter(id=>!seen.has(id)).concat(Array.from(byRel.keys()).filter(id=>!seen.has('R|'+id)));
   /* settled_non_order_deduction rows (no order): added at the end as Other Charges and included in Total (INR) */
   const haveRef=new Set(rows.filter(r=>r.other).map(r=>r.refKey));let addedOther=0,otherSum=0;
   others.forEach(o=>{const k=o.ref+'|'+o.a;if(haveRef.has(k))return;haveRef.add(k);rows.push({other:true,refKey:k,status:'Other Charges',date:o.date,orderId:o.type||'Other charge',lineId:'',state:'',sku:o.desc||o.ref,qty:'',net:o.a});addedOther++;otherSum+=o.a});
   fileName=file.name;await save();
-  const nOrd=new Set(rows.filter(r=>!r.other).map(r=>r.lineId)).size;
+  const nOrd=rows.filter(r=>!r.other).length;
   $('myInfo').textContent='Payments "'+file.name+'": '+matched+' of '+nOrd+' order lines matched ('+returned+' with a return deduction).'+(orphan.length?' '+orphan.length+' paid lines are not in the order sheet (older or other-month orders): they need that month\'s order file imported first.':'')+(addedOther?' '+addedOther+' non-order charge'+(addedOther>1?'s':'')+' totalling '+money(otherSum)+' added as Other Charges at the end.':'');
   render()}
  $('myPayFile').addEventListener('change',async e=>{try{await importPayments(e.target.files[0])}catch(err){$('myInfo').textContent='Payment import error: '+err.message}e.target.value=''});

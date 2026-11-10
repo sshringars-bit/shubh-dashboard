@@ -11160,7 +11160,7 @@ html[data-theme*="dark"] #instOv .in{background:#14231d;color:#e9f3ee}html[data-
 </script>
 <script id="valJs">
 (function(){
- var PRI={id:['sub order no','sub order id','sub order','order id','order no','order number','order item id','order-id','order'],date:['order date','date','ordered on','order time'],sku:['seller sku','supplier sku','sku','style code','style id'],amt:['final settlement amount','settlement amount','payout','selling price','order value','invoice amount','amount','price'],qty:['quantity','qty']};
+ var PRI={id:['order release id','release id','sub order no','sub order id','sub order','order id','order no','order number','order item id','order-id','order'],date:['order date','date','ordered on','order time'],sku:['seller sku','supplier sku','sku','style code','style id'],amt:['final settlement amount','settlement amount','payout','selling price','order value','invoice amount','amount','price'],qty:['quantity','qty']};
  var KW=/order|date|sku|amount|status|product|qty|quantity|price|settlement|payment|style|awb|invoice/i;
  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
  function find(h,list){for(var i=0;i<list.length;i++){for(var c=0;c<h.length;c++){if(h[c]===list[i])return c}}for(i=0;i<list.length;i++){for(c=0;c<h.length;c++){if(h[c].indexOf(list[i])>-1)return c}}return -1}
@@ -11174,7 +11174,7 @@ html[data-theme*="dark"] #instOv .in{background:#14231d;color:#e9f3ee}html[data-
   if(!best||!best.a.length)return null;
   var a=best.a,hr=-1;for(var i=0;i<Math.min(a.length,20);i++){var cells=a[i].filter(function(v){return typeof v==='string'&&v.trim()});if(cells.length>=3&&cells.filter(function(v){return KW.test(v)}).length>=2){hr=i;break}}
   if(hr<0)return null;
-  var h=a[hr].map(function(v){return String(v).toLowerCase().replace(/\s+/g,' ').trim()}),col={id:find(h,PRI.id),date:find(h,PRI.date),sku:find(h,PRI.sku),amt:find(h,PRI.amt),qty:find(h,PRI.qty)};
+  var h=a[hr].map(function(v){return String(v).toLowerCase().replace(/[_\s]+/g,' ').trim()}),col={id:find(h,PRI.id),date:find(h,PRI.date),sku:find(h,PRI.sku),amt:find(h,PRI.amt),qty:find(h,PRI.qty)};
   var existing={};try{['Meesho','Amazon','Flipkart','Myntra','Manual'].forEach(function(m){(window.sscTrk[m]()||[]).forEach(function(r){if(r.id)existing[String(r.id).trim()]=1})})}catch(e){}
   var rows=[],seen={},st={total:0,dup:0,bad:0,miss:0,have:0};
   for(i=hr+1;i<a.length;i++){var r=a[i];if(!r||r.every(isEmpty))continue;st.total++;
@@ -11184,7 +11184,7 @@ html[data-theme*="dark"] #instOv .in{background:#14231d;color:#e9f3ee}html[data-
    if(col.amt>-1&&!isEmpty(r[col.amt])&&!okNum(r[col.amt])){bad=true;is.push('Bad amount')}
    if(col.qty>-1&&!isEmpty(r[col.qty])&&(!okNum(r[col.qty])||+r[col.qty]<=0)){bad=true;is.push('Bad quantity')}
    if(col.sku>-1&&isEmpty(r[col.sku]))ms.push('SKU');
-   if(col.id>-1&&!isEmpty(id)){var k=String(id).trim()+'|'+(col.sku>-1?String(r[col.sku]).trim():'');if(seen[k]){dup=true;is.push('Duplicate of row '+seen[k])}else seen[k]=i+1;if(existing[String(id).trim()])st.have++}
+   if(col.id>-1&&!isEmpty(id)){var k=JSON.stringify(r.map(function(v){return v instanceof Date?v.toISOString():(typeof v==='string'?v.trim():v)}));if(seen[k]){dup=true;is.push('Duplicate of row '+seen[k])}else seen[k]=i+1;if(existing[String(id).trim()])st.have++}
    if(dup)st.dup++;if(bad)st.bad++;if(ms.length)st.miss++;
    if(dup||bad||ms.length)rows.push({i:i,n:i+1,is:is,ms:ms,dup:dup,bad:bad,skip:dup})}
   return {wb:wb,sheet:best.n,a:a,hr:hr,col:col,rows:rows,st:st,name:name}}

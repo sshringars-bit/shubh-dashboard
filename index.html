@@ -1791,6 +1791,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
     <button type="button" role="tab" id="tab-stock" data-tab="stock" aria-selected="false" tabindex="-1">Stock</button>
     <button type="button" role="tab" id="tab-studio" data-tab="studio" aria-selected="false" tabindex="-1">Photo Studio</button>
     <button type="button" role="tab" id="tab-festcal" data-tab="festcal" aria-selected="false" tabindex="-1">Festival Calendar</button>
+    <button type="button" role="tab" id="tab-rawmat" data-tab="rawmat" aria-selected="false" tabindex="-1">Raw Material</button>
   </nav>
   <button class="btn small" id="tabMove" type="button" aria-expanded="false" title="Change the order of the tabs. On a computer you can also drag a tab.">⇆ Move tabs</button>
   <span class="tabmove glass" id="tabMoveCtl" hidden><span id="tabMoveLbl"></span><button class="btn small" id="tabLeft" type="button" aria-label="Move tab left">‹ Left</button><button class="btn small" id="tabRight" type="button" aria-label="Move tab right">Right ›</button><button class="btn small primary" id="tabMoveDone" type="button">Done</button></span>
@@ -2098,6 +2099,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
   </div>
   <div class="view" id="view-studio" hidden></div>
   <div class="view" id="view-festcal" hidden></div>
+  <div class="view" id="view-rawmat" hidden></div>
   <div class="view" id="view-stock" hidden>
     <section class="ptools glass"><h3>Stock</h3><p>Type how many pieces of each product you have. You get a warning when a product is at or below its alert level. "New sales" counts orders dated after the day you set the number; tap Apply to subtract them. Saved automatically.</p></section>
     <section class="glass" style="padding:20px;display:grid;gap:14px">
@@ -2980,7 +2982,7 @@ function bindPay(){
   renderPay();
 }
 /* ---- movable tabs ---- */
-var TABS=['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','finance','topten','stock','studio','festcal'],TORD_KEY='ssc-tab-order';
+var TABS=['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','finance','topten','stock','studio','festcal','rawmat'],TORD_KEY='ssc-tab-order';
 function tabOrder(){
   var o=[];try{o=JSON.parse(localStorage.getItem(TORD_KEY)||'[]')}catch(e){}
   o=(Array.isArray(o)?o:[]).filter(function(t,i,a){return TABS.indexOf(t)>-1&&a.indexOf(t)===i});
@@ -4889,14 +4891,14 @@ window.sscApi={esc:esc,toast:toast,todayISO:todayISO,shortDate:shortDate,money:m
 window.sscApi.invData=function(){var ph=cphMap(),prods=state.products.map(normP);return {sales:state.sales.map(normS).filter(function(e){return !e.sample}).map(function(e){var p=matchProduct(e,prods),k=custKey(e),cid=k?custId(k):'',pn=cid&&ph[cid]?ph[cid]:'';return {id:e.id,mp:e.marketplace,customer:e.customer,address:e.address,orderId:e.orderId,sku:e.sku,date:e.date,status:e.status,orderValue:e.orderValue,paid:e.paymentReceived,phone:pn?cphShow(pn):'',prod:p?{name:p.name,sku:p.sku,hsn:p.hsn,gst:p.gst,price:p.price}:null}}),customers:buildCustomers().filter(function(c){return !(c.flag&&c.flag.blacklisted)}).map(function(c){return {id:c.id,name:c.name,address:c.address||'',phone:ph[c.id]||'',n:c.n,last:c.last||''}})}};
 function setTab(t){
   state.tab=t;
-  ['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','finance','topten','stock','studio','festcal'].forEach(function(v){$('#view-'+v).hidden=v!==t});
+  ['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','finance','topten','stock','studio','festcal','rawmat'].forEach(function(v){$('#view-'+v).hidden=v!==t});
   document.querySelectorAll('#tabs [role="tab"]').forEach(function(b){
     var on=b.dataset.tab===t;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;
   });
-  $('#pageTitle').textContent={orders:'Sales Dashboard',tracker:'Tracker',products:'Products',sales:'Sale entries',invoice:'Invoice',customers:'Customers',staff:'Staff Payment',recon:'Reconciliation',expenses:'Expenses',states:'State Sales',returns:'Return Tracking',purchases:'Purchase Records',finance:'Financial Control Centre',topten:'Top 10 Sold Products',stock:'Stock',studio:'Photo Studio',festcal:'Festival Calendar'}[t];
+  $('#pageTitle').textContent={orders:'Sales Dashboard',tracker:'Tracker',products:'Products',sales:'Sale entries',invoice:'Invoice',customers:'Customers',staff:'Staff Payment',recon:'Reconciliation',expenses:'Expenses',states:'State Sales',returns:'Return Tracking',purchases:'Purchase Records',finance:'Financial Control Centre',topten:'Top 10 Sold Products',stock:'Stock',studio:'Photo Studio',festcal:'Festival Calendar',rawmat:'Raw Material Inventory'}[t];
   try{var pt=$('#pageTitle');pt.setAttribute('data-crumb','Home  /  '+(t==='orders'?'Overview':pt.textContent))}catch(e){}
-  $('#addBtn').textContent={orders:'+ New order',tracker:'',products:'+ New product',sales:'+ Manual entry',invoice:'',customers:'',staff:'',recon:'',expenses:'',states:'',returns:'',purchases:'',finance:'',topten:'',stock:'',studio:'',festcal:''}[t];
-  $('#addBtn').hidden=!state.canWrite||t==='invoice'||t==='customers'||t==='staff'||t==='recon'||t==='tracker'||t==='expenses'||t==='states'||t==='returns'||t==='purchases'||t==='finance'||t==='topten'||t==='stock'||t==='studio'||t==='festcal';
+  $('#addBtn').textContent={orders:'+ New order',tracker:'',products:'+ New product',sales:'+ Manual entry',invoice:'',customers:'',staff:'',recon:'',expenses:'',states:'',returns:'',purchases:'',finance:'',topten:'',stock:'',studio:'',festcal:'',rawmat:''}[t];
+  $('#addBtn').hidden=!state.canWrite||t==='invoice'||t==='customers'||t==='staff'||t==='recon'||t==='tracker'||t==='expenses'||t==='states'||t==='returns'||t==='purchases'||t==='finance'||t==='topten'||t==='stock'||t==='studio'||t==='festcal'||t==='rawmat';
   if(t==='recon')rcRender();
   if(t==='recon'&&window.__mpayDirty){window.__mpayDirty=false;try{mpayRender()}catch(e){}}
   try{if(t==='expenses'&&window.exRender)window.exRender();if(t==='states'&&window.stRender)window.stRender();if(t==='returns'&&window.rtRender)window.rtRender();if(t==='purchases'&&window.prRender)window.prRender();if(t==='topten'&&window.t10Render)window.t10Render()}catch(e){}
@@ -4905,6 +4907,7 @@ function setTab(t){
   if(t==='finance'){try{window.fccRender&&window.fccRender()}catch(e){}}
   if(t==='studio'){try{window.studioRender&&window.studioRender()}catch(e){}}
   if(t==='festcal'){try{window.fcalProRender&&window.fcalProRender()}catch(e){}}
+  if(t==='rawmat'){try{window.rawmatRender&&window.rawmatRender()}catch(e){}}
   if(t==='tracker'){try{if(window.mfRefresh)window.mfRefresh()}catch(e){}}
   if(!$('#tabMoveCtl').hidden)updMoveLbl();
   try{localStorage.setItem(TAB_KEY,t)}catch(e){}
@@ -6788,7 +6791,7 @@ function init(){
   bindZoom();
   bindData();
   $('#today').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  var t0='orders';try{var sv=localStorage.getItem(TAB_KEY);if(sv==='products'||sv==='sales'||sv==='invoice'||sv==='customers'||sv==='staff'||sv==='recon'||sv==='expenses'||sv==='states'||sv==='returns'||sv==='purchases'||sv==='finance'||sv==='topten'||sv==='stock'||sv==='studio'||sv==='festcal')t0=sv}catch(e){}
+  var t0='orders';try{var sv=localStorage.getItem(TAB_KEY);if(sv==='products'||sv==='sales'||sv==='invoice'||sv==='customers'||sv==='staff'||sv==='recon'||sv==='expenses'||sv==='states'||sv==='returns'||sv==='purchases'||sv==='finance'||sv==='topten'||sv==='stock'||sv==='studio'||sv==='festcal'||sv==='rawmat')t0=sv}catch(e){}
   bind();render();setTab(t0);startData();
   var cab=$('#clearAllBtn');if(cab)cab.addEventListener('click',clearAllData);
 }
@@ -12931,6 +12934,109 @@ html[data-theme*="dark"] .costs .sell dd{color:#a8e0cb}
   #pform .fgrid label[for="p-hsn"],#pform .fgrid label[for="p-price"],#pform .fgrid label[for="p-gst"]{grid-column:span 4}
 }
 </style>
+<script id="rawmat-module">
+(function(){
+var KEY='ssc-rawmat-v1',UNITS=['pcs','kg','g','metre','roll','packet','box','dozen','set','litre'];
+function $(s,r){return (r||document).querySelector(s)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function num(v){var n=parseFloat(v);return isFinite(n)?n:0}
+function inr(n){return '₹'+(Math.round(n*100)/100).toLocaleString('en-IN')}
+function toast(m){try{window.sscApi.toast(m)}catch(e){}}
+function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function save(a){try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){toast('Could not save – browser storage is full. Try a smaller photo.');return false}}
+var editId=null,photo='',formOpen=false;
+function css(){if($('#rawmatCss'))return;var s=document.createElement('style');s.id='rawmatCss';s.textContent=
+'#view-rawmat .rm-wrap{padding:20px;display:grid;gap:14px}'+
+'#view-rawmat .rm-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}'+
+'#view-rawmat .rm-tile{border:1px solid rgba(120,120,120,.25);border-radius:12px;padding:12px 14px}'+
+'#view-rawmat .rm-tile b{display:block;font-size:1.3rem}#view-rawmat .rm-tile span{font-size:.78rem;opacity:.75}'+
+'#view-rawmat .rm-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}'+
+'#view-rawmat .rm-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;border:1px solid rgba(120,120,120,.3);border-radius:12px;padding:14px}'+
+'#view-rawmat .rm-form label{display:grid;gap:4px;font-weight:700;font-size:.8rem}'+
+'#view-rawmat .rm-form .full{grid-column:1/-1}'+
+'#view-rawmat .rm-ph{display:flex;gap:12px;align-items:center;flex-wrap:wrap}'+
+'#view-rawmat .rm-ph img,#view-rawmat .rm-ph .none{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid rgba(120,120,120,.3)}'+
+'#view-rawmat .rm-ph .none{display:grid;place-items:center;font-size:.7rem;opacity:.6}'+
+'#view-rawmat .rm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}'+
+'#view-rawmat .rm-card{border:1px solid rgba(120,120,120,.3);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}'+
+'#view-rawmat .rm-card.low{border-color:#d9480f;box-shadow:0 0 0 1px #d9480f}'+
+'#view-rawmat .rm-img{height:150px;background:rgba(120,120,120,.12);display:grid;place-items:center;font-size:.75rem;opacity:.9}'+
+'#view-rawmat .rm-img img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}'+
+'#view-rawmat .rm-body{padding:10px 12px;display:grid;gap:4px;font-size:.85rem;flex:1}'+
+'#view-rawmat .rm-body h4{margin:0;font-size:1rem}'+
+'#view-rawmat .rm-row{display:flex;justify-content:space-between;gap:8px}'+
+'#view-rawmat .rm-badge{display:inline-block;padding:2px 8px;border-radius:99px;background:#d9480f;color:#fff;font-size:.7rem;font-weight:700}'+
+'#view-rawmat .rm-act{display:flex;gap:6px;padding:0 12px 12px}'+
+'#view-rawmat .rm-empty{padding:30px;text-align:center;opacity:.7}'+'#view-rawmat .rm-log{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(120,120,120,.35);font-size:.74rem;opacity:.8}#view-rawmat .rm-act{flex-wrap:wrap}';
+document.head.appendChild(s)}
+function formHtml(){var m=editId?load().filter(function(x){return x.id===editId})[0]||{}:{};
+return '<div class="rm-form" id="rmForm">'+
+'<div class="full rm-ph"><div id="rmPh">'+(photo?'<img src="'+photo+'" alt="">':'<div class="none">No photo</div>')+'</div><div><input type="file" id="rmFile" accept="image/*" style="display:none"><button type="button" class="btn small" id="rmPick">📷 Add / change photo</button> <button type="button" class="btn small" id="rmNoPh">Remove photo</button></div></div>'+
+'<label>Material name *<input class="field-in" id="rmName" value="'+esc(m.name||'')+'" placeholder="e.g. Pearl beads 6mm"></label>'+
+'<label>Category<input class="field-in" id="rmCat" list="rmCats" value="'+esc(m.cat||'')+'" placeholder="Beads, Thread, Stone…"><datalist id="rmCats">'+cats().map(function(c){return '<option value="'+esc(c)+'">'}).join('')+'</datalist></label>'+
+'<label>Original rate (₹ per unit) *<input class="field-in" id="rmRate" type="number" min="0" step="0.01" value="'+(m.rate!=null?m.rate:'')+'"></label>'+
+'<label>Unit<select class="field-in" id="rmUnit">'+UNITS.map(function(u){return '<option'+((m.unit||'pcs')===u?' selected':'')+'>'+u+'</option>'}).join('')+'</select></label>'+
+'<label>Available in our store<input class="field-in" id="rmQty" type="number" min="0" step="any" value="'+(m.qty!=null?m.qty:'')+'"></label>'+
+'<label>Low-stock alert at<input class="field-in" id="rmLow" type="number" min="0" step="any" value="'+(m.low!=null?m.low:'')+'" placeholder="e.g. 50"></label>'+
+'<label>Supplier / where bought<input class="field-in" id="rmSup" value="'+esc(m.supplier||'')+'"></label>'+
+'<label class="full">Basic details (size, colour, quality, notes)<textarea class="field-in" id="rmDet" rows="3">'+esc(m.details||'')+'</textarea></label>'+
+'<div class="full rm-tools"><button type="button" class="btn" id="rmSave">'+(editId?'Save changes':'Add material')+'</button><button type="button" class="btn small" id="rmCancel">Cancel</button></div></div>'}
+function cats(){var o={};load().forEach(function(m){if(m.cat)o[m.cat]=1});return Object.keys(o).sort()}
+function draw(){var v=$('#view-rawmat');if(!v)return;var a=load(),q=(($('#rmQ')||{}).value||'').toLowerCase(),fc=($('#rmFc')||{}).value||'',lo=!!($('#rmLo')||{}).checked;
+var val=0,low=0;a.forEach(function(m){val+=num(m.qty)*num(m.rate);if(isLow(m))low++});
+var list=a.filter(function(m){return(!q||(m.name+' '+(m.cat||'')+' '+(m.supplier||'')+' '+(m.details||'')).toLowerCase().indexOf(q)>-1)&&(!fc||m.cat===fc)&&(!lo||isLow(m))}).sort(function(x,y){return x.name.localeCompare(y.name)});
+$('#rmTiles').innerHTML='<div class="rm-tile"><b>'+a.length+'</b><span>Materials</span></div><div class="rm-tile"><b>'+inr(val)+'</b><span>Stock value in store</span></div><div class="rm-tile"><b style="color:'+(low?'#d9480f':'inherit')+'">'+low+'</b><span>Low / out of stock</span></div>';
+var sel=$('#rmFc'),cur=sel.value;sel.innerHTML='<option value="">All categories</option>'+cats().map(function(c){return '<option'+(c===cur?' selected':'')+'>'+esc(c)+'</option>'}).join('');
+$('#rmList').innerHTML=list.length?list.map(function(m){return '<div class="rm-card'+(isLow(m)?' low':'')+'"><div class="rm-img">'+(m.photo?'<img src="'+m.photo+'" data-zoom="'+m.id+'" alt="'+esc(m.name)+'">':'No photo')+'</div><div class="rm-body"><h4>'+esc(m.name)+'</h4>'+(m.cat?'<div style="opacity:.7">'+esc(m.cat)+'</div>':'')+
+'<div class="rm-row"><span>Original rate</span><b>'+inr(num(m.rate))+' / '+esc(m.unit||'pcs')+'</b></div>'+
+'<div class="rm-row"><span>In store</span><b>'+(num(m.qty))+' '+esc(m.unit||'pcs')+(isLow(m)?' <span class="rm-badge">'+(num(m.qty)<=0?'OUT':'LOW')+'</span>':'')+'</b></div>'+
+'<div class="rm-row"><span>Stock value</span><span>'+inr(num(m.qty)*num(m.rate))+'</span></div>'+
+(m.supplier?'<div class="rm-row"><span>Supplier</span><span>'+esc(m.supplier)+'</span></div>':'')+
+(m.details?'<div style="opacity:.8;margin-top:4px">'+esc(m.details)+'</div>':'')+rateHtml(m)+logHtml(m)+'</div><div class="rm-act"><button type="button" class="btn small" data-adj="'+m.id+':+">+ Add</button><button type="button" class="btn small" data-adj="'+m.id+':-">− Use</button><button type="button" class="btn small" data-edit="'+m.id+'">Edit</button><button type="button" class="btn small danger" data-del="'+m.id+'">Delete</button></div></div>'}).join(''):'<div class="rm-empty">'+(a.length?'Nothing matches your search.':'No raw material yet. Tap “+ Add material” to add the first one.')+'</div>'}
+function rateHtml(m){var l=(m.rates||[]).slice(-3).reverse();if(!l.length)return'';return '<div class="rm-log"><b>Rate changes</b>'+l.map(function(x){return '<div>'+inr(x.from)+' → '+inr(x.to)+' <span style="color:'+(x.to>x.from?'#d9480f':'#2e7d32')+'">'+(x.to>x.from?'▲':'▼')+'</span> · '+x.d.slice(8,10)+'/'+x.d.slice(5,7)+'/'+x.d.slice(2,4)+'</div>'}).join('')+'</div>'}
+function logHtml(m){var l=(m.log||[]).slice(-3).reverse();if(!l.length)return'';return '<div class="rm-log">'+l.map(function(x){return '<div>'+(x.q>0?'+':'−')+Math.abs(x.q)+' · '+x.d.slice(8,10)+'/'+x.d.slice(5,7)+(x.n?' · '+esc(x.n):'')+'</div>'}).join('')+'</div>'}
+function adjust(id,sign){var a=load(),m=a.filter(function(x){return x.id===id})[0];if(!m)return;
+var v=prompt((sign>0?'How much did you ADD to the store?':'How much did you USE / take out?')+' ('+(m.unit||'pcs')+')\nNow in store: '+num(m.qty));if(v===null)return;var q=num(v);if(q<=0){toast('Enter a number greater than 0');return}
+if(sign<0&&q>num(m.qty)&&!confirm('This is more than the '+num(m.qty)+' in store. Continue (stock will become 0)?'))return;
+var n=prompt('Note (optional) – e.g. bought from X, used for Y order')||'';
+var nq=sign>0?num(m.qty)+q:Math.max(0,num(m.qty)-q);m.qty=Math.round(nq*1000)/1000;m.log=(m.log||[]).concat([{d:new Date().toISOString(),q:sign*q,n:n.trim()}]).slice(-30);m.updated=new Date().toISOString();
+if(save(a)){draw();toast(sign>0?'Stock added':'Stock reduced')}}
+function csv(){var a=load();if(!a.length){toast('No materials to download yet');return}
+function c(x){x=String(x==null?'':x);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}
+var rows=[['Material','Category','Unit','Original rate','In store','Stock value','Low-stock alert','Status','Supplier','Details']].concat(a.map(function(m){return [m.name,m.cat,m.unit,num(m.rate),num(m.qty),Math.round(num(m.qty)*num(m.rate)*100)/100,m.low==null?'':m.low,isLow(m)?(num(m.qty)<=0?'OUT':'LOW'):'OK',m.supplier,m.details]}));
+var blob=new Blob(['\ufeff'+rows.map(function(r){return r.map(c).join(',')}).join('\r\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),l=document.createElement('a');
+l.href=u;l.download='raw-material-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},1000);toast('Downloaded')}
+function buyList(){var b=$('#rmBuyBox'),l=load().filter(isLow).sort(function(x,y){return x.name.localeCompare(y.name)});
+if(!l.length){b.innerHTML='<div class="full">✅ Nothing to buy – no material is low on stock.</div><div class="full"><button type="button" class="btn small" id="rmBuyX">Close</button></div>';b.hidden=false;return}
+var t='Raw material to buy ('+new Date().toISOString().slice(0,10).split('-').reverse().join('/')+')\n\n'+l.map(function(m,i){return (i+1)+'. '+m.name+(m.cat?' ['+m.cat+']':'')+' – in store '+num(m.qty)+' '+(m.unit||'pcs')+(m.low!=null&&m.low!==''?' (alert '+num(m.low)+')':'')+' – rate '+inr(num(m.rate))+(m.supplier?' – '+m.supplier:'')}).join('\n');
+b.innerHTML='<div class="full"><b>'+l.length+' item(s) to buy</b></div><textarea class="field-in full" id="rmBuyTa" rows="'+Math.min(14,l.length+3)+'" readonly>'+esc(t)+'</textarea><div class="full rm-tools"><button type="button" class="btn" id="rmBuyCp">Copy text</button><button type="button" class="btn small" id="rmBuyX">Close</button></div>';b.hidden=false}
+function isLow(m){return m.low!=null&&m.low!==''&&num(m.qty)<=num(m.low)||num(m.qty)<=0&&m.qty!==undefined&&m.qty!==''}
+function openForm(id){editId=id||null;photo=id?(load().filter(function(x){return x.id===id})[0]||{}).photo||'':'';formOpen=true;$('#rmFormBox').innerHTML=formHtml();$('#rmFormBox').hidden=false;$('#rmName').focus()}
+function closeForm(){formOpen=false;editId=null;photo='';$('#rmFormBox').hidden=true;$('#rmFormBox').innerHTML=''}
+function compress(file,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var S=420,w=im.width,h=im.height,k=Math.min(1,S/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.72))};im.onerror=function(){toast('Could not read that photo')};im.src=r.result};r.readAsDataURL(file)}
+function doSave(){var name=$('#rmName').value.trim(),rate=$('#rmRate').value;if(!name){toast('Please enter the material name');return}if(rate===''){toast('Please enter the original rate');return}
+var a=load(),old=editId?a.filter(function(x){return x.id===editId})[0]:null,rec={id:old?old.id:'rm'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name,cat:$('#rmCat').value.trim(),rate:num(rate),unit:$('#rmUnit').value,qty:$('#rmQty').value===''?0:num($('#rmQty').value),low:$('#rmLow').value===''?null:num($('#rmLow').value),supplier:$('#rmSup').value.trim(),details:$('#rmDet').value.trim(),photo:photo,updated:new Date().toISOString(),log:old?old.log:[],rates:old?(old.rates||[]):[]};
+if(old&&num(old.rate)!==rec.rate)rec.rates=rec.rates.concat([{d:new Date().toISOString(),from:num(old.rate),to:rec.rate}]).slice(-30);
+if(old){a[a.indexOf(old)]=rec}else a.push(rec);
+if(save(a)){closeForm();draw();toast(old?'Saved':'Material added')}}
+function build(){var v=$('#view-rawmat');if(!v||v._i)return;v._i=1;css();
+v.innerHTML='<section class="ptools glass"><h3>Raw Material Inventory</h3><p>Keep every raw material with its photo, original rate, basic details and how much is available in our store. Saved automatically and synced online.</p></section>'+
+'<section class="glass rm-wrap"><div class="rm-tiles" id="rmTiles"></div><div class="rm-tools"><button type="button" class="btn" id="rmAdd">+ Add material</button><button type="button" class="btn" id="rmBuy">🛒 Buy list</button><button type="button" class="btn" id="rmCsv">⬇ Download Excel</button><input class="field-in" id="rmQ" type="search" placeholder="Search material, category, supplier" style="width:260px;max-width:100%"><select class="field-in" id="rmFc" style="width:auto;min-width:160px" aria-label="Category"></select><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem"><input type="checkbox" id="rmLo"> Low stock only</label></div><div id="rmFormBox" hidden></div><div id="rmBuyBox" class="rm-form" hidden></div><div class="rm-grid" id="rmList"></div></section>';
+v.addEventListener('click',function(e){var t=e.target;
+if(t.id==='rmAdd'){openForm();return}
+if(t.id==='rmBuy'){buyList();return}if(t.id==='rmCsv'){csv();return}if(t.id==='rmBuyX'){$('#rmBuyBox').hidden=true;return}
+if(t.id==='rmBuyCp'){var ta=$('#rmBuyTa');ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(x){}try{navigator.clipboard&&navigator.clipboard.writeText(ta.value)}catch(x){}toast('Buy list copied');return}if(t.id==='rmCancel'){closeForm();return}if(t.id==='rmSave'){doSave();return}
+if(t.id==='rmPick'){$('#rmFile').click();return}if(t.id==='rmNoPh'){photo='';$('#rmPh').innerHTML='<div class="none">No photo</div>';return}
+if(t.dataset&&t.dataset.adj){var pa=t.dataset.adj.split(':');adjust(pa[0],pa[1]==='+'?1:-1);return}
+if(t.dataset&&t.dataset.edit){openForm(t.dataset.edit);v.scrollIntoView({behavior:'smooth'});return}
+if(t.dataset&&t.dataset.del){var m=load().filter(function(x){return x.id===t.dataset.del})[0];if(m&&confirm('Delete "'+m.name+'"? This cannot be undone.')){save(load().filter(function(x){return x.id!==m.id}));draw()}return}
+if(t.dataset&&t.dataset.zoom){var m2=load().filter(function(x){return x.id===t.dataset.zoom})[0];if(m2&&m2.photo){var w=window.open('');if(w){w.document.write('<title>'+esc(m2.name)+'</title><body style="margin:0;background:#111;display:grid;place-items:center;min-height:100vh"><img src="'+m2.photo+'" style="max-width:100%;max-height:100vh">')}}}});
+v.addEventListener('change',function(e){if(e.target.id==='rmFile'){var f=e.target.files&&e.target.files[0];if(f)compress(f,function(d){photo=d;$('#rmPh').innerHTML='<img src="'+d+'" alt="">'})}if(e.target.id==='rmFc'||e.target.id==='rmLo')draw()});
+v.addEventListener('input',function(e){if(e.target.id==='rmQ')draw()})}
+window.rawmatRender=function(){build();draw()};
+})();
+</script>
+
 </body></html>
 <style>
 #view-tracker .tracker-subtab[aria-selected="true"]{box-shadow:0 2px 10px rgba(0,0,0,.08);border-color:#c9a3c4;background:#fff7fc}

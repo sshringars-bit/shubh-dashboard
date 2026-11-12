@@ -2052,7 +2052,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
         <div class="inv-db" id="invDiscBox" aria-live="polite"></div>
         <h4>Payment</h4>
         <div class="inv-grid">
-          <label class="inv-full">Invoice design <small>(Premium suits wedding and handmade decor customers)</small><select class="field-in" id="invTheme"><option value="standard">Standard</option><option value="premium">Premium &ndash; wedding &amp; handmade decor</option></select></label>
+          <label class="inv-full">Invoice design <small>(Premium suits wedding and handmade decor customers)</small><select class="field-in" id="invTheme"><option value="standard">Standard</option><option value="premium" selected>Premium &ndash; wedding &amp; handmade decor</option></select></label>
           <label class="inv-full">Invoice status <small>(Paid, Partially paid and Overdue are set automatically from payments and the due date)</small><select class="field-in" id="invLife"><option value="issued">Issued</option><option value="draft">Draft (not final)</option><option value="cancelled" disabled>Cancelled (use Cancel on a saved invoice)</option></select></label>
           <label>Payment mode<select class="field-in" id="invMode"><option value="">Not stated</option><option>Cash</option><option>UPI</option><option>Bank transfer</option><option>Card</option><option>Cash on delivery</option><option>Marketplace settlement</option></select></label>
           <label>Payment status<select class="field-in" id="invStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Partially paid">Partially paid</option></select></label>
@@ -7330,6 +7330,15 @@ mfFile=file.name;mfSave();$('mfInfo').textContent=`Imported "${file.name}": ${ma
 #view-invoice .inv-actions{display:flex;gap:10px;flex-wrap:wrap}
 #view-invoice .inv-x{border:0;background:transparent;cursor:pointer;color:#b3261e;font-size:1rem;padding:2px 6px}
 #view-invoice .inv-preview-box{overflow-x:auto}
+#view-invoice .inv-sku-product{display:flex;align-items:center;gap:12px;min-height:76px;padding:8px 12px;border:1px dashed #d9aeb6;border-radius:14px;background:linear-gradient(110deg,#fff8f8,#fff)}
+#view-invoice .inv-sku-product img{width:66px;height:66px;object-fit:contain;background:#fff;border:1px solid #f0dfe2;border-radius:10px;padding:3px}
+#view-invoice .inv-sku-placeholder{display:grid;place-items:center;width:66px;height:66px;border-radius:10px;background:#f9edef;color:#a85f70;font-size:.72rem;text-align:center;padding:5px}
+#view-invoice .inv-sku-caption{font-size:.8rem;color:#8b6870;font-weight:700;overflow-wrap:anywhere}
+#view-invoice .inv-item{border-color:#efd5d9;background:linear-gradient(135deg,rgba(255,248,248,.95),rgba(255,255,255,.82))}
+#view-invoice .inv-form{border:1px solid #efd5d9}
+#view-invoice .inv-form h4{color:#a85f70;border-bottom:1px solid #f0dfe2;padding-bottom:7px}
+#view-invoice .inv-actions .btn.primary{background:#a85f70;border-color:#a85f70}
+@media(max-width:520px){#view-invoice .inv-item-grid{grid-template-columns:1fr 1fr}#view-invoice .inv-item-grid label.w5{grid-column:1/-1}}
 </style>
 <script>
 (function(){
@@ -7437,8 +7446,8 @@ function sheetFix(){
 function sheetPrem(){
    var R=['.inv-sheet.inv-sheet.inv-sheet.prem','#invPreview .inv-sheet.inv-sheet.inv-sheet.prem','#invPdfHost .inv-sheet.inv-sheet.inv-sheet.prem'];
    function f(sel,d){return R.map(function(r){return r+(sel?' '+sel:'')}).join(',')+'{'+d+'}'}
-   var G='#b08d57',M='#6b1d2a',L='#eadfc8',C='#fffaf0';
-   return f('','background:#fffdf8;color:#3a2e2a;font-family:Georgia,"Times New Roman",serif;border:1px solid #d9c49b;border-top:1px solid #d9c49b;border-radius:2px;padding:42px 46px;box-shadow:inset 0 0 0 7px #fffdf8,inset 0 0 0 8px #c9a96a')+
+   var G='#b87983',M='#a85f70',L='#efd5d9',C='#fff8f8';
+   return f('','background:#fffafa;color:#49383b;font-family:Georgia,"Times New Roman",serif;border:1px solid #e8c9ce;border-top:1px solid #e8c9ce;border-radius:14px;padding:36px 40px;box-shadow:inset 0 0 0 6px #fffafa,inset 0 0 0 7px #d9aeb6')+
     f('.t-head','flex-direction:column;align-items:center;text-align:center;gap:6px;border-bottom:0;padding-bottom:0;margin-bottom:0')+
     f('.brand','flex-direction:column;gap:8px;align-items:center')+
     f('.brand h1','font-family:Georgia,"Times New Roman",serif!important;font-size:27px!important;font-weight:400!important;letter-spacing:.14em!important;color:'+M+'!important;text-transform:uppercase!important')+
@@ -7495,7 +7504,7 @@ function sheetPrem(){
   if(!u){thumbMiss[sku]=Date.now();return ''}
   delete thumbMiss[sku];
   thumbPend[sku]=new Promise(function(res){
-   var im=new Image(),fin=function(v){if(v)thumbs[sku]=v;delete thumbPend[sku];res();if(v)renderPreview()};
+   var im=new Image(),fin=function(v){if(v)thumbs[sku]=v;delete thumbPend[sku];res();if(v){renderItems();renderPreview()}};
    im.onload=function(){var v='';
     try{var m=96,w=im.naturalWidth||m,h=im.naturalHeight||m,k=Math.min(1,m/Math.max(w,h)),cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(w*k));cv.height=Math.max(1,Math.round(h*k));var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(im,0,0,cv.width,cv.height);v=cv.toDataURL('image/jpeg',.8)}catch(e){v=u}
     fin(v)};
@@ -7555,7 +7564,8 @@ function sheetPrem(){
   var h='';
   items.forEach(function(it,i){
    function f(k,t,extra,lab,cls){return '<label'+(cls?' class="'+cls+'"':'')+'>'+lab+'<input class="field-in" data-i="'+i+'" data-f="'+k+'" type="'+t+'" value="'+esc(it[k])+'" '+(extra||'')+'></label>'}
-   h+='<div class="inv-item"><div class="inv-item-top"><span>Item '+(i+1)+'</span><button class="inv-x" data-del="'+i+'" type="button" title="Remove this item" aria-label="Remove item">✕</button></div><div class="inv-item-grid">'+
+   var liveThumb=thumbFor(it.s);
+   h+='<div class="inv-item"><div class="inv-item-top"><span>Item '+(i+1)+'</span><button class="inv-x" data-del="'+i+'" type="button" title="Remove this item" aria-label="Remove item">✕</button></div><div class="inv-sku-product" data-sku-card="'+i+'">'+(liveThumb?'<img src="'+esc(liveThumb)+'" alt="Product image">':'<span class="inv-sku-placeholder">🖼️ Product photo will appear when SKU matches</span>')+'<span class="inv-sku-caption">'+(it.s?'SKU: '+esc(it.s):'Enter a SKU to preview product')+'</span></div><div class="inv-item-grid">'+
     f('s','text','list="invSkuList" autocomplete="off" placeholder="Type or pick a SKU"','SKU','w5')+
     f('d','text','placeholder="Item name"','Description','w5')+
     f('hsn','text','','HSN')+f('u','text','','Unit')+f('q','number','min="0" step="any"','Qty')+f('r','number','min="0" step="0.01"','Rate ₹')+f('g','number','min="0" step="any"','GST %')+f('x','number','min="0" max="100" step="any" placeholder="0"','Disc %')+
@@ -7613,7 +7623,7 @@ function sheetPrem(){
  function newInvoice(){
   items=[{s:'',d:'',hsn:'',u:'Pcs',q:1,r:'',g:18,x:''}];
   ['invRef','invPo','invPoDate','invBName','invBAddr','invShAddr','invBPhone','invBEmail','invBGst','invBank','invDue'].forEach(function(id){$(id).value=''});
-  $('invShip').value='0';$('invLife').value='issued';$('invDisc').value='0';$('invDiscType').value='amt';$('invPaid').value='0';pays=[];$('invStatus').disabled=false;$('invIncl').checked=false;$('invSame').checked=true;$('invMode').value='';$('invStatus').value='Paid';$('invNotes').value=NOTES0;
+  $('invShip').value='0';$('invLife').value='issued';$('invTheme').value='premium';$('invDisc').value='0';$('invDiscType').value='amt';$('invPaid').value='0';pays=[];$('invStatus').disabled=false;$('invIncl').checked=false;$('invSame').checked=true;$('invMode').value='';$('invStatus').value='Paid';$('invNotes').value=NOTES0;
   $('invPos').value=sellerState()||'07';$('invDate').value=today();$('invNo').value=nextNo($('invDate').value);
   renderItems();renderPreview()}
  function fillSeller(){var s=null;try{s=JSON.parse(lsGet(SKEY)||'null')}catch(e){}s=s||SELLER0;Object.keys(SF).forEach(function(k){$(SF[k]).value=s[k]!=null?s[k]:(SELLER0[k]||'')})}

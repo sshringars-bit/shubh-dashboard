@@ -8618,6 +8618,40 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){var o=docum
 #view-festcal .fcp-p{color:#fff}#view-festcal .fcp-p.sm{color:var(--a)}
 #view-festcal .fcp-mini button.fb{color:#fff}
 body:has(#view-festcal:not([hidden])) #proTools{display:none!important}
+
+/* step 23: poster-style month grid (colored weekdays, wrapped festival names, gold frame) */
+#view-festcal .fcp-cal{border:2px solid #e0b24f;box-shadow:0 8px 28px rgba(176,120,20,.18)}
+#view-festcal .fcp-wd{color:#fff;padding:9px 0;font-size:.78rem;letter-spacing:.09em;text-shadow:0 1px 1px rgba(0,0,0,.25)}
+#view-festcal .fcp-wd:nth-child(1){background:#c62828;color:#fff}
+#view-festcal .fcp-wd:nth-child(2){background:#2e7d32}
+#view-festcal .fcp-wd:nth-child(3){background:#0097a7}
+#view-festcal .fcp-wd:nth-child(4){background:#1e56c8}
+#view-festcal .fcp-wd:nth-child(5){background:#7b2cbf}
+#view-festcal .fcp-wd:nth-child(6){background:#b5179e}
+#view-festcal .fcp-wd:nth-child(7){background:#e07b00}
+#view-festcal .fcp-c{min-height:112px}
+#view-festcal .fcp-c .n{width:auto;min-width:24px;height:24px;padding:0 4px;font-size:1.02rem;font-weight:700;border-radius:12px;justify-content:start}
+#view-festcal .fcp-c:nth-child(7n+1):not(.today) .n{color:#c62828}
+#view-festcal .fcp-c:nth-child(7n+2):not(.today) .n{color:#2e7d32}
+#view-festcal .fcp-c:nth-child(7n+3):not(.today) .n{color:#0097a7}
+#view-festcal .fcp-c:nth-child(7n+4):not(.today) .n{color:#1e56c8}
+#view-festcal .fcp-c:nth-child(7n+5):not(.today) .n{color:#7b2cbf}
+#view-festcal .fcp-c:nth-child(7n+6):not(.today) .n{color:#b5179e}
+#view-festcal .fcp-c:nth-child(7n+7):not(.today) .n{color:#e07b00}
+#view-festcal .fcp-p{white-space:normal;overflow:visible;text-overflow:clip;font-size:.64rem;line-height:1.25;padding:3px 4px;word-break:normal;overflow-wrap:normal;hyphens:none}
+#view-festcal .fcp-c{padding-left:4px;padding-right:4px}
+
+/* step 24: Festival Highlights list in the right panel */
+#view-festcal .fcp-hlh{margin:0;padding:9px 14px;background:linear-gradient(90deg,#7a1f1f,#b3361f);color:#fff!important;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;text-align:center;border-top:2px solid #e0b24f}
+.fcp-hl{border-top:1px solid var(--stroke-2)}
+.fcp-hli{display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:start;width:100%;text-align:left;border:0;border-bottom:1px solid var(--stroke-2);border-radius:0;background:transparent;padding:9px 12px}
+.fcp-hli:hover,.fcp-hli.on{background:rgba(217,72,15,.08)}
+.fcp-hli .dd{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;color:#fff;background:linear-gradient(135deg,var(--a),var(--b));line-height:1;text-shadow:0 1px 1px rgba(0,0,0,.3)}
+.fcp-hli .dd b{font-size:1rem}.fcp-hli .dd small{font-size:.56rem;font-weight:700;letter-spacing:.04em;margin-top:-6px}
+.fcp-hli .t{font-size:.82rem;font-weight:800;line-height:1.25;color:var(--a)}
+.fcp-hli .w{display:block;font-size:.7rem;font-weight:700;margin-top:2px;color:var(--ink-2,inherit)}
+.fcp-hli .w em{font-style:normal;color:#0f766e}
+.fcp-hli .nt{display:block;font-size:.68rem;line-height:1.3;margin-top:1px;color:var(--ink-3)}
 .pers{max-height:360px}
 </style>
 <script id="fcpJs">
@@ -9105,10 +9139,10 @@ function cell(s,inMonth){
   else if(w.t==='avoid')cls+=' wa';
   else if(w.t==='muhurat')cls+=' ws wm';
   var pills='',dots='';
-  list.slice(0,2).forEach(function(it){
+  list.slice(0,3).forEach(function(it){
     var c=palOf(it.ev),big=it.ev.z==='B';
     pills+='<i class="fcp-p'+(big?'':' sm')+'" style="--a:'+c[0]+';--b:'+c[1]+';--t:'+hexA(c[0],.14)+'">'+esc(it.ev.n.replace(/\s*\(.*?\)/g,'').replace(/ \/ .*/,'').replace(/ - Lakshmi Puja| begins/,''))+'</i>'});
-  if(list.length>2)pills+='<i class="fcp-more">+'+(list.length-2)+' more</i>';
+  if(list.length>3)pills+='<i class="fcp-more">+'+(list.length-3)+' more</i>';
   list.slice(0,4).forEach(function(it){dots+='<b style="background:'+palOf(it.ev)[0]+'"></b>'});
   var big=primary(list);
   var lab=fmt(s,true)+(list.length?': '+list.map(function(x){return x.ev.n}).join(', '):'')+(w.t==='muhurat'?'. Wedding muhurat':'');
@@ -9191,6 +9225,16 @@ function agenda(y,m){
 function legend(){
   return'<div class="fcp-lg"><span><i class="lg ring">'+ringsSvg()+'</i> Vivah muhurat</span><span><i class="lg ws"></i> Wedding season</span><span><i class="lg wa"></i> No weddings (Kharmas, Chaturmas, Adhik)</span><span><i class="lg big"></i> Big festival</span><span><i class="lg sm"></i> Small festival</span></div>';
 }
+function highlights(y,m){
+  var pre=y+'-'+pad(m+1)+'-',keys=Object.keys(BYD).filter(function(k){return k.indexOf(pre)===0}).sort(),h='',n=0;
+  keys.forEach(function(k){BYD[k].forEach(function(it){
+    if(it.i!==1||!ok(it))return;n++;var e=it.ev,c=palOf(e);
+    var nt=String(e.prof.about||'').split(/(?<=\.)\s/)[0];if(nt.length>90)nt=nt.slice(0,87).replace(/\s+\S*$/,'')+'\u2026';
+    var st=e.st.slice(0,3).join(', ')+(e.st.length>3?' +'+(e.st.length-3)+' more':'');
+    h+='<button type="button" class="fcp-hli'+(k===S.sel?' on':'')+'" data-d="'+k+'" style="--a:'+c[0]+';--b:'+c[1]+'"><span class="dd"><b>'+parse(k).d+'</b><small>'+MS[parse(k).m].toUpperCase()+'</small></span><span><span class="t">'+esc(e.n)+(e.span>1?' ('+e.span+' days)':'')+'</span><span class="w">'+WDL[dow(k)]+' \u00b7 <em>'+esc(st)+'</em></span><span class="nt">'+esc(nt)+'</span></span></button>';
+  })});
+  return n?'<h4 class="fcp-hlh">Festival highlights</h4><div class="fcp-hl">'+h+'</div>':'';
+}
 function monthView(){
   var y=S.y,m=S.m,th=monthTheme(y,m),pal=th?PAL[th.prof.pal]:PAL.wed,a=agenda(y,m);
   var wc=wedCount(y,m);
@@ -9200,7 +9244,7 @@ function monthView(){
     '<button type="button" class="nv" data-act="mnext" aria-label="Next month"'+((y===YMAX&&m===11)?' disabled':'')+'>&rsaquo;</button><span class="fcp-hm" style="color:'+pal[2]+'">'+mo(th?th.prof.mo:'rings')+'</span></div>';
   var tor='<div class="fcp-tor" aria-hidden="true"></div>';
   return'<div class="fcp-mv"><div class="fcp-cal" style="--c1:'+pal[0]+';--c2:'+pal[1]+'">'+banner+tor+monthGrid(y,m)+legend()+'</div>'+
-    '<aside class="fcp-side" id="fcpSide" aria-live="polite">'+detail(S.sel)+'</aside></div>'+
+    '<aside class="fcp-side" id="fcpSide" aria-live="polite">'+detail(S.sel)+highlights(y,m)+'</aside></div>'+
     '<section class="fcp-agw"><h3>Festivals in '+MN[m]+' '+y+'</h3><div class="fcp-agl">'+a.h+'</div></section>';
 }
 

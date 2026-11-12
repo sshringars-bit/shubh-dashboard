@@ -12948,8 +12948,17 @@ var editId=null,photo='',formOpen=false;
 function css(){if($('#rawmatCss'))return;var s=document.createElement('style');s.id='rawmatCss';s.textContent=
 '#view-rawmat .rm-wrap{padding:20px;display:grid;gap:14px}'+
 '#view-rawmat .rm-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}'+
-'#view-rawmat .rm-tile{border:1px solid rgba(120,120,120,.25);border-radius:12px;padding:12px 14px}'+
-'#view-rawmat .rm-tile b{display:block;font-size:1.3rem}#view-rawmat .rm-tile span{font-size:.78rem;opacity:.75}'+
+'#view-rawmat .rm-tile{background:var(--glass-2,rgba(120,120,120,.06));border:1px solid var(--stroke,rgba(120,120,120,.2));border-radius:14px;padding:14px 16px}'+
+'#view-rawmat .rm-tile b{display:block;font-size:1.45rem;font-weight:800;letter-spacing:-.01em}#view-rawmat .rm-tile span{font-size:.76rem;opacity:.7;text-transform:uppercase;letter-spacing:.04em}'+
+'#view-rawmat [hidden]{display:none!important}'+
+'#view-rawmat .rm-vt{display:inline-flex;gap:4px}#view-rawmat .rm-vt .btn.on{background:var(--ink,#1b2433);color:var(--sheet,#fff)}'+
+'#view-rawmat .rm-tw{overflow-x:auto;border:1px solid var(--stroke,rgba(120,120,120,.22));border-radius:14px}'+
+'#view-rawmat .rm-tb{width:100%;border-collapse:collapse;font-size:.85rem;min-width:760px}'+
+'#view-rawmat .rm-tb th{position:sticky;top:0;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7;padding:10px 12px;background:var(--glass-2,rgba(120,120,120,.08));white-space:nowrap}'+
+'#view-rawmat .rm-tb td{padding:8px 12px;border-top:1px solid var(--stroke,rgba(120,120,120,.15));vertical-align:middle}'+
+'#view-rawmat .rm-tb .r{text-align:right;white-space:nowrap}#view-rawmat .rm-tb tr.low td:first-child{box-shadow:inset 3px 0 0 #d9480f}'+
+'#view-rawmat .rm-tb img,#view-rawmat .rm-tb .th0{width:42px;height:42px;border-radius:8px;object-fit:cover;display:block;background:var(--glass-2,rgba(120,120,120,.12));cursor:zoom-in}'+
+'#view-rawmat .rm-tb .sm{font-size:.74rem;opacity:.7;max-width:220px}#view-rawmat .rm-ta{white-space:nowrap}#view-rawmat .rm-ta .btn{margin-right:4px}'+
 '#view-rawmat .rm-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}'+
 '#view-rawmat .rm-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;border:1px solid rgba(120,120,120,.3);border-radius:12px;padding:14px}'+
 '#view-rawmat .rm-form label{display:grid;gap:4px;font-weight:700;font-size:.8rem}'+
@@ -12958,16 +12967,20 @@ function css(){if($('#rawmatCss'))return;var s=document.createElement('style');s
 '#view-rawmat .rm-ph img,#view-rawmat .rm-ph .none{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid rgba(120,120,120,.3)}'+
 '#view-rawmat .rm-ph .none{display:grid;place-items:center;font-size:.7rem;opacity:.6}'+
 '#view-rawmat .rm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}'+
-'#view-rawmat .rm-card{border:1px solid rgba(120,120,120,.3);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}'+
-'#view-rawmat .rm-card.low{border-color:#d9480f;box-shadow:0 0 0 1px #d9480f}'+
-'#view-rawmat .rm-img{height:150px;background:rgba(120,120,120,.12);display:grid;place-items:center;font-size:.75rem;opacity:.9}'+
+'#view-rawmat .rm-card{background:var(--glass,transparent);border:1px solid var(--stroke,rgba(120,120,120,.22));border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(20,30,50,.06);transition:box-shadow .15s,transform .15s}#view-rawmat .rm-card:hover{box-shadow:0 8px 22px rgba(20,30,50,.13);transform:translateY(-2px)}'+
+'#view-rawmat .rm-card.low{border-color:#d9480f;box-shadow:0 0 0 1px #d9480f}#view-rawmat .rm-card.low .rm-img{box-shadow:inset 0 -3px 0 #d9480f}'+
+'#view-rawmat .rm-img{height:160px;background:var(--glass-2,rgba(120,120,120,.1));display:grid;place-items:center;font-size:.75rem;opacity:.95;color:var(--ink-3,inherit)}'+
 '#view-rawmat .rm-img img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}'+
-'#view-rawmat .rm-body{padding:10px 12px;display:grid;gap:4px;font-size:.85rem;flex:1}'+
-'#view-rawmat .rm-body h4{margin:0;font-size:1rem}'+
+'#view-rawmat .rm-body{padding:12px 14px;display:grid;gap:6px;font-size:.85rem;flex:1;align-content:start}'+
+'#view-rawmat .rm-body h4{margin:0;font-size:1.02rem;font-weight:800}#view-rawmat .rm-row{padding:3px 0;border-bottom:1px solid var(--stroke,rgba(120,120,120,.15))}#view-rawmat .rm-row>span:first-child{opacity:.65}'+
 '#view-rawmat .rm-row{display:flex;justify-content:space-between;gap:8px}'+
-'#view-rawmat .rm-badge{display:inline-block;padding:2px 8px;border-radius:99px;background:#d9480f;color:#fff;font-size:.7rem;font-weight:700}'+
-'#view-rawmat .rm-act{display:flex;gap:6px;padding:0 12px 12px}'+
-'#view-rawmat .rm-empty{padding:30px;text-align:center;opacity:.7}'+'#view-rawmat .rm-log{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(120,120,120,.35);font-size:.74rem;opacity:.8}#view-rawmat .rm-act{flex-wrap:wrap}';
+'#view-rawmat .rm-badge{display:inline-block;padding:2px 9px;border-radius:99px;background:rgba(217,72,15,.14);color:#d9480f;border:1px solid rgba(217,72,15,.45);font-size:.68rem;font-weight:800;letter-spacing:.04em}'+
+'#view-rawmat .rm-act{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 14px 14px}'+
+'#view-rawmat .rm-empty{padding:30px;text-align:center;opacity:.7}'+'#view-rawmat .rm-log{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(120,120,120,.35);font-size:.74rem;opacity:.8}#view-rawmat .rm-act{flex-wrap:wrap}'
++'#view-rawmat .rm-modal{position:fixed;inset:0;z-index:9999;background:rgba(10,15,25,.55);display:grid;place-items:center;padding:16px}'+
+'#view-rawmat .rm-sheet{width:100%;max-width:380px;background:var(--sheet,#fff);color:var(--ink,#1b2433);border:1px solid rgba(120,120,120,.3);border-radius:16px;padding:18px;display:grid;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,.35)}'+
+'#view-rawmat .rm-sheet h3{margin:0;font-size:1.1rem}#view-rawmat .rm-sheet label{display:grid;gap:4px;font-weight:700;font-size:.8rem}'+
+'#view-rawmat .rm-sub{font-size:.85rem;opacity:.85;line-height:1.5}#view-rawmat .rm-prev{min-height:1.2em;font-size:.82rem;font-weight:700;color:#2e7d32}#view-rawmat .rm-prev.warn{color:#d9480f}';
 document.head.appendChild(s)}
 function formHtml(){var m=editId?load().filter(function(x){return x.id===editId})[0]||{}:{};
 return '<div class="rm-form" id="rmForm">'+
@@ -12982,12 +12995,25 @@ return '<div class="rm-form" id="rmForm">'+
 '<label class="full">Basic details (size, colour, quality, notes)<textarea class="field-in" id="rmDet" rows="3">'+esc(m.details||'')+'</textarea></label>'+
 '<div class="full rm-tools"><button type="button" class="btn" id="rmSave">'+(editId?'Save changes':'Add material')+'</button><button type="button" class="btn small" id="rmCancel">Cancel</button></div></div>'}
 function cats(){var o={};load().forEach(function(m){if(m.cat)o[m.cat]=1});return Object.keys(o).sort()}
+var view='cards';try{view=localStorage.getItem('rm-view')==='table'?'table':'cards'}catch(e){}
+function sorter(){var k=($('#rmSort')||{}).value||'name';function nm(x,y){return x.name.localeCompare(y.name)}
+return function(x,y){var r=0;
+if(k==='low')r=(isLow(y)?1:0)-(isLow(x)?1:0);
+else if(k==='qty')r=num(x.qty)-num(y.qty);
+else if(k==='val')r=num(y.qty)*num(y.rate)-num(x.qty)*num(x.rate);
+else if(k==='rate')r=num(y.rate)-num(x.rate);
+else if(k==='new')r=String(y.updated||'').localeCompare(String(x.updated||''));
+return r||nm(x,y)}}
+function tableHtml(list){return '<div class="rm-tw"><table class="rm-tb"><thead><tr><th></th><th>Material</th><th>Category</th><th class="r">Rate</th><th class="r">In store</th><th class="r">Value</th><th>Supplier</th><th>Actions</th></tr></thead><tbody>'+list.map(function(m){var lo=isLow(m);
+return '<tr class="'+(lo?'low':'')+'"><td>'+(m.photo?'<img src="'+m.photo+'" data-zoom="'+m.id+'" alt="">':'<span class="th0"></span>')+'</td><td><b>'+esc(m.name)+'</b>'+(m.details?'<div class="sm">'+esc(m.details)+'</div>':'')+'</td><td>'+esc(m.cat||'')+'</td><td class="r">'+inr(num(m.rate))+' / '+esc(m.unit||'pcs')+'</td><td class="r"><b>'+num(m.qty)+' '+esc(m.unit||'pcs')+'</b>'+(lo?' <span class="rm-badge">'+(num(m.qty)<=0?'OUT':'LOW')+'</span>':'')+'</td><td class="r">'+inr(num(m.qty)*num(m.rate))+'</td><td>'+esc(m.supplier||'')+'</td><td class="rm-ta"><button type="button" class="btn small" data-adj="'+m.id+':+">+</button><button type="button" class="btn small" data-adj="'+m.id+':-">−</button><button type="button" class="btn small" data-edit="'+m.id+'">Edit</button><button type="button" class="btn small danger" data-del="'+m.id+'">Del</button></td></tr>'}).join('')+'</tbody></table></div>'}
 function draw(){var v=$('#view-rawmat');if(!v)return;var a=load(),q=(($('#rmQ')||{}).value||'').toLowerCase(),fc=($('#rmFc')||{}).value||'',lo=!!($('#rmLo')||{}).checked;
 var val=0,low=0;a.forEach(function(m){val+=num(m.qty)*num(m.rate);if(isLow(m))low++});
-var list=a.filter(function(m){return(!q||(m.name+' '+(m.cat||'')+' '+(m.supplier||'')+' '+(m.details||'')).toLowerCase().indexOf(q)>-1)&&(!fc||m.cat===fc)&&(!lo||isLow(m))}).sort(function(x,y){return x.name.localeCompare(y.name)});
+var list=a.filter(function(m){return(!q||(m.name+' '+(m.cat||'')+' '+(m.supplier||'')+' '+(m.details||'')).toLowerCase().indexOf(q)>-1)&&(!fc||m.cat===fc)&&(!lo||isLow(m))}).sort(sorter());
 $('#rmTiles').innerHTML='<div class="rm-tile"><b>'+a.length+'</b><span>Materials</span></div><div class="rm-tile"><b>'+inr(val)+'</b><span>Stock value in store</span></div><div class="rm-tile"><b style="color:'+(low?'#d9480f':'inherit')+'">'+low+'</b><span>Low / out of stock</span></div>';
 var sel=$('#rmFc'),cur=sel.value;sel.innerHTML='<option value="">All categories</option>'+cats().map(function(c){return '<option'+(c===cur?' selected':'')+'>'+esc(c)+'</option>'}).join('');
-$('#rmList').innerHTML=list.length?list.map(function(m){return '<div class="rm-card'+(isLow(m)?' low':'')+'"><div class="rm-img">'+(m.photo?'<img src="'+m.photo+'" data-zoom="'+m.id+'" alt="'+esc(m.name)+'">':'No photo')+'</div><div class="rm-body"><h4>'+esc(m.name)+'</h4>'+(m.cat?'<div style="opacity:.7">'+esc(m.cat)+'</div>':'')+
+var tg=$('#rmList');tg.className=view==='table'?'':'rm-grid';$('#rmVC').classList.toggle('on',view!=='table');$('#rmVT').classList.toggle('on',view==='table');
+if(view==='table'&&list.length){tg.innerHTML=tableHtml(list);return}
+$('#rmList').innerHTML=list.length?list.map(function(m){return '<div class="rm-card'+(isLow(m)?' low':'')+'"><div class="rm-img">'+(m.photo?'<img src="'+m.photo+'" data-zoom="'+m.id+'" alt="'+esc(m.name)+'">':'No photo')+'</div><div class="rm-body"><h4>'+esc(m.name)+'</h4>'+(m.cat?'<div><span style="display:inline-block;padding:1px 9px;border-radius:99px;background:var(--field,rgba(120,120,120,.12));font-size:.72rem;opacity:.85">'+esc(m.cat)+'</span></div>':'')+
 '<div class="rm-row"><span>Original rate</span><b>'+inr(num(m.rate))+' / '+esc(m.unit||'pcs')+'</b></div>'+
 '<div class="rm-row"><span>In store</span><b>'+(num(m.qty))+' '+esc(m.unit||'pcs')+(isLow(m)?' <span class="rm-badge">'+(num(m.qty)<=0?'OUT':'LOW')+'</span>':'')+'</b></div>'+
 '<div class="rm-row"><span>Stock value</span><span>'+inr(num(m.qty)*num(m.rate))+'</span></div>'+
@@ -12995,12 +13021,33 @@ $('#rmList').innerHTML=list.length?list.map(function(m){return '<div class="rm-c
 (m.details?'<div style="opacity:.8;margin-top:4px">'+esc(m.details)+'</div>':'')+rateHtml(m)+logHtml(m)+'</div><div class="rm-act"><button type="button" class="btn small" data-adj="'+m.id+':+">+ Add</button><button type="button" class="btn small" data-adj="'+m.id+':-">− Use</button><button type="button" class="btn small" data-edit="'+m.id+'">Edit</button><button type="button" class="btn small danger" data-del="'+m.id+'">Delete</button></div></div>'}).join(''):'<div class="rm-empty">'+(a.length?'Nothing matches your search.':'No raw material yet. Tap “+ Add material” to add the first one.')+'</div>'}
 function rateHtml(m){var l=(m.rates||[]).slice(-3).reverse();if(!l.length)return'';return '<div class="rm-log"><b>Rate changes</b>'+l.map(function(x){return '<div>'+inr(x.from)+' → '+inr(x.to)+' <span style="color:'+(x.to>x.from?'#d9480f':'#2e7d32')+'">'+(x.to>x.from?'▲':'▼')+'</span> · '+x.d.slice(8,10)+'/'+x.d.slice(5,7)+'/'+x.d.slice(2,4)+'</div>'}).join('')+'</div>'}
 function logHtml(m){var l=(m.log||[]).slice(-3).reverse();if(!l.length)return'';return '<div class="rm-log">'+l.map(function(x){return '<div>'+(x.q>0?'+':'−')+Math.abs(x.q)+' · '+x.d.slice(8,10)+'/'+x.d.slice(5,7)+(x.n?' · '+esc(x.n):'')+'</div>'}).join('')+'</div>'}
-function adjust(id,sign){var a=load(),m=a.filter(function(x){return x.id===id})[0];if(!m)return;
-var v=prompt((sign>0?'How much did you ADD to the store?':'How much did you USE / take out?')+' ('+(m.unit||'pcs')+')\nNow in store: '+num(m.qty));if(v===null)return;var q=num(v);if(q<=0){toast('Enter a number greater than 0');return}
-if(sign<0&&q>num(m.qty)&&!confirm('This is more than the '+num(m.qty)+' in store. Continue (stock will become 0)?'))return;
-var n=prompt('Note (optional) – e.g. bought from X, used for Y order')||'';
-var nq=sign>0?num(m.qty)+q:Math.max(0,num(m.qty)-q);m.qty=Math.round(nq*1000)/1000;m.log=(m.log||[]).concat([{d:new Date().toISOString(),q:sign*q,n:n.trim()}]).slice(-30);m.updated=new Date().toISOString();
-if(save(a)){draw();toast(sign>0?'Stock added':'Stock reduced')}}
+function adjust(id,sign){var m=load().filter(function(x){return x.id===id})[0];if(!m)return;
+var old=$('#rmAdjBox');if(old)old.remove();
+var today=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),u=esc(m.unit||'pcs');
+var box=document.createElement('div');box.id='rmAdjBox';box.className='rm-modal';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+box.innerHTML='<div class="rm-sheet"><h3>'+(sign>0?'＋ Add stock':'− Use / take out')+'</h3><div class="rm-sub"><b>'+esc(m.name)+'</b><br>Now in store: <b>'+num(m.qty)+' '+u+'</b></div>'+
+'<label>'+(sign>0?'How much did you add?':'How much did you use?')+' ('+u+') *<input class="field-in" id="rmAdjQ" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></label>'+
+'<label>Date<input class="field-in" id="rmAdjD" type="date" value="'+today+'" max="'+today+'"></label>'+
+'<label>Note (optional)<input class="field-in" id="rmAdjN" maxlength="80" placeholder="'+(sign>0?'e.g. bought from supplier X':'e.g. used for Order #123')+'"></label>'+
+'<div class="rm-prev" id="rmAdjP"></div>'+
+'<div class="rm-tools"><button type="button" class="btn" id="rmAdjOk">'+(sign>0?'Add to store':'Reduce stock')+'</button><button type="button" class="btn small" id="rmAdjX">Cancel</button></div></div>';
+$('#view-rawmat').appendChild(box);
+var qi=$('#rmAdjQ',box),pv=$('#rmAdjP',box);
+function upd(){var q=num(qi.value),cur=num(m.qty);if(q<=0){pv.textContent='';pv.className='rm-prev';return}
+var nq=sign>0?cur+q:cur-q;if(nq<0){pv.className='rm-prev warn';pv.textContent='More than in store – stock will become 0.';return}
+pv.className='rm-prev';pv.textContent='After this: '+(Math.round(nq*1000)/1000)+' '+(m.unit||'pcs')+' in store'}
+function close(){box.remove();document.removeEventListener('keydown',key)}
+function key(e){if(e.key==='Escape')close()}
+function ok(){var q=num(qi.value);if(q<=0){toast('Enter a number greater than 0');qi.focus();return}
+var a=load(),r=a.filter(function(x){return x.id===id})[0];if(!r){close();return}
+var d=$('#rmAdjD',box).value||today,n=$('#rmAdjN',box).value.trim();
+var nq=sign>0?num(r.qty)+q:Math.max(0,num(r.qty)-q);r.qty=Math.round(nq*1000)/1000;
+r.log=(r.log||[]).concat([{d:d+'T12:00:00.000Z',q:sign*q,n:n}]).slice(-30);r.updated=new Date().toISOString();
+if(save(a)){close();draw();toast(sign>0?'Stock added':'Stock reduced')}}
+qi.addEventListener('input',upd);
+box.addEventListener('click',function(e){var t=e.target;if(t===box||t.id==='rmAdjX')close();else if(t.id==='rmAdjOk')ok()});
+box.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();ok()}});
+document.addEventListener('keydown',key);qi.focus()}
 function csv(){var a=load();if(!a.length){toast('No materials to download yet');return}
 function c(x){x=String(x==null?'':x);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}
 var rows=[['Material','Category','Unit','Original rate','In store','Stock value','Low-stock alert','Status','Supplier','Details']].concat(a.map(function(m){return [m.name,m.cat,m.unit,num(m.rate),num(m.qty),Math.round(num(m.qty)*num(m.rate)*100)/100,m.low==null?'':m.low,isLow(m)?(num(m.qty)<=0?'OUT':'LOW'):'OK',m.supplier,m.details]}));
@@ -13021,9 +13068,10 @@ if(old){a[a.indexOf(old)]=rec}else a.push(rec);
 if(save(a)){closeForm();draw();toast(old?'Saved':'Material added')}}
 function build(){var v=$('#view-rawmat');if(!v||v._i)return;v._i=1;css();
 v.innerHTML='<section class="ptools glass"><h3>Raw Material Inventory</h3><p>Keep every raw material with its photo, original rate, basic details and how much is available in our store. Saved automatically and synced online.</p></section>'+
-'<section class="glass rm-wrap"><div class="rm-tiles" id="rmTiles"></div><div class="rm-tools"><button type="button" class="btn" id="rmAdd">+ Add material</button><button type="button" class="btn" id="rmBuy">🛒 Buy list</button><button type="button" class="btn" id="rmCsv">⬇ Download Excel</button><input class="field-in" id="rmQ" type="search" placeholder="Search material, category, supplier" style="width:260px;max-width:100%"><select class="field-in" id="rmFc" style="width:auto;min-width:160px" aria-label="Category"></select><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem"><input type="checkbox" id="rmLo"> Low stock only</label></div><div id="rmFormBox" hidden></div><div id="rmBuyBox" class="rm-form" hidden></div><div class="rm-grid" id="rmList"></div></section>';
+'<section class="glass rm-wrap"><div class="rm-tiles" id="rmTiles"></div><div class="rm-tools"><button type="button" class="btn" id="rmAdd">+ Add material</button><button type="button" class="btn" id="rmBuy">🛒 Buy list</button><button type="button" class="btn" id="rmCsv">⬇ Download Excel</button><input class="field-in" id="rmQ" type="search" placeholder="Search material, category, supplier" style="width:260px;max-width:100%"><select class="field-in" id="rmFc" style="width:auto;min-width:160px" aria-label="Category"></select><select class="field-in" id="rmSort" style="width:auto;min-width:150px" aria-label="Sort by"><option value="name">Sort: Name A–Z</option><option value="low">Sort: Low stock first</option><option value="qty">Sort: Least in store</option><option value="val">Sort: Highest value</option><option value="rate">Sort: Highest rate</option><option value="new">Sort: Recently updated</option></select><span class="rm-vt"><button type="button" class="btn small" id="rmVC">▦ Cards</button><button type="button" class="btn small" id="rmVT">☰ Table</button></span><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem"><input type="checkbox" id="rmLo"> Low stock only</label></div><div id="rmFormBox" hidden></div><div id="rmBuyBox" class="rm-form" hidden></div><div class="rm-grid" id="rmList"></div></section>';
 v.addEventListener('click',function(e){var t=e.target;
 if(t.id==='rmAdd'){openForm();return}
+if(t.id==='rmVC'||t.id==='rmVT'){view=t.id==='rmVT'?'table':'cards';try{localStorage.setItem('rm-view',view)}catch(x){}draw();return}
 if(t.id==='rmBuy'){buyList();return}if(t.id==='rmCsv'){csv();return}if(t.id==='rmBuyX'){$('#rmBuyBox').hidden=true;return}
 if(t.id==='rmBuyCp'){var ta=$('#rmBuyTa');ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(x){}try{navigator.clipboard&&navigator.clipboard.writeText(ta.value)}catch(x){}toast('Buy list copied');return}if(t.id==='rmCancel'){closeForm();return}if(t.id==='rmSave'){doSave();return}
 if(t.id==='rmPick'){$('#rmFile').click();return}if(t.id==='rmNoPh'){photo='';$('#rmPh').innerHTML='<div class="none">No photo</div>';return}
@@ -13031,7 +13079,7 @@ if(t.dataset&&t.dataset.adj){var pa=t.dataset.adj.split(':');adjust(pa[0],pa[1]=
 if(t.dataset&&t.dataset.edit){openForm(t.dataset.edit);v.scrollIntoView({behavior:'smooth'});return}
 if(t.dataset&&t.dataset.del){var m=load().filter(function(x){return x.id===t.dataset.del})[0];if(m&&confirm('Delete "'+m.name+'"? This cannot be undone.')){save(load().filter(function(x){return x.id!==m.id}));draw()}return}
 if(t.dataset&&t.dataset.zoom){var m2=load().filter(function(x){return x.id===t.dataset.zoom})[0];if(m2&&m2.photo){var w=window.open('');if(w){w.document.write('<title>'+esc(m2.name)+'</title><body style="margin:0;background:#111;display:grid;place-items:center;min-height:100vh"><img src="'+m2.photo+'" style="max-width:100%;max-height:100vh">')}}}});
-v.addEventListener('change',function(e){if(e.target.id==='rmFile'){var f=e.target.files&&e.target.files[0];if(f)compress(f,function(d){photo=d;$('#rmPh').innerHTML='<img src="'+d+'" alt="">'})}if(e.target.id==='rmFc'||e.target.id==='rmLo')draw()});
+v.addEventListener('change',function(e){if(e.target.id==='rmFile'){var f=e.target.files&&e.target.files[0];if(f)compress(f,function(d){photo=d;$('#rmPh').innerHTML='<img src="'+d+'" alt="">'})}if(e.target.id==='rmFc'||e.target.id==='rmLo'||e.target.id==='rmSort')draw()});
 v.addEventListener('input',function(e){if(e.target.id==='rmQ')draw()})}
 window.rawmatRender=function(){build();draw()};
 })();

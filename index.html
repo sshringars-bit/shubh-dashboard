@@ -2407,6 +2407,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
       <label for="p-gst">GST %<input class="field-in" id="p-gst" type="number" inputmode="decimal" min="0" step="any" placeholder="5"></label>
       <p class="sec">Cost per piece</p>
       <label for="p-orig">Material cost (₹)<input class="field-in" id="p-orig" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
+      <div class="full" id="p-matbox"></div>
       <label for="p-paste">Pasting / decoration (₹)<input class="field-in" id="p-paste" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
       <label for="p-karigar">Making / Karigar (₹)<input class="field-in" id="p-karigar" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
       <label for="p-pack">Packaging (₹)<input class="field-in" id="p-pack" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></label>
@@ -4592,6 +4593,7 @@ function normP(p){
     sample:!!p.sample,created:+p.created||0,
     status:(['Active','Inactive','Discontinued'].indexOf(p.status)>-1?p.status:'Active'),size:t(p.size).slice(0,60),weight:t(p.weight).slice(0,40),desc:t(p.desc).slice(0,1000),
     updated:+p.updated||+p.created||0,
+    mats:(Array.isArray(p.mats)?p.mats:[]).filter(function(m){return m&&m.id}).slice(0,40).map(function(m){return {id:String(m.id),q:Math.max(0,+m.q||0)}}),
     hist:(Array.isArray(p.hist)?p.hist:[]).filter(function(h){return h&&h.c}).slice(-30).map(function(h){return {t:+h.t||0,c:String(h.c).slice(0,300)}})};
 }
 function pTotal(p){return p.orig+p.paste+p.karigar+p.pack}
@@ -4750,11 +4752,14 @@ var PH_SVG=(function(){
   return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">'+e+'<circle cx="24" cy="24" r="3.2" fill="currentColor"/></svg>';
 })();
 function mk(l,v){return '<div class="mk'+(v?'':' empty')+'"><span>'+l+'</span><b>'+(v?esc(v):'—')+'</b></div>'}
+function pRateDrift(p){try{if(!p.mats||!p.mats.length||typeof rmList!=='function')return null;var L=rmList(),t=0,hit=false;
+p.mats.forEach(function(r){var m=L.filter(function(x){return x.id===r.id})[0];if(m){hit=true;t+=(+m.rate||0)*(+r.q||0)}});
+t=Math.round(t*100)/100;return hit&&Math.abs(t-(+p.orig||0))>0.005?t:null}catch(e){return null}}
 function pcard(p){
   var im=p.images,img=im.length?'<div class="pimg" data-zoom="1" data-pid="'+esc(p.id)+'" data-cur="0" role="button" tabindex="0" aria-label="View full size images of '+esc(p.name)+'"><div class="blur" style="background-image:url('+im[0]+')"></div><img src="'+im[0]+'" alt="'+esc(p.name)+'">'+(im.length>1?'<span class="cnt">'+im.length+' images</span>':'')+'</div>':'<div class="pimg ph">'+PH_SVG+'</div>';
   if(im.length>1)img+='<div class="pthumbs">'+im.map(function(d,i){return '<button type="button" class="pt'+(i===0?' on':'')+'" data-pi="'+i+'" aria-label="Show image '+(i+1)+'"><img src="'+d+'" alt=""></button>'}).join('')+'</div>';
   return '<article class="pcard glass'+(p.status==='Inactive'?' pinactive':p.status==='Discontinued'?' pdisc':'')+'">'+img+'<div class="pbody"><div class="phead"><h4>'+esc(p.name)+'</h4>'+(p.sku?'<span class="sku">'+esc(p.sku)+'</span>':'')+'<span class="pst pst-'+p.status.toLowerCase()+'">'+esc(p.status)+'</span></div>'+
-    '<div class="muted">Batch '+(p.batch?esc(p.batch):'—')+'</div>'+pMasterInfo(p)+(p.cats&&p.cats.length?'<div class="catshow">'+p.cats.map(function(c){return '<span>'+esc(c)+'</span>'}).join('')+'</div>':'')+
+    '<div class="muted">Batch '+(p.batch?esc(p.batch):'—')+'</div>'+(function(){var d=pRateDrift(p);return d==null?'':'<div class="pdrift" title="Open Edit to update the Material cost">⚠ Raw material rates changed: materials now cost ₹'+d.toLocaleString('en-IN')+' (saved ₹'+(+p.orig||0).toLocaleString('en-IN')+')</div>'})()+pMasterInfo(p)+(p.cats&&p.cats.length?'<div class="catshow">'+p.cats.map(function(c){return '<span>'+esc(c)+'</span>'}).join('')+'</div>':'')+
     '<dl class="costs"><div><dt>Material cost</dt><dd>'+money(p.orig)+'</dd></div><div><dt>Pasting / decoration</dt><dd>'+money(p.paste)+'</dd></div><div><dt>Making / Karigar</dt><dd>'+money(p.karigar)+'</dd></div><div><dt>Packaging</dt><dd>'+money(p.pack)+'</dd></div><div class="total"><dt>Total cost invested</dt><dd>'+money(pTotal(p))+'</dd></div><div class="sell"><dt>Selling price <small>(2\u00d7 cost)</small></dt><dd>'+money(pTotal(p)*2)+'</dd></div><div class="gstl"><dt>GST</dt><dd>'+esc(p.gst||'5')+'%</dd></div></dl>'+
     '<div class="mkts">'+mk('Amazon SKU',p.amz)+mk('Flipkart SKU',p.fk)+mk('Meesho SKU',p.meesho)+mk('Myntra SKU',p.myntra)+'</div>'+
     '<div class="pact">'+(state.canWrite?'<button class="btn small" type="button" data-pedit="'+esc(p.id)+'">Edit</button>':'')+(im.length&&canSave()?'<button class="btn small" type="button" data-pdl="'+esc(p.id)+'">Download '+(im.length>1?'images':'image')+'</button>':'')+'</div></div></article>';
@@ -4887,7 +4892,7 @@ function renderProducts(){
   var plim=state.pLimit||60;grid.innerHTML=rows.length?rows.slice(0,plim).map(pcard).join('')+(rows.length>plim?'<div style="grid-column:1/-1;text-align:center;padding:8px"><button class="btn" type="button" data-pmore="1">Show more products ('+(rows.length-plim)+' more)</button></div>':''):'<div class="empty glass"><p>No products match this search.</p></div>';
   if(typeof mpayData!=='undefined'&&typeof mpayRender==='function'){var rv=document.getElementById('view-recon');if(rv&&!rv.hidden)mpayRender();else window.__mpayDirty=true}
 }
-window.sscApi={esc:esc,toast:toast,todayISO:todayISO,shortDate:shortDate,money:money,trkRecords:trkRecords,sales:function(){return state.sales},tab:function(){return state.tab}};
+window.sscApi={products:function(){try{return state.products.map(normP)}catch(e){return[]}},esc:esc,toast:toast,todayISO:todayISO,shortDate:shortDate,money:money,trkRecords:trkRecords,sales:function(){return state.sales},tab:function(){return state.tab}};
 window.sscApi.invData=function(){var ph=cphMap(),prods=state.products.map(normP);return {sales:state.sales.map(normS).filter(function(e){return !e.sample}).map(function(e){var p=matchProduct(e,prods),k=custKey(e),cid=k?custId(k):'',pn=cid&&ph[cid]?ph[cid]:'';return {id:e.id,mp:e.marketplace,customer:e.customer,address:e.address,orderId:e.orderId,sku:e.sku,date:e.date,status:e.status,orderValue:e.orderValue,paid:e.paymentReceived,phone:pn?cphShow(pn):'',prod:p?{name:p.name,sku:p.sku,hsn:p.hsn,gst:p.gst,price:p.price}:null}}),customers:buildCustomers().filter(function(c){return !(c.flag&&c.flag.blacklisted)}).map(function(c){return {id:c.id,name:c.name,address:c.address||'',phone:ph[c.id]||'',n:c.n,last:c.last||''}})}};
 function setTab(t){
   state.tab=t;
@@ -4931,7 +4936,7 @@ window.catDraw=function(){var box=document.getElementById('p-cats');if(!box)retu
 function saveProduct(p,orig){
   if(db){
     var imgs=p.images||[],old=orig||[];
-    var body={name:p.name,sku:p.sku,batch:p.batch,orig:p.orig,paste:p.paste,karigar:p.karigar,pack:p.pack,amz:p.amz,fk:p.fk,meesho:p.meesho,myntra:p.myntra,hsn:p.hsn||'',price:p.price||0,gst:p.gst==null?'':String(p.gst),cats:p.cats||[],created:p.created,imgs:imgs.length,status:p.status||'Active',size:p.size||'',weight:p.weight||'',desc:p.desc||'',updated:p.updated||p.created||0,hist:p.hist||[]};
+    var body={name:p.name,sku:p.sku,batch:p.batch,orig:p.orig,paste:p.paste,karigar:p.karigar,pack:p.pack,amz:p.amz,fk:p.fk,meesho:p.meesho,myntra:p.myntra,hsn:p.hsn||'',price:p.price||0,gst:p.gst==null?'':String(p.gst),cats:p.cats||[],created:p.created,imgs:imgs.length,status:p.status||'Active',size:p.size||'',weight:p.weight||'',desc:p.desc||'',updated:p.updated||p.created||0,hist:p.hist||[],mats:p.mats||[]};
     var chain=Promise.resolve();
     imgs.forEach(function(d,k){if(old[k]!==d)chain=chain.then(function(){return db.collection('pimages').doc(p.id+'_'+k).set({pid:p.id,k:k,data:d})})});
     if(old.length>imgs.length){for(var k=imgs.length;k<5;k++){(function(k){chain=chain.then(function(){return db.doc('pimages/'+p.id+'_'+k).delete()})})(k)}}
@@ -5006,6 +5011,33 @@ function takeFiles(list){
     }).catch(function(){$('#pErr').textContent='Could not use one of the images. Try a JPG or PNG photo.'});
   });
 }
+
+/* ---------- Material cost from the Raw Material list ---------- */
+function pmMoney(n){return '₹'+(Math.round((n||0)*100)/100).toLocaleString('en-IN')}
+function rmList(){try{var a=JSON.parse(localStorage.getItem('ssc-rawmat-v1')||'[]');return Array.isArray(a)?a.filter(function(m){return m&&m.id&&m.name}).sort(function(x,y){return x.name.localeCompare(y.name)}):[]}catch(e){return[]}}
+function pMatTotal(){var L=rmList(),t=0;(state.pMats||[]).forEach(function(r){var m=L.filter(function(x){return x.id===r.id})[0];if(m)t+=(+m.rate||0)*(+r.q||0)});return Math.round(t*100)/100}
+function pMatDraw(){var box=$('#p-matbox');if(!box)return;var L=rmList(),rows=state.pMats||[];
+if(!state.pMatOpen){var cur=pMatTotal(),sv=+($('#p-orig')||{}).value||0,diff=rows.length&&Math.abs(cur-sv)>0.005;
+box.innerHTML='<button type="button" class="btn small" id="pMatOpen">🧵 Pick from Raw Material list'+(rows.length?' ('+rows.length+' used)':'')+'</button>'+(rows.length?' <span class="pmat-sum">= '+pmMoney(cur)+' per piece</span>':'')+
+(diff?'<div class="pmat-warn">⚠ Raw material rates have changed. Materials now cost <b>'+pmMoney(cur)+'</b> per piece, but Material cost is <b>'+pmMoney(sv)+'</b>. <button type="button" class="btn small" id="pMatSync">Update to '+pmMoney(cur)+'</button></div>':'');return}
+if(!L.length){box.innerHTML='<div class="pmat"><b>No raw material added yet.</b> Add materials in the Raw Material tab first.<div style="margin-top:8px"><button type="button" class="btn small" id="pMatClose">Close</button></div></div>';return}
+var opts='<option value="">Choose material…</option>'+L.map(function(m){return '<option value="'+esc(m.id)+'">'+esc(m.name)+' – '+pmMoney(+m.rate||0)+'/'+esc(m.unit||'pcs')+'</option>'}).join('');
+box.innerHTML='<div class="pmat"><b>Materials used in ONE piece</b><div class="pmat-rows">'+rows.map(function(r,i){var m=L.filter(function(x){return x.id===r.id})[0];
+return '<div class="pmat-r"><span class="pmat-n">'+(m?esc(m.name):'<i>(deleted material)</i>')+'</span><input class="field-in" type="number" min="0" step="any" inputmode="decimal" value="'+(r.q||'')+'" data-pmq="'+i+'" aria-label="Quantity"><span class="pmat-u">'+(m?esc(m.unit||'pcs'):'')+'</span><b class="pmat-c">'+pmMoney(m?(+m.rate||0)*(+r.q||0):0)+'</b><button type="button" class="btn small danger" data-pmx="'+i+'" aria-label="Remove">✕</button></div>'}).join('')+'</div>'+
+'<div class="pmat-add"><select class="field-in" id="pMatSel">'+opts+'</select><input class="field-in" id="pMatQ" type="number" min="0" step="any" inputmode="decimal" placeholder="Qty per piece"><button type="button" class="btn small" id="pMatAdd">+ Add</button></div>'+
+'<div class="pmat-tot">Material cost per piece: <b>'+pmMoney(pMatTotal())+'</b></div>'+
+'<div class="pmat-act"><button type="button" class="btn small" id="pMatUse">Use as Material cost</button><button type="button" class="btn small" id="pMatClose">Done</button></div><small style="opacity:.7">Quantity is in the material’s own unit (e.g. 0.05 kg or 12 pcs).</small></div>'}
+document.addEventListener('click',function(e){var t=e.target;if(!t||!t.id&&!(t.dataset&&t.dataset.pmx!=null))return;if(!$('#p-matbox')||!$('#p-matbox').contains(t))return;
+if(t.id==='pMatOpen'){state.pMatOpen=true;pMatDraw();return}
+if(t.id==='pMatClose'){state.pMatOpen=false;pMatDraw();return}
+if(t.id==='pMatAdd'){var id=$('#pMatSel').value,q=+$('#pMatQ').value;if(!id){$('#pMatSel').focus();return}if(!(q>0)){$('#pMatQ').focus();return}
+var ex=state.pMats.filter(function(r){return r.id===id})[0];if(ex)ex.q=Math.round((ex.q+q)*10000)/10000;else state.pMats.push({id:id,q:q});pMatDraw();return}
+if(t.dataset&&t.dataset.pmx!=null){state.pMats.splice(+t.dataset.pmx,1);pMatDraw();return}
+if(t.id==='pMatSync'){$('#p-orig').value=pMatTotal();updatePPreview();pMatDraw();toast('Material cost updated');return}
+if(t.id==='pMatUse'){$('#p-orig').value=pMatTotal();updatePPreview();toast('Material cost updated from Raw Material list');return}});
+document.addEventListener('input',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.pmq!=null){var r=state.pMats[+t.dataset.pmq];if(r){r.q=+t.value||0;var c=t.parentNode.querySelector('.pmat-c'),L=rmList(),m=L.filter(function(x){return x.id===r.id})[0];if(c)c.textContent=pmMoney(m?(+m.rate||0)*r.q:0);var tt=$('#p-matbox .pmat-tot b');if(tt)tt.textContent=pmMoney(pMatTotal())}}});
+(function(){var st=document.createElement('style');st.textContent='#p-matbox .pmat{border:1px solid rgba(120,120,120,.3);border-radius:12px;padding:12px;display:grid;gap:8px;font-size:.85rem}#p-matbox .pmat-r{display:grid;grid-template-columns:1fr 84px 44px 72px auto;gap:6px;align-items:center}#p-matbox .pmat-c{text-align:right}#p-matbox .pmat-add{display:grid;grid-template-columns:1fr 110px auto;gap:6px}#p-matbox .pmat-act{display:flex;gap:6px;flex-wrap:wrap}#p-matbox .pmat-warn{margin-top:8px;padding:10px 12px;border:1px solid rgba(217,72,15,.45);background:rgba(217,72,15,.08);border-radius:10px;font-size:.84rem;line-height:1.6}#p-matbox .pmat-sum{font-size:.85rem;font-weight:700;margin-left:8px}@media(max-width:520px){#p-matbox .pmat-r{grid-template-columns:1fr 70px 38px 64px auto}#p-matbox .pmat-add{grid-template-columns:1fr 1fr}#p-matbox .pmat-add #pMatAdd{grid-column:1/-1}}';document.head.appendChild(st)})();
+(function(){var st=document.createElement('style');st.textContent='.pdrift{margin:6px 0;padding:6px 10px;border-radius:10px;border:1px solid rgba(217,72,15,.45);background:rgba(217,72,15,.09);color:#b23a0a;font-size:.78rem;font-weight:700;line-height:1.4}';document.head.appendChild(st)})();
 function pv(s){return $(s).value}
 function updatePPreview(){
   var t=['#p-orig','#p-paste','#p-karigar','#p-pack'].reduce(function(a,s){return a+(+pv(s)||0)},0);
@@ -5020,7 +5052,7 @@ function setPArmed(on){
 function openProduct(id){
   if(!state.canWrite)return;
   var p=id?state.products.map(normP).filter(function(x){return x.id===id})[0]:null;
-  state.pEditing=p||null;state.pImages=p?p.images.slice():[];state.pOrig=state.pImages.slice();
+  state.pEditing=p||null;state.pImages=p?p.images.slice():[];state.pOrig=state.pImages.slice();state.pMats=p?(p.mats||[]).map(function(m){return {id:m.id,q:m.q}}):[];state.pMatOpen=false;
   $('#pTitle').textContent=p?'Edit product':'New product';
   $('#p-name').value=p?p.name:'';$('#p-sku').value=p?p.sku:'';$('#p-batch').value=p?p.batch:'';
   $('#p-orig').value=p?p.orig:'';$('#p-paste').value=p?p.paste:'';$('#p-karigar').value=p?p.karigar:'';$('#p-pack').value=p?p.pack:'';
@@ -5030,7 +5062,7 @@ function openProduct(id){
   $('#p-status').value=p?p.status:'Active';$('#p-size').value=p?p.size:'';$('#p-weight').value=p?p.weight:'';$('#p-desc').value=p?p.desc:'';
   $('#p-histbox').hidden=!p;if(p){$('#p-dates').innerHTML='<div class="pdates">Created '+esc(pFmtDT(p.created))+' · Last updated '+esc(pFmtDT(p.updated))+'</div>';$('#p-hist').innerHTML=pHistRows(p)}
   $('#pErr').textContent='';$('#pDelBtn').hidden=!p;setPArmed(false);
-  renderThumbs();updatePPreview();
+  renderThumbs();updatePPreview();pMatDraw();
   $('#pscrim').hidden=false;
   setTimeout(function(){$('#p-name').focus()},30);
 }
@@ -5045,6 +5077,7 @@ function submitProduct(e){
   if((pr!==''&&!(isFinite(+pr)&&+pr>=0))||(gs!==''&&!(isFinite(+gs)&&+gs>=0))){$('#pErr').textContent='Selling price and GST % must be 0 or more.';return}
   var ed=state.pEditing;
   var p={id:ed?ed.id:'p'+Date.now().toString(36),name:name,sku:pv('#p-sku').trim(),batch:pv('#p-batch').trim(),images:state.pImages.slice(),
+    mats:(state.pMats||[]).filter(function(m){return m.id&&+m.q>0}).map(function(m){return {id:m.id,q:+m.q}}),
     orig:+pv('#p-orig')||0,paste:+pv('#p-paste')||0,karigar:+pv('#p-karigar')||0,pack:+pv('#p-pack')||0,
     amz:pv('#p-amz').trim(),fk:pv('#p-fk').trim(),meesho:pv('#p-meesho').trim(),myntra:pv('#p-myntra').trim(),
     hsn:pv('#p-hsn').trim(),price:Math.round(2*(['#p-orig','#p-paste','#p-karigar','#p-pack'].reduce(function(a,s){return a+(+pv(s)||0)},0))*100)/100,gst:(gs.trim()===''?'5':gs.trim()),cats:(state.pCats||[]).slice(),
@@ -5824,6 +5857,7 @@ function bindProducts(){
   $('#pCancel').addEventListener('click',closeProduct);
   $('#pscrim').addEventListener('mousedown',function(e){if(e.target===$('#pscrim'))closeProduct()});
   ['#p-orig','#p-paste','#p-karigar','#p-pack'].forEach(function(s){$(s).addEventListener('input',updatePPreview)});
+  $('#p-orig').addEventListener('input',function(){if(!state.pMatOpen)pMatDraw()});
   $('#p-file').addEventListener('change',function(e){takeFiles(e.target.files);e.target.value=''});
   var tb=$('#pThumbs');
   tb.addEventListener('click',function(e){
@@ -12951,7 +12985,12 @@ function css(){if($('#rawmatCss'))return;var s=document.createElement('style');s
 '#view-rawmat .rm-tile{background:var(--glass-2,rgba(120,120,120,.06));border:1px solid var(--stroke,rgba(120,120,120,.2));border-radius:14px;padding:14px 16px}'+
 '#view-rawmat .rm-tile b{display:block;font-size:1.45rem;font-weight:800;letter-spacing:-.01em}#view-rawmat .rm-tile span{font-size:.76rem;opacity:.7;text-transform:uppercase;letter-spacing:.04em}'+
 '#view-rawmat [hidden]{display:none!important}'+
-'#view-rawmat .rm-vt{display:inline-flex;gap:4px}#view-rawmat .rm-vt .btn.on{background:var(--ink,#1b2433);color:var(--sheet,#fff)}'+
+'#view-rawmat #rmLOut{display:grid;gap:12px}#view-rawmat .rm-lens{max-width:460px;max-height:92vh;overflow:auto}#view-rawmat .rm-lq{display:flex;gap:10px;align-items:center}#view-rawmat .rm-lq img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid rgba(120,120,120,.3)}'+
+'#view-rawmat .rm-lres{display:grid;gap:10px}#view-rawmat .rm-lr{display:flex;gap:10px;border:1px solid rgba(120,120,120,.3);border-radius:12px;padding:10px}#view-rawmat .rm-lr>img{width:84px;height:84px;object-fit:cover;border-radius:10px;flex:none}'+
+'#view-rawmat .rm-lb{display:grid;gap:3px;font-size:.82rem;min-width:0}#view-rawmat .rm-ls{opacity:.75;font-size:.78rem}#view-rawmat .rm-lrow{display:flex;justify-content:space-between;gap:8px}#view-rawmat .rm-lrow span{opacity:.65}'+
+'#view-rawmat .rm-lbadge{display:inline-block;color:#fff;border-radius:99px;padding:1px 8px;font-size:.68rem;font-weight:800;white-space:nowrap}'+
+
+'#view-rawmat .rm-use{font-size:.78rem;margin-top:4px;padding:5px 8px;border-radius:8px;background:var(--field,rgba(120,120,120,.1))}#view-rawmat .rm-vt{display:inline-flex;gap:4px}#view-rawmat .rm-vt .btn.on{background:var(--ink,#1b2433);color:var(--sheet,#fff)}'+
 '#view-rawmat .rm-tw{overflow-x:auto;border:1px solid var(--stroke,rgba(120,120,120,.22));border-radius:14px}'+
 '#view-rawmat .rm-tb{width:100%;border-collapse:collapse;font-size:.85rem;min-width:760px}'+
 '#view-rawmat .rm-tb th{position:sticky;top:0;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7;padding:10px 12px;background:var(--glass-2,rgba(120,120,120,.08));white-space:nowrap}'+
@@ -12980,7 +13019,7 @@ function css(){if($('#rawmatCss'))return;var s=document.createElement('style');s
 +'#view-rawmat .rm-modal{position:fixed;inset:0;z-index:9999;background:rgba(10,15,25,.55);display:grid;place-items:center;padding:16px}'+
 '#view-rawmat .rm-sheet{width:100%;max-width:380px;background:var(--sheet,#fff);color:var(--ink,#1b2433);border:1px solid rgba(120,120,120,.3);border-radius:16px;padding:18px;display:grid;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,.35)}'+
 '#view-rawmat .rm-sheet h3{margin:0;font-size:1.1rem}#view-rawmat .rm-sheet label{display:grid;gap:4px;font-weight:700;font-size:.8rem}'+
-'#view-rawmat .rm-sub{font-size:.85rem;opacity:.85;line-height:1.5}#view-rawmat .rm-prev{min-height:1.2em;font-size:.82rem;font-weight:700;color:#2e7d32}#view-rawmat .rm-prev.warn{color:#d9480f}';
+'#view-rawmat .rm-sub{font-size:.85rem;opacity:.85;line-height:1.5}#view-rawmat .rm-chk{display:flex!important;gap:8px;align-items:flex-start;font-weight:600!important;font-size:.8rem!important;grid-template-columns:none}#view-rawmat .rm-chk[hidden]{display:none!important}#view-rawmat .rm-prev{min-height:1.2em;font-size:.82rem;font-weight:700;color:#2e7d32}#view-rawmat .rm-prev.warn{color:#d9480f}';
 document.head.appendChild(s)}
 function formHtml(){var m=editId?load().filter(function(x){return x.id===editId})[0]||{}:{};
 return '<div class="rm-form" id="rmForm">'+
@@ -12995,6 +13034,11 @@ return '<div class="rm-form" id="rmForm">'+
 '<label class="full">Basic details (size, colour, quality, notes)<textarea class="field-in" id="rmDet" rows="3">'+esc(m.details||'')+'</textarea></label>'+
 '<div class="full rm-tools"><button type="button" class="btn" id="rmSave">'+(editId?'Save changes':'Add material')+'</button><button type="button" class="btn small" id="rmCancel">Cancel</button></div></div>'}
 function cats(){var o={};load().forEach(function(m){if(m.cat)o[m.cat]=1});return Object.keys(o).sort()}
+function usage(m){var P=[];try{P=(window.sscApi&&window.sscApi.products&&window.sscApi.products())||[]}catch(e){}
+var out=[];P.forEach(function(p){(p.mats||[]).forEach(function(r){if(r.id===m.id&&r.q>0)out.push({name:p.name,n:Math.floor(num(m.qty)/r.q+1e-9)})})});
+return out.sort(function(a,b){return a.n-b.n})}
+function useHtml(m){var u=usage(m);if(!u.length)return'';
+return '<div class="rm-use">🧵 Enough for: '+u.slice(0,3).map(function(x){return '<b>'+x.n+'</b> pcs of '+esc(x.name)}).join(' · ')+(u.length>3?' · +'+(u.length-3)+' more':'')+'</div>'}
 var view='cards';try{view=localStorage.getItem('rm-view')==='table'?'table':'cards'}catch(e){}
 function sorter(){var k=($('#rmSort')||{}).value||'name';function nm(x,y){return x.name.localeCompare(y.name)}
 return function(x,y){var r=0;
@@ -13005,7 +13049,7 @@ else if(k==='rate')r=num(y.rate)-num(x.rate);
 else if(k==='new')r=String(y.updated||'').localeCompare(String(x.updated||''));
 return r||nm(x,y)}}
 function tableHtml(list){return '<div class="rm-tw"><table class="rm-tb"><thead><tr><th></th><th>Material</th><th>Category</th><th class="r">Rate</th><th class="r">In store</th><th class="r">Value</th><th>Supplier</th><th>Actions</th></tr></thead><tbody>'+list.map(function(m){var lo=isLow(m);
-return '<tr class="'+(lo?'low':'')+'"><td>'+(m.photo?'<img src="'+m.photo+'" data-zoom="'+m.id+'" alt="">':'<span class="th0"></span>')+'</td><td><b>'+esc(m.name)+'</b>'+(m.details?'<div class="sm">'+esc(m.details)+'</div>':'')+'</td><td>'+esc(m.cat||'')+'</td><td class="r">'+inr(num(m.rate))+' / '+esc(m.unit||'pcs')+'</td><td class="r"><b>'+num(m.qty)+' '+esc(m.unit||'pcs')+'</b>'+(lo?' <span class="rm-badge">'+(num(m.qty)<=0?'OUT':'LOW')+'</span>':'')+'</td><td class="r">'+inr(num(m.qty)*num(m.rate))+'</td><td>'+esc(m.supplier||'')+'</td><td class="rm-ta"><button type="button" class="btn small" data-adj="'+m.id+':+">+</button><button type="button" class="btn small" data-adj="'+m.id+':-">−</button><button type="button" class="btn small" data-edit="'+m.id+'">Edit</button><button type="button" class="btn small danger" data-del="'+m.id+'">Del</button></td></tr>'}).join('')+'</tbody></table></div>'}
+return '<tr class="'+(lo?'low':'')+'"><td>'+(m.photo?'<img src="'+m.photo+'" data-zoom="'+m.id+'" alt="">':'<span class="th0"></span>')+'</td><td><b>'+esc(m.name)+'</b>'+(m.details?'<div class="sm">'+esc(m.details)+'</div>':'')+useHtml(m)+'</td><td>'+esc(m.cat||'')+'</td><td class="r">'+inr(num(m.rate))+' / '+esc(m.unit||'pcs')+'</td><td class="r"><b>'+num(m.qty)+' '+esc(m.unit||'pcs')+'</b>'+(lo?' <span class="rm-badge">'+(num(m.qty)<=0?'OUT':'LOW')+'</span>':'')+'</td><td class="r">'+inr(num(m.qty)*num(m.rate))+'</td><td>'+esc(m.supplier||'')+'</td><td class="rm-ta"><button type="button" class="btn small" data-adj="'+m.id+':+">+</button><button type="button" class="btn small" data-adj="'+m.id+':-">−</button><button type="button" class="btn small" data-edit="'+m.id+'">Edit</button><button type="button" class="btn small danger" data-del="'+m.id+'">Del</button></td></tr>'}).join('')+'</tbody></table></div>'}
 function draw(){var v=$('#view-rawmat');if(!v)return;var a=load(),q=(($('#rmQ')||{}).value||'').toLowerCase(),fc=($('#rmFc')||{}).value||'',lo=!!($('#rmLo')||{}).checked;
 var val=0,low=0;a.forEach(function(m){val+=num(m.qty)*num(m.rate);if(isLow(m))low++});
 var list=a.filter(function(m){return(!q||(m.name+' '+(m.cat||'')+' '+(m.supplier||'')+' '+(m.details||'')).toLowerCase().indexOf(q)>-1)&&(!fc||m.cat===fc)&&(!lo||isLow(m))}).sort(sorter());
@@ -13017,16 +13061,17 @@ $('#rmList').innerHTML=list.length?list.map(function(m){return '<div class="rm-c
 '<div class="rm-row"><span>Original rate</span><b>'+inr(num(m.rate))+' / '+esc(m.unit||'pcs')+'</b></div>'+
 '<div class="rm-row"><span>In store</span><b>'+(num(m.qty))+' '+esc(m.unit||'pcs')+(isLow(m)?' <span class="rm-badge">'+(num(m.qty)<=0?'OUT':'LOW')+'</span>':'')+'</b></div>'+
 '<div class="rm-row"><span>Stock value</span><span>'+inr(num(m.qty)*num(m.rate))+'</span></div>'+
-(m.supplier?'<div class="rm-row"><span>Supplier</span><span>'+esc(m.supplier)+'</span></div>':'')+
+(m.supplier?'<div class="rm-row"><span>Supplier</span><span>'+esc(m.supplier)+'</span></div>':'')+useHtml(m)+
 (m.details?'<div style="opacity:.8;margin-top:4px">'+esc(m.details)+'</div>':'')+rateHtml(m)+logHtml(m)+'</div><div class="rm-act"><button type="button" class="btn small" data-adj="'+m.id+':+">+ Add</button><button type="button" class="btn small" data-adj="'+m.id+':-">− Use</button><button type="button" class="btn small" data-edit="'+m.id+'">Edit</button><button type="button" class="btn small danger" data-del="'+m.id+'">Delete</button></div></div>'}).join(''):'<div class="rm-empty">'+(a.length?'Nothing matches your search.':'No raw material yet. Tap “+ Add material” to add the first one.')+'</div>'}
 function rateHtml(m){var l=(m.rates||[]).slice(-3).reverse();if(!l.length)return'';return '<div class="rm-log"><b>Rate changes</b>'+l.map(function(x){return '<div>'+inr(x.from)+' → '+inr(x.to)+' <span style="color:'+(x.to>x.from?'#d9480f':'#2e7d32')+'">'+(x.to>x.from?'▲':'▼')+'</span> · '+x.d.slice(8,10)+'/'+x.d.slice(5,7)+'/'+x.d.slice(2,4)+'</div>'}).join('')+'</div>'}
-function logHtml(m){var l=(m.log||[]).slice(-3).reverse();if(!l.length)return'';return '<div class="rm-log">'+l.map(function(x){return '<div>'+(x.q>0?'+':'−')+Math.abs(x.q)+' · '+x.d.slice(8,10)+'/'+x.d.slice(5,7)+(x.n?' · '+esc(x.n):'')+'</div>'}).join('')+'</div>'}
+function logHtml(m){var l=(m.log||[]).slice(-3).reverse();if(!l.length)return'';return '<div class="rm-log">'+l.map(function(x){return '<div>'+(x.q>0?'+':'−')+Math.abs(x.q)+' · '+x.d.slice(8,10)+'/'+x.d.slice(5,7)+(x.p!=null?' · @'+inr(num(x.p)):'')+(x.n?' · '+esc(x.n):'')+'</div>'}).join('')+'</div>'}
 function adjust(id,sign){var m=load().filter(function(x){return x.id===id})[0];if(!m)return;
 var old=$('#rmAdjBox');if(old)old.remove();
 var today=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),u=esc(m.unit||'pcs');
 var box=document.createElement('div');box.id='rmAdjBox';box.className='rm-modal';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
 box.innerHTML='<div class="rm-sheet"><h3>'+(sign>0?'＋ Add stock':'− Use / take out')+'</h3><div class="rm-sub"><b>'+esc(m.name)+'</b><br>Now in store: <b>'+num(m.qty)+' '+u+'</b></div>'+
 '<label>'+(sign>0?'How much did you add?':'How much did you use?')+' ('+u+') *<input class="field-in" id="rmAdjQ" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></label>'+
+(sign>0?'<label>Price paid per '+u+' (₹, optional)<input class="field-in" id="rmAdjR" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Current rate: '+num(m.rate)+'"></label><label class="rm-chk" id="rmAdjRW" hidden><input type="checkbox" id="rmAdjRU" checked> <span id="rmAdjRT"></span></label>':'')+
 '<label>Date<input class="field-in" id="rmAdjD" type="date" value="'+today+'" max="'+today+'"></label>'+
 '<label>Note (optional)<input class="field-in" id="rmAdjN" maxlength="80" placeholder="'+(sign>0?'e.g. bought from supplier X':'e.g. used for Order #123')+'"></label>'+
 '<div class="rm-prev" id="rmAdjP"></div>'+
@@ -13042,9 +13087,12 @@ function ok(){var q=num(qi.value);if(q<=0){toast('Enter a number greater than 0'
 var a=load(),r=a.filter(function(x){return x.id===id})[0];if(!r){close();return}
 var d=$('#rmAdjD',box).value||today,n=$('#rmAdjN',box).value.trim();
 var nq=sign>0?num(r.qty)+q:Math.max(0,num(r.qty)-q);r.qty=Math.round(nq*1000)/1000;
-r.log=(r.log||[]).concat([{d:d+'T12:00:00.000Z',q:sign*q,n:n}]).slice(-30);r.updated=new Date().toISOString();
+var pr=$('#rmAdjR',box),paid=pr&&pr.value!==''?num(pr.value):null,lg={d:d+'T12:00:00.000Z',q:sign*q,n:n};
+if(sign>0&&paid!==null){lg.p=paid;var cb=$('#rmAdjRU',box);if(cb&&cb.checked&&Math.abs(paid-num(r.rate))>0.0001){r.rates=(r.rates||[]).concat([{d:new Date().toISOString(),from:num(r.rate),to:paid}]).slice(-30);r.rate=paid}}
+r.log=(r.log||[]).concat([lg]).slice(-30);r.updated=new Date().toISOString();
 if(save(a)){close();draw();toast(sign>0?'Stock added':'Stock reduced')}}
 qi.addEventListener('input',upd);
+var ri=$('#rmAdjR',box);if(ri)ri.addEventListener('input',function(){var v=ri.value,w=$('#rmAdjRW',box);if(v!==''&&num(v)>=0&&Math.abs(num(v)-num(m.rate))>0.0001){$('#rmAdjRT',box).textContent='Update original rate from '+inr(num(m.rate))+' to '+inr(num(v))+' (also saved in rate changes)';w.hidden=false}else w.hidden=true});
 box.addEventListener('click',function(e){var t=e.target;if(t===box||t.id==='rmAdjX')close();else if(t.id==='rmAdjOk')ok()});
 box.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();ok()}});
 document.addEventListener('keydown',key);qi.focus()}
@@ -13066,11 +13114,61 @@ var a=load(),old=editId?a.filter(function(x){return x.id===editId})[0]:null,rec=
 if(old&&num(old.rate)!==rec.rate)rec.rates=rec.rates.concat([{d:new Date().toISOString(),from:num(old.rate),to:rec.rate}]).slice(-30);
 if(old){a[a.indexOf(old)]=rec}else a.push(rec);
 if(save(a)){closeForm();draw();toast(old?'Saved':'Material added')}}
+/* ---------- Lens: find a raw material by taking a photo ---------- */
+var LENS_JS=['https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js','https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js'],lensModel=null,lensP=null,lensCache={};
+function loadScript(u){return new Promise(function(res,rej){var x=document.createElement('script');x.src=u;x.onload=res;x.onerror=function(){rej(new Error('load'))};document.head.appendChild(x)})}
+function lensLoad(){if(lensP)return lensP;
+lensP=Promise.race([LENS_JS.reduce(function(c,u){return c.then(function(){return loadScript(u)})},Promise.resolve()).then(function(){return window.mobilenet.load({version:2,alpha:1.0})}).then(function(m){lensModel=m;return m}),new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'))},30000)})]).catch(function(){lensModel=null;return null});
+return lensP}
+function toCanvas(src){return new Promise(function(res,rej){var im=new Image();im.onload=function(){var c=document.createElement('canvas');c.width=c.height=224;var x=c.getContext('2d'),w=im.width,h=im.height,k=Math.min(w,h),sx=(w-k)/2,sy=(h-k)/2;x.drawImage(im,sx,sy,k,k,0,0,224,224);res(c)};im.onerror=function(){rej(new Error('img'))};im.src=src})}
+function embModel(c){var t=window.tf.tidy(function(){return lensModel.infer(c,true)});var a=Array.prototype.slice.call(t.dataSync());t.dispose();return a}
+function embBasic(c){var d=c.getContext('2d').getImageData(0,0,224,224).data,out=[],G=6,cell=224/G;
+for(var gy=0;gy<G;gy++)for(var gx=0;gx<G;gx++){var r=0,g=0,b=0,n=0;for(var y=Math.floor(gy*cell);y<(gy+1)*cell;y+=4)for(var x=Math.floor(gx*cell);x<(gx+1)*cell;x+=4){var i=(y*224+x)*4;r+=d[i];g+=d[i+1];b+=d[i+2];n++}out.push(r/n/255,g/n/255,b/n/255)}
+var m=out.reduce(function(a,v){return a+v},0)/out.length;return out.map(function(v){return v-m})}
+function cosine(a,b){var d=0,x=0,y=0;for(var i=0;i<a.length;i++){d+=a[i]*b[i];x+=a[i]*a[i];y+=b[i]*b[i]}return x&&y?d/Math.sqrt(x*y):0}
+function embed(c,mode){return mode==='ai'?embModel(c):embBasic(c)}
+function openLens(){var old=$('#rmLensBox');if(old)old.remove();
+var withPh=load().filter(function(m){return m.photo});
+var box=document.createElement('div');box.id='rmLensBox';box.className='rm-modal';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+box.innerHTML='<div class="rm-sheet rm-lens"><h3>🔍 Lens – find my material</h3><div class="rm-sub">Take a photo of the item you see in the market. I will compare it with the photos saved in your Raw Material list ('+withPh.length+' with photo).</div>'+
+'<div class="rm-tools"><button type="button" class="btn" id="rmLCam">📷 Take photo</button><button type="button" class="btn" id="rmLGal">🖼 Choose from gallery</button><button type="button" class="btn small" id="rmLX">Close</button></div>'+
+'<input type="file" id="rmLF1" accept="image/*" capture="environment" hidden><input type="file" id="rmLF2" accept="image/*" hidden>'+
+'<div id="rmLOut"></div></div>';
+$('#view-rawmat').appendChild(box);
+function close(){box.remove();document.removeEventListener('keydown',key)}function key(e){if(e.key==='Escape')close()}document.addEventListener('keydown',key);
+var out=$('#rmLOut',box);
+if(!withPh.length)out.innerHTML='<div class="rm-prev warn">None of your materials has a photo yet. Add photos to your materials first (Edit → Add / change photo), then Lens can recognise them.</div>';
+function run(file){out.innerHTML='<div class="rm-prev" id="rmLSt">Reading your photo…</div>';
+var rd=new FileReader();rd.onload=function(){var src=rd.result;toCanvas(src).then(function(qc){
+$('#rmLSt',box).textContent='Getting the image-recognition ready (first time needs internet, about 10–20 seconds)…';
+return lensLoad().then(function(model){var mode=model?'ai':'basic';$('#rmLSt',box).textContent='Comparing with your '+withPh.length+' saved photos…';
+var qe=embed(qc,mode),list=load().filter(function(m){return m.photo}),jobs=list.map(function(m){var key=m.id+'|'+mode+'|'+m.photo.length;
+if(lensCache[key])return Promise.resolve({m:m,e:lensCache[key]});return toCanvas(m.photo).then(function(c){var e=embed(c,mode);lensCache[key]=e;return {m:m,e:e}}).catch(function(){return null})});
+return Promise.all(jobs).then(function(arr){var sc=arr.filter(Boolean).map(function(o){return {m:o.m,s:cosine(qe,o.e)}}).sort(function(a,b){return b.s-a.s}).slice(0,3);showRes(src,sc,mode)})})
+}).catch(function(){out.innerHTML='<div class="rm-prev warn">Could not read that photo. Please try another one.</div>'})};
+rd.readAsDataURL(file)}
+function lbl(s,mode){var hi=mode==='ai'?0.75:0.9,mid=mode==='ai'?0.55:0.75;return s>=hi?['Very likely','#2e7d32']:s>=mid?['Possible','#b7791f']:['Weak match','#d9480f']}
+function showRes(src,sc,mode){if(!sc.length){out.innerHTML='<div class="rm-prev warn">No saved photos to compare with.</div>';return}
+out.innerHTML='<div class="rm-lq"><img src="'+src+'" alt="Your photo"><div><b>Your photo</b><div class="rm-sub">'+(mode==='ai'?'Matched using image recognition.':'Offline mode: matched by colour and layout only (less accurate). Connect to internet for better results.')+'</div></div></div>'+
+'<div class="rm-lres">'+sc.map(function(o,i){var m=o.m,L=lbl(o.s,mode),pc=Math.max(0,Math.min(99,Math.round(o.s*100))),rc=(m.rates||[]).slice(-1)[0];
+return '<div class="rm-lr"><img src="'+m.photo+'" alt="'+esc(m.name)+'"><div class="rm-lb"><div><b>'+(i===0?'🏆 ':'')+esc(m.name)+'</b> <span class="rm-lbadge" style="background:'+L[1]+'">'+L[0]+' · '+pc+'%</span></div>'+
+(m.cat?'<div class="rm-ls">'+esc(m.cat)+'</div>':'')+
+'<div class="rm-lrow"><span>Original rate</span><b>'+inr(num(m.rate))+' / '+esc(m.unit||'pcs')+'</b></div>'+
+'<div class="rm-lrow"><span>In store</span><b>'+num(m.qty)+' '+esc(m.unit||'pcs')+(isLow(m)?' ⚠ low':'')+'</b></div>'+
+(m.supplier?'<div class="rm-lrow"><span>Bought from</span><b>'+esc(m.supplier)+'</b></div>':'')+
+(rc?'<div class="rm-lrow"><span>Last rate change</span><b>'+inr(rc.from)+' → '+inr(rc.to)+'</b></div>':'')+
+(m.details?'<div class="rm-ls">'+esc(m.details)+'</div>':'')+
+'<button type="button" class="btn small" data-lshow="'+esc(m.id)+'">Show in my list</button></div></div>'}).join('')+'</div><div class="rm-sub">Always check the item yourself – similar-looking materials can be confused.</div>'}
+box.addEventListener('click',function(e){var t=e.target;if(t===box||t.id==='rmLX'){close();return}
+if(t.id==='rmLCam'){$('#rmLF1',box).click();return}if(t.id==='rmLGal'){$('#rmLF2',box).click();return}
+if(t.dataset&&t.dataset.lshow){var m=load().filter(function(x){return x.id===t.dataset.lshow})[0];close();if(m){var q=$('#rmQ');if(q){q.value=m.name;var fc=$('#rmFc');if(fc)fc.value='';var lo=$('#rmLo');if(lo)lo.checked=false;draw();$('#view-rawmat').scrollIntoView({behavior:'smooth'})}}}});
+box.addEventListener('change',function(e){if((e.target.id==='rmLF1'||e.target.id==='rmLF2')&&e.target.files&&e.target.files[0]){run(e.target.files[0]);e.target.value=''}})}
 function build(){var v=$('#view-rawmat');if(!v||v._i)return;v._i=1;css();
 v.innerHTML='<section class="ptools glass"><h3>Raw Material Inventory</h3><p>Keep every raw material with its photo, original rate, basic details and how much is available in our store. Saved automatically and synced online.</p></section>'+
-'<section class="glass rm-wrap"><div class="rm-tiles" id="rmTiles"></div><div class="rm-tools"><button type="button" class="btn" id="rmAdd">+ Add material</button><button type="button" class="btn" id="rmBuy">🛒 Buy list</button><button type="button" class="btn" id="rmCsv">⬇ Download Excel</button><input class="field-in" id="rmQ" type="search" placeholder="Search material, category, supplier" style="width:260px;max-width:100%"><select class="field-in" id="rmFc" style="width:auto;min-width:160px" aria-label="Category"></select><select class="field-in" id="rmSort" style="width:auto;min-width:150px" aria-label="Sort by"><option value="name">Sort: Name A–Z</option><option value="low">Sort: Low stock first</option><option value="qty">Sort: Least in store</option><option value="val">Sort: Highest value</option><option value="rate">Sort: Highest rate</option><option value="new">Sort: Recently updated</option></select><span class="rm-vt"><button type="button" class="btn small" id="rmVC">▦ Cards</button><button type="button" class="btn small" id="rmVT">☰ Table</button></span><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem"><input type="checkbox" id="rmLo"> Low stock only</label></div><div id="rmFormBox" hidden></div><div id="rmBuyBox" class="rm-form" hidden></div><div class="rm-grid" id="rmList"></div></section>';
+'<section class="glass rm-wrap"><div class="rm-tiles" id="rmTiles"></div><div class="rm-tools"><button type="button" class="btn" id="rmAdd">+ Add material</button><button type="button" class="btn" id="rmLens">🔍 Lens</button><button type="button" class="btn" id="rmBuy">🛒 Buy list</button><button type="button" class="btn" id="rmCsv">⬇ Download Excel</button><input class="field-in" id="rmQ" type="search" placeholder="Search material, category, supplier" style="width:260px;max-width:100%"><select class="field-in" id="rmFc" style="width:auto;min-width:160px" aria-label="Category"></select><select class="field-in" id="rmSort" style="width:auto;min-width:150px" aria-label="Sort by"><option value="name">Sort: Name A–Z</option><option value="low">Sort: Low stock first</option><option value="qty">Sort: Least in store</option><option value="val">Sort: Highest value</option><option value="rate">Sort: Highest rate</option><option value="new">Sort: Recently updated</option></select><span class="rm-vt"><button type="button" class="btn small" id="rmVC">▦ Cards</button><button type="button" class="btn small" id="rmVT">☰ Table</button></span><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem"><input type="checkbox" id="rmLo"> Low stock only</label></div><div id="rmFormBox" hidden></div><div id="rmBuyBox" class="rm-form" hidden></div><div class="rm-grid" id="rmList"></div></section>';
 v.addEventListener('click',function(e){var t=e.target;
 if(t.id==='rmAdd'){openForm();return}
+if(t.id==='rmLens'){openLens();return}
 if(t.id==='rmVC'||t.id==='rmVT'){view=t.id==='rmVT'?'table':'cards';try{localStorage.setItem('rm-view',view)}catch(x){}draw();return}
 if(t.id==='rmBuy'){buyList();return}if(t.id==='rmCsv'){csv();return}if(t.id==='rmBuyX'){$('#rmBuyBox').hidden=true;return}
 if(t.id==='rmBuyCp'){var ta=$('#rmBuyTa');ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(x){}try{navigator.clipboard&&navigator.clipboard.writeText(ta.value)}catch(x){}toast('Buy list copied');return}if(t.id==='rmCancel'){closeForm();return}if(t.id==='rmSave'){doSave();return}

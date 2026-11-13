@@ -2053,7 +2053,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
         <div class="inv-db" id="invDiscBox" aria-live="polite"></div>
         <h4>Payment</h4>
         <div class="inv-grid">
-          <label class="inv-full">Invoice design <small>(Premium suits wedding and handmade decor customers)</small><select class="field-in" id="invTheme"><option value="standard">Standard</option><option value="premium">Premium &ndash; wedding &amp; handmade decor</option></select></label>
+          <label class="inv-full">Invoice design <small>(Premium and Floral suit wedding and handmade decor customers)</small><select class="field-in" id="invTheme"><option value="standard">Standard</option><option value="premium">Premium &ndash; wedding &amp; handmade decor</option><option value="floral">Floral form &ndash; pink &amp; gold flowers</option></select></label>
           <label class="inv-full">Invoice status <small>(Paid, Partially paid and Overdue are set automatically from payments and the due date)</small><select class="field-in" id="invLife"><option value="issued">Issued</option><option value="draft">Draft (not final)</option><option value="cancelled" disabled>Cancelled (use Cancel on a saved invoice)</option></select></label>
           <label>Payment mode<select class="field-in" id="invMode"><option value="">Not stated</option><option>Cash</option><option>UPI</option><option>Bank transfer</option><option>Card</option><option>Cash on delivery</option><option>Marketplace settlement</option></select></label>
           <label>Payment status<select class="field-in" id="invStatus"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Partially paid">Partially paid</option></select></label>
@@ -7442,7 +7442,7 @@ function sheetFix(){
    f('table.hs td','padding:3px 5px!important;border:1px solid #cfd3d8!important;font-size:11px!important')+
    f('.sk','font-size:10.5px;color:#666;margin-top:2px')+
    f('.title b','white-space:nowrap')}
- function sheetCss(){return sheetBase()+sheetFix()+sheetPro()+sheetPrem()+sheetStamp()+'.inv-sheet .pd{display:flex;align-items:center;gap:8px}.inv-sheet .pimg{width:44px;height:44px;object-fit:contain;border:1px solid #e3e6ea;border-radius:4px;background:#fff;flex:none}'}
+ function sheetCss(){return sheetBase()+sheetFix()+sheetPro()+sheetPrem()+sheetFlor()+sheetStamp()+'.inv-sheet .pd{display:flex;align-items:center;gap:8px}.inv-sheet .pimg{width:44px;height:44px;object-fit:contain;border:1px solid #e3e6ea;border-radius:4px;background:#fff;flex:none}'}
  function sheetPro(){
    var R=['.inv-sheet.inv-sheet.inv-sheet','#invPreview .inv-sheet.inv-sheet.inv-sheet','#invPdfHost .inv-sheet.inv-sheet.inv-sheet'];
    function f(sel,d){return R.map(function(r){return r+(sel?' '+sel:'')}).join(',')+'{'+d+'}'}
@@ -7471,6 +7471,62 @@ function sheetFix(){
     f('.small','color:#5b6773;line-height:1.55')+
     f('.sign .line','border-bottom:1px solid #9aa4ae;margin-bottom:5px')+
     f('.cap','border-top:0;color:#7b8794;margin-top:16px')}
+function bloom(x,y,r,c1,c2){var o='',i;for(i=0;i<10;i++)o+='<ellipse cx="'+x+'" cy="'+(y-r*.56)+'" rx="'+(r*.27)+'" ry="'+(r*.5)+'" fill="'+c1+'" transform="rotate('+(i*36)+' '+x+' '+y+')"/>';
+  for(i=0;i<8;i++)o+='<ellipse cx="'+x+'" cy="'+(y-r*.34)+'" rx="'+(r*.17)+'" ry="'+(r*.3)+'" fill="'+c2+'" transform="rotate('+(i*45+22)+' '+x+' '+y+')"/>';
+  o+='<circle cx="'+x+'" cy="'+y+'" r="'+(r*.17)+'" fill="#e2a93b"/>';for(i=0;i<8;i++)o+='<circle cx="'+(x+r*.1*Math.cos(i*.785))+'" cy="'+(y+r*.1*Math.sin(i*.785))+'" r="'+(r*.035)+'" fill="#b8741a"/>';return o}
+ function leaf(x,y,len,ang,c){return '<ellipse cx="'+x+'" cy="'+(y-len/2)+'" rx="'+(len*.17)+'" ry="'+(len/2)+'" fill="'+(c||'#8f9d5c')+'" transform="rotate('+ang+' '+x+' '+y+')"/>'}
+ function sprig(x1,y1,x2,y2){var o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#c9a24a" stroke-width="1.6"/>';for(var i=1;i<=4;i++){var t=i/4.6,px=x1+(x2-x1)*t,py=y1+(y2-y1)*t;o+='<circle cx="'+(px+4)+'" cy="'+py+'" r="3.2" fill="#e2b94f"/><circle cx="'+(px-4)+'" cy="'+(py+3)+'" r="2.6" fill="#e9c76a"/>'}return o}
+ function florCorner(cls){return '<svg class="fl '+cls+'" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+  sprig(232,20,150,150)+sprig(200,10,120,110)+
+  leaf(150,110,70,-60)+leaf(205,120,64,-20)+leaf(110,60,60,-95)+leaf(228,170,55,5)+leaf(160,30,48,-130)+
+  bloom(190,52,54,'#f6b9c6','#ec8aa3')+bloom(112,28,34,'#f9cdd5','#f1a0b5')+bloom(212,150,42,'#f8c4ce','#ee93aa')+bloom(138,112,22,'#f3a9b9','#e9809c')+'</svg>'}
+ function florDeco(){return '<div class="flfr"></div>'+florCorner('fl-tr')+florCorner('fl-br')+florCorner('fl-bl')}
+ function sheetFlor(){
+  var R=['.inv-sheet.inv-sheet.inv-sheet.flor','#invPreview .inv-sheet.inv-sheet.inv-sheet.flor','#invPdfHost .inv-sheet.inv-sheet.inv-sheet.flor'];
+  function f(sel,d){return R.map(function(r){return r+(sel?' '+sel:'')}).join(',')+'{'+d+'}'}
+  var M='#7d1d38',M2='#9c2f4a',G='#c9a24a',P='#f7dde3',C='#fdf3ee',L='#ecd9c4';
+  return f('','position:relative;overflow:hidden;background:#fffaf6;color:#3a2a2a;font-family:Georgia,"Times New Roman",serif;border:1px solid '+G+';border-radius:2px;padding:40px 46px 34px!important;box-sizing:border-box!important')+
+   f('>*:not(.fl):not(.flfr)','position:relative;z-index:1')+
+   f('.flfr','position:absolute;left:9px;top:9px;right:9px;bottom:9px;border:1px solid '+G+';border-radius:3px;pointer-events:none;z-index:0')+
+   f('.fl','position:absolute;width:210px;height:210px;pointer-events:none;z-index:0')+
+   f('.fl-tr','top:0;right:0')+f('.fl-br','bottom:0;right:0;transform:scaleY(-1)')+f('.fl-bl','bottom:0;left:0;transform:scale(-1,-1)')+
+   f('.t-head','border-bottom:0;padding:4px 150px 0 0;margin-bottom:16px;align-items:center;gap:20px')+
+   f('.brand h1','font-family:Georgia,"Times New Roman",serif!important;font-size:21px!important;font-weight:700!important;letter-spacing:.1em!important;color:'+M+'!important;text-transform:uppercase!important')+
+   f('.brand img','height:84px;max-width:190px')+
+   f('.tag','font-style:italic;color:#8b6b5a;font-size:11.5px;letter-spacing:.05em')+
+   f('.title','text-align:center;flex:1;padding-left:18px;border-left:1px solid '+G)+
+   f('.title b','font-size:32px;font-weight:700;letter-spacing:.06em;color:'+M+';white-space:normal;line-height:1.1')+
+   f('.title b:after','content:"";display:block;height:1px;margin:6px auto 4px;width:70%;background:linear-gradient(to right,transparent,'+G+',transparent)')+
+   f('.title span','font-style:italic;color:'+M2+';font-size:13px;background:none;border:0;padding:0')+
+   f('.cols','gap:16px')+
+   f('.box','border:0;border-radius:10px;background:transparent;padding:0 2px;min-height:0')+
+   f('.box h5','display:inline-block;margin:0 0 6px;padding:5px 26px 5px 12px;border-radius:12px 18px 18px 4px;background:linear-gradient(to right,'+P+',#fbeaee);color:'+M+';font-size:12.5px;font-weight:700;letter-spacing:.12em')+
+   f('table.meta','border:0;border-collapse:separate;border-spacing:0;background:'+P+';border-radius:12px;overflow:hidden')+
+   f('table.meta td','border:0!important;border-bottom:1px solid #fff!important;padding:6px 10px')+
+   f('table.meta td:nth-child(odd)','background:transparent;color:#4a2a30;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:11px')+
+   f('table.li','border:1px solid '+G+';border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden')+
+   f('table.li th','background:linear-gradient(to right,#7a1c36,#a23550)!important;color:#fdeee6!important;border:0!important;border-right:1px solid rgba(255,255,255,.25)!important;font-weight:600;letter-spacing:.08em;padding:9px 5px;text-transform:uppercase;font-size:10.5px')+
+   f('table.li td','border:0!important;border-bottom:1px solid '+L+'!important;border-right:1px solid '+L+'!important')+
+   f('table.li tbody tr:nth-child(odd) td','background:'+C)+
+   f('table.li tbody tr:nth-child(even) td','background:#fffaf6')+
+   f('.sk','color:#8b6b5a')+
+   f('.words','border:1px solid '+L+';border-radius:10px;background:'+C)+
+   f('.words b','color:'+M+';letter-spacing:.14em')+
+   f('table.tot','border:1px solid '+G+';border-collapse:separate;border-spacing:0;border-radius:8px;overflow:hidden')+
+   f('table.tot td','border-bottom:1px solid '+L+';background:#fffaf6')+
+   f('table.tot td:first-child','background:'+P+';font-weight:700;color:#4a2a30;letter-spacing:.03em')+
+   f('table.tot tr.g td','background:linear-gradient(to right,#7a1c36,#a23550)!important;color:#fff!important;border:0')+
+   f('table.tot tr.due td','background:#fdf1d8!important;color:'+M+'!important;border-top:1px solid '+G)+
+   f('table.tot tr.paid td','background:#eef4e4!important;color:#3f6a2a!important')+
+   f('table.hs','border-collapse:separate;border-spacing:0')+
+   f('table.hs th','background:'+P)+
+   f('.foot','border-top:1px solid '+L)+
+   f('.sign .line','border-bottom:1px solid '+G)+
+   f('.flthx','text-align:center;margin:20px 150px 4px;color:'+M)+
+   f('.flthx b','display:block;font:italic 400 40px/1.1 "Brush Script MT","Segoe Script","Snell Roundhand","Lucida Handwriting",cursive;color:'+M+';letter-spacing:0')+
+   f('.flthx i','display:block;font-style:normal;font-size:12px;color:#5a4a4a;margin-top:4px')+
+   f('.flthx:before,.flthx:after','content:none')+
+   f('.cap','font-style:italic;color:#8b6b5a;border-top:1px dashed '+G+';margin:12px 100px 0')}
 function sheetPrem(){
    var R=['.inv-sheet.inv-sheet.inv-sheet.prem','#invPreview .inv-sheet.inv-sheet.inv-sheet.prem','#invPdfHost .inv-sheet.inv-sheet.inv-sheet.prem'];
    function f(sel,d){return R.map(function(r){return r+(sel?' '+sel:'')}).join(',')+'{'+d+'}'}
@@ -7521,7 +7577,7 @@ function sheetPrem(){
   '.inv-sheet table.hs{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}.inv-sheet table.hs th,.inv-sheet table.hs td{border:1px solid #cfd3d8;padding:3px 5px;text-align:right}.inv-sheet table.hs th{background:#eef6f2}.inv-sheet table.hs th:first-child,.inv-sheet table.hs td:first-child{text-align:left}'+
   '.inv-sheet .foot{display:flex;justify-content:space-between;gap:20px;margin-top:18px;font-size:11.5px}.inv-sheet .sign{text-align:right;min-width:210px}.inv-sheet .sign .line{height:68px;display:flex;justify-content:flex-end;align-items:center}.inv-sheet .sign .line img{max-height:64px;max-width:190px;object-fit:contain}.inv-sheet .sign b{display:block}'+
   '.inv-sheet .qr{display:flex;gap:12px;align-items:center}.inv-sheet .qr img{width:112px;height:112px;object-fit:contain;flex:none;background:#fff}.inv-sheet .small{font-size:11px;color:#444}.inv-sheet .cap{text-align:center;font-size:10.5px;color:#666;margin-top:12px;border-top:1px dashed #bbb;padding-top:6px}'}
- var thumbs={},thumbPend={},thumbMiss={};
+ var thumbs={},thumbPend={},thumbMiss={},thumbTry={},thumbRetryT=0;
  function thumbUrl(sku){try{var look=window.sscProductImageLookup?window.sscProductImageLookup():null;return look?look(sku):''}catch(e){return ''}}
  function thumbFor(sku){
   sku=String(sku||'').trim();if(!sku||!$('invShowImg').checked)return '';
@@ -7529,7 +7585,12 @@ function sheetPrem(){
   if(thumbPend[sku])return '';
   if(thumbMiss[sku]&&Date.now()-thumbMiss[sku]<1500)return '';
   var u=thumbUrl(sku);
-  if(!u){thumbMiss[sku]=Date.now();return ''}
+  if(!u){thumbMiss[sku]=Date.now();
+   /* Products and their photos can finish loading after the preview first draws: keep retrying for a while so the photo appears by itself */
+   thumbTry[sku]=(thumbTry[sku]||0)+1;
+   if(thumbTry[sku]<=40&&!thumbRetryT){thumbRetryT=setTimeout(function(){thumbRetryT=0;try{renderPreview()}catch(e){}},1600)}
+   return ''}
+  thumbTry[sku]=0;
   delete thumbMiss[sku];
   thumbPend[sku]=new Promise(function(res){
    var im=new Image(),fin=function(v){if(v)thumbs[sku]=v;delete thumbPend[sku];res();if(v)renderPreview()};
@@ -7540,7 +7601,7 @@ function sheetPrem(){
    im.src=u});
   return ''}
  function thumbsReady(){try{items.forEach(function(it){thumbFor(it.s)})}catch(e){}return Promise.all(Object.keys(thumbPend).map(function(k){return thumbPend[k]}))}
- (function(){var t=document.getElementById('tab-invoice');if(t)t.addEventListener('click',function(){thumbs={};thumbMiss={};setTimeout(function(){renderPreview()},60)})})();
+ (function(){var t=document.getElementById('tab-invoice');if(t)t.addEventListener('click',function(){thumbs={};thumbMiss={};thumbTry={};setTimeout(function(){renderPreview()},60)})})();
  function pl0(c){var d='';(c.payList||[]).forEach(function(p){if(p.d&&p.d>d)d=p.d});return d}
  function sheetHtml(){
   var c=calc(),S=seller(),pos=$('invPos').value,posName=(STATES.filter(function(s){return s[0]===pos})[0]||['',''])[1];
@@ -7552,7 +7613,7 @@ function sheetPrem(){
   var taxRows=c.intra?'<tr><td>CGST</td><td class="r">'+money(c.cgst)+'</td></tr><tr><td>SGST</td><td class="r">'+money(c.sgst)+'</td></tr>':'<tr><td>IGST</td><td class="r">'+money(c.igst)+'</td></tr>';
   var hsRows=Object.keys(c.byRate).sort(function(a,b){return a-b}).map(function(k){var v=c.byRate[k],half=r2(v.x/2);return '<tr><td>'+k+'%</td><td>'+money(r2(v.t))+'</td>'+(c.intra?'<td>'+money(half)+'</td><td>'+money(r2(v.x-half))+'</td>':'<td>'+money(r2(v.x))+'</td>')+'</tr>'}).join('');
   var hsHead=c.intra?'<tr><th>GST rate</th><th>Taxable</th><th>CGST</th><th>SGST</th></tr>':'<tr><th>GST rate</th><th>Taxable</th><th>IGST</th></tr>';
-  var payRows='',prem=$('invTheme').value==='premium';
+  var payRows='',prem=$('invTheme').value==='premium',flor=$('invTheme').value==='floral';
    var stampHtml='';
    if(c.state!=='Draft'&&c.state!=='Cancelled'&&c.grand>0){
     var lastPay=pl0(c),sk,st1,st2;
@@ -7572,7 +7633,7 @@ function sheetPrem(){
   var contact=[S.phone?'Ph: '+esc(S.phone):'',S.email?esc(S.email):'',S.web?esc(S.web):''].filter(Boolean).join(' &nbsp;|&nbsp; ');
   var payBox=(S.upi||$('invBank').value.trim())?'<div class="box" style="margin-top:8px;min-height:0"><h5>Pay to</h5>'+($('invBank').value.trim()?'<p>'+nl($('invBank').value)+'</p>':'')+(S.upi?'<p>UPI: <b>'+esc(S.upi)+'</b></p>':'')+'</div>':'';
   var qrBox=qr?'<div class="box qr" style="margin-top:8px;min-height:0"><img src="'+esc(qr)+'" alt="Payment QR code"><div><h5>Scan &amp; pay</h5>'+(autoQ?'<p>Scan with any UPI app. The amount and invoice number are filled in for you.</p>':'<p>Scan this QR code with any UPI app to pay.</p>')+(S.upi?'<p>UPI: <b>'+esc(S.upi)+'</b></p>':'')+(c.status!=='Paid'&&c.due>0?'<p>Amount due: <b>&#8377; '+money(c.due)+'</b></p>':'')+'</div></div>':'';
-  return '<div class="inv-sheet'+(prem?' prem':'')+'">'+
+  return '<div class="inv-sheet'+(prem?' prem':'')+(flor?' flor':'')+'">'+(flor?florDeco():'')+
    '<div class="t-head"><div class="brand">'+(logo?'<img src="'+esc(logo)+'" alt="Logo">':'')+'<div><h1>'+esc(S.name)+'</h1>'+(S.tag?'<div class="tag">'+esc(S.tag)+'</div>':'')+'</div></div><div class="title"><b>TAX INVOICE</b>'+(c.state==='Draft'?'<span style="color:#b3261e;font-weight:700">DRAFT &ndash; not issued</span>':c.state==='Cancelled'?'<span style="color:#b3261e;font-weight:700">CANCELLED</span>':'<span>Original for recipient</span>')+'</div></div>'+
    (prem?'<div class="orn"></div>':'')+'<div class="cols'+(same?'':' cols3')+'"><div class="box"><h5>Sold by</h5><p><b>'+esc(S.legal||S.name)+'</b></p><p>'+nl(S.addr)+'</p>'+(S.gst?'<p>GSTIN: <b>'+esc(S.gst)+'</b></p>':'')+(S.pan?'<p>PAN: '+esc(S.pan)+'</p>':'')+(contact?'<p>'+contact+'</p>':'')+'</div>'+
    '<div class="box"><h5>Billed to</h5><p><b>'+(esc($('invBName').value)||'&nbsp;')+'</b></p><p>'+nl($('invBAddr').value)+'</p>'+($('invBPhone').value?'<p>Ph: '+esc($('invBPhone').value)+'</p>':'')+($('invBEmail').value?'<p>'+esc($('invBEmail').value)+'</p>':'')+(bGst?'<p>GSTIN: <b>'+esc(bGst)+'</b></p>':'')+'</div>'+
@@ -7584,7 +7645,7 @@ function sheetPrem(){
    (hsRows?'<table class="hs"><thead>'+hsHead+'</thead><tbody>'+hsRows+'</tbody></table>':'')+stampHtml+payBox+qrBox+'</div>'+
    '<table class="tot">'+((c.disc||c.lineDisc)?'<tr><td>Items total (before discount)</td><td class="r">'+money(c.gross)+'</td></tr>'+(c.lineDisc?'<tr><td>Item-wise discount</td><td class="r">&minus;'+money(c.lineDisc)+'</td></tr>':'')+(c.disc?'<tr><td>Overall discount'+(c.discPct?' ('+(Math.round(c.discPct*100)/100)+'%)':'')+'</td><td class="r">&minus;'+money(c.disc)+'</td></tr>':'')+(c.disc&&c.lineDisc?'<tr><td>Total discount</td><td class="r">&minus;'+money(r2(c.disc+c.lineDisc))+'</td></tr>':''):'')+'<tr><td>Taxable value'+((c.disc||c.lineDisc)?' (after discount)':'')+'</td><td class="r">'+money(c.taxable)+'</td></tr>'+taxRows+(c.ship?'<tr><td>Shipping / other charges</td><td class="r">'+money(c.ship)+'</td></tr>':'')+(c.roundOff?'<tr><td>Round off</td><td class="r">'+(c.roundOff>0?'+':'')+money(c.roundOff)+'</td></tr>':'')+'<tr class="g"><td>Grand total (₹)</td><td class="r">'+money(c.grand)+'</td></tr>'+payRows+'</table></div>'+
    '<div class="foot"><div class="small"><b>Notes / terms</b><br>'+nl($('invNotes').value)+'<br>Reverse charge: No<br>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</div><div class="sign"><div>For <b>'+esc(S.name)+'</b></div><div class="line">'+(sig?'<img src="'+esc(sig)+'" alt="Signature">':'')+'</div><b>Authorised signatory</b></div></div>'+
-   (prem?'<div class="lux">With heartfelt thanks for letting us be part of your special occasion. Every piece is lovingly handcrafted.</div>':'')+'<div class="cap">Thank you for your business. This is a computer generated invoice.</div></div>'}
+   (flor?'<div class="flthx"><b>Thank you!</b><i>We truly appreciate your business<br>and look forward to working with you again.</i></div>':'')+(prem?'<div class="lux">With heartfelt thanks for letting us be part of your special occasion. Every piece is lovingly handcrafted.</div>':'')+'<div class="cap">Thank you for your business. This is a computer generated invoice.</div></div>'}
  function saveSeller(){lsSet(SKEY,JSON.stringify(seller()))}
  function draftObj(){return ({no:$('invNo').value,date:$('invDate').value,due:$('invDue').value,ref:$('invRef').value,po:$('invPo').value,poDate:$('invPoDate').value,pos:$('invPos').value,bn:$('invBName').value,ba:$('invBAddr').value,same:$('invSame').checked,sa:$('invShAddr').value,bp:$('invBPhone').value,be:$('invBEmail').value,bg:$('invBGst').value,incl:$('invIncl').checked,ship:$('invShip').value,life:$('invLife').value,th:$('invTheme').value,aq:$('invAutoQr').checked,disc:$('invDisc').value,dt:$('invDiscType').value,mode:$('invMode').value,st:$('invStatus').value,paid:$('invPaid').value,bank:$('invBank').value,notes:$('invNotes').value,showLogo:$('invShowLogo').checked,showSig:$('invShowSig').checked,showQr:$('invShowQr').checked,showImg:$('invShowImg').checked,pays:pays.map(function(p){return {d:p.d,a:p.a,m:p.m}}),items:items})}
  function saveDraft(){lsSet(DKEY,JSON.stringify(draftObj()))}

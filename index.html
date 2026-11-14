@@ -1361,7 +1361,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
     if(gate||!document.body)return;
     gate=document.createElement('div');
     gate.style.cssText='position:fixed;inset:0;z-index:99999;background:#f4f1ec;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;padding:16px';
-    gate.innerHTML='<div style="max-width:340px;width:100%;background:#fff;border-radius:16px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.12);text-align:center"><h2 style="margin:0 0 8px;font-size:1.25rem">Shubh Shringar Dashboard</h2><p id="gmsg" style="margin:0 0 18px;color:#555;font-size:.92rem">Loading…</p><button id="gbtn" type="button" style="display:none;width:100%;padding:12px;border:0;border-radius:10px;background:#1a73e8;color:#fff;font-size:1rem;cursor:pointer">Sign in with Google</button><button id="gout" type="button" style="display:none;margin-top:10px;width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;background:#fff;font-size:.95rem;cursor:pointer">Use a different account</button></div>';
+    gate.innerHTML='<div style="max-width:340px;width:100%;background:#fff;color:#1b2433;border-radius:16px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.12);text-align:center"><h2 style="margin:0 0 8px;font-size:1.25rem">Shubh Shringar Dashboard</h2><p id="gmsg" style="margin:0 0 18px;color:#555;font-size:.92rem">Loading…</p><button id="gbtn" type="button" style="display:none;width:100%;padding:12px;border:0;border-radius:10px;background:#1a73e8;color:#fff;font-size:1rem;cursor:pointer">Sign in with Google</button><button id="gout" type="button" style="display:none;margin-top:10px;width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;background:#fff;font-size:.95rem;cursor:pointer">Use a different account</button></div>';
     document.body.appendChild(gate);
     msg=gate.querySelector('#gmsg');btn=gate.querySelector('#gbtn');out=gate.querySelector('#gout');
     if(okShown)gate.style.display='none';
@@ -1491,16 +1491,69 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
     Object.keys(g).forEach(function(k){var o=g[k],s='',ok=true;for(var i=0;i<o.n;i++){if(typeof o.p[i]!=='string'){ok=false;break}s+=o.p[i]}if(ok){out[k]=s;cloudN[k]=o.n}});
     return out;
   }
+  /* ---- small live notices (bottom centre): "updated elsewhere" pill + "X is online" toast ---- */
+  function liveBox(){
+    var b=document.getElementById('sscLive');if(b||!document.body)return b;
+    if(!document.getElementById('sscLiveCss')){var st=document.createElement('style');st.id='sscLiveCss';
+      st.textContent='#sscLive{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:99998;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;max-width:calc(100vw - 24px)}'+
+      '#sscLive .lv{pointer-events:auto;display:flex;align-items:center;gap:8px;background:#0f3d2e;color:#f1d9a4;border:1px solid rgba(241,217,164,.35);border-radius:999px;padding:6px 8px 6px 12px;font:600 .78rem system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.28);animation:lvIn .25s ease}'+
+      '#sscLive .lv i{width:8px;height:8px;border-radius:50%;background:#34d399;flex:none;box-shadow:0 0 0 3px rgba(52,211,153,.25)}'+
+      '#sscLive .lv.upd i{background:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.25)}'+
+      '#sscLive .lv button{border:0;cursor:pointer;font:700 .74rem system-ui,sans-serif;border-radius:999px;padding:4px 10px;background:#f1d9a4;color:#0f3d2e}'+
+      '#sscLive .lv button.x{background:transparent;color:#f1d9a4;padding:2px 6px;font-size:.9rem;line-height:1}'+
+      '@keyframes lvIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}';
+      document.head.appendChild(st)}
+    b=document.createElement('div');b.id='sscLive';document.body.appendChild(b);return b;
+  }
   function banner(){
-    if(document.getElementById('fbNew')||!document.body)return;
-    var d=document.createElement('div');d.id='fbNew';
-    d.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:99998;background:#1a73e8;color:#fff;border-radius:12px;padding:12px 14px;font:600 .9rem system-ui,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 6px 20px rgba(0,0,0,.25)';
-    d.innerHTML='<span>Newer data was saved from another device.</span><button type="button" style="border:0;border-radius:8px;padding:8px 14px;background:#fff;color:#1a73e8;font-weight:700;cursor:pointer">Refresh</button>';
-    d.querySelector('button').onclick=function(){
+    var box=liveBox();if(!box||document.getElementById('fbNew'))return;
+    var d=document.createElement('div');d.id='fbNew';d.className='lv upd';
+    d.innerHTML='<i></i><span>Updated on another device</span><button type="button">Refresh</button><button type="button" class="x" aria-label="Hide">×</button>';
+    var bs=d.querySelectorAll('button');
+    bs[0].onclick=function(){
       var ps=[];Object.keys(remote).forEach(function(k){if(pend[k]!==undefined)return;sync[k]=h(remote[k]);ps.push(writeLocal(k,remote[k]))});ws();
       Promise.all(ps).then(function(){location.reload()});
     };
-    document.body.appendChild(d);
+    bs[1].onclick=function(){d.remove()};
+    box.appendChild(d);
+  }
+  var DEV=null,others={};
+  try{DEV=sessionStorage.getItem('__sscdev')}catch(e){}
+  if(!DEV){DEV=Math.random().toString(36).slice(2,10);try{sessionStorage.setItem('__sscdev',DEV)}catch(e){}}
+  function myName(){try{var u=window.sscAuthX&&window.sscAuthX.cur&&window.sscAuthX.cur();return u&&u.name?String(u.name):''}catch(e){return ''}}
+  function onlineToast(name){
+    var box=liveBox();if(!box)return;
+    var d=document.createElement('div');d.className='lv';
+    var sp=document.createElement('span');
+    sp.textContent=(name||'Someone')+((name&&name===myName())?' (another device)':'')+' is online';
+    d.innerHTML='<i></i>';d.appendChild(sp);
+    var x=document.createElement('button');x.type='button';x.className='x';x.textContent='×';x.onclick=function(){d.remove()};d.appendChild(x);
+    box.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove()},6000);
+  }
+  /* returns true when the snapshot only carried presence changes */
+  function presenceChanges(sn){
+    var ch=sn.docChanges(),only=ch.length>0,now=Date.now();
+    ch.forEach(function(c){
+      var id=c.doc.id;
+      if(id.indexOf('presence__')!==0){only=false;return}
+      var dev=id.slice(10),d=c.doc.data()||{};
+      if(dev===DEV)return;
+      if(c.type==='removed'){delete others[dev];return}
+      var age=now-(d.t||0);
+      if(age>120000){delete others[dev];if(age>600000){try{c.doc.ref.delete()}catch(e){}}return}
+      if(!others[dev]){if(document.body)onlineToast(d.name);else document.addEventListener('DOMContentLoaded',function(){onlineToast(d.name)})}
+      others[dev]={name:d.name,t:d.t};
+    });
+    return only;
+  }
+  function beat(){
+    if(document.hidden||!myName())return;
+    try{fs.collection('kv').doc('presence__'+DEV).set({name:myName(),t:Date.now(),p:1}).catch(function(){})}catch(e){}
+  }
+  function startPresence(){
+    beat();setInterval(beat,45000);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)beat()});
+    window.addEventListener('pagehide',function(){try{fs.collection('kv').doc('presence__'+DEV).delete()}catch(e){}});
   }
   function hydrate(){
     return fs.collection('kv').get().then(function(snap){
@@ -1533,8 +1586,10 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
           var last=+sessionStorage.getItem('__fbrl')||0;
           if(Date.now()-last>30000){try{sessionStorage.setItem('__fbrl',String(Date.now()))}catch(e){}location.reload();return}
         }
+        startPresence();
         fs.collection('kv').onSnapshot(function(sn){
-          if(sn.metadata.hasPendingWrites)return;
+          var onlyP=false;try{onlyP=presenceChanges(sn)}catch(e){}
+          if(onlyP||sn.metadata.hasPendingWrites)return;
           var c=assemble(sn),any=false;
           Object.keys(c).forEach(function(k){
             if(!ELIG(k)||sync[k]===h(c[k]))return;
@@ -1744,7 +1799,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
 </style>
 </head><body>
 <div id="sscLock" role="dialog" aria-modal="true" aria-label="Sign in"><div class="ssc-card" id="sscCard"></div></div>
-<div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><div class="ssc-bar"><i></i></div></div></div>
+<div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><span class="ssc-wel-av" id="sscWelAv" aria-hidden="true"></span><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><div class="ssc-bar"><i></i></div></div></div>
 
 
 <div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
@@ -13254,6 +13309,7 @@ s.textContent+='#view-rawmat .rm-grid{grid-template-columns:repeat(4,minmax(0,1f
 +'.rm-hb{width:min(520px,100%)!important;padding:0!important;gap:0!important}.rm-hh{padding:16px 18px 10px;position:sticky;top:0;background:#fff;border-bottom:1px solid rgba(60,60,67,.14)}.rm-hh h3{margin:0}.rm-hh span{font-size:.85rem;opacity:.7}.rm-hs{padding:10px 18px 4px}.rm-hs h4{margin:0 0 6px;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;opacity:.65}.rm-hr{display:grid;grid-template-columns:78px 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed rgba(60,60,67,.15);font-size:.86rem}.rm-hq{font-weight:800;color:#555}.rm-hq.up{color:#1f7a3a}.rm-hq.dn{color:#b42318}.rm-hn{min-width:0;overflow-wrap:anywhere}.rm-hd{opacity:.6;font-size:.78rem}.rm-hnone{opacity:.55;font-size:.84rem;padding:4px 0 8px}.rm-hb .rm-hx{margin:12px 18px 16px}';
 s.textContent+='@keyframes rmFlash{0%,100%{box-shadow:0 0 0 0 rgba(26,115,232,0)}30%,70%{box-shadow:0 0 0 5px rgba(26,115,232,.55)}}#view-rawmat .rm-card.rm-flash{animation:rmFlash 1.3s ease 2}#view-rawmat .rm-hint{font-size:.8rem;opacity:.75;margin-top:2px}#view-rawmat .rm-lb{display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem}#view-rawmat .rm-vr{display:grid;grid-template-columns:minmax(120px,1.3fr) 1.4fr auto 44px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px dashed rgba(120,120,120,.25);font-size:.85rem}#view-rawmat .rm-vr.rm-cr{grid-template-columns:minmax(140px,1.4fr) 1fr auto;}#view-rawmat .rm-vr.rm-cr small:last-child{grid-column:1/-1;opacity:.7}#view-rawmat .rm-vn{min-width:0;overflow-wrap:anywhere}#view-rawmat .rm-vr small{opacity:.7;text-align:right}#view-rawmat .rm-bar{height:10px;border-radius:99px;background:rgba(120,120,120,.18);overflow:hidden}#view-rawmat .rm-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#4f8cff,#2e9e4f)}#view-rawmat .rm-imp{max-height:360px;overflow:auto}#view-rawmat .rm-tiles.full{grid-column:1/-1}@media(max-width:600px){#view-rawmat .rm-vr{grid-template-columns:1fr auto}#view-rawmat .rm-vr .rm-bar{grid-column:1/-1;order:3}}';
 document.head.appendChild(s)}
+function supList(){var cnt={},nm={};load().forEach(function(x){var l=[x.supplier];(x.quotes||[]).forEach(function(q){l.push(q&&q.v)});l.forEach(function(v){v=String(v||'').trim();if(!v)return;var k=v.toLowerCase();cnt[k]=(cnt[k]||0)+1;if(!nm[k])nm[k]=v})});return Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]||nm[a].localeCompare(nm[b])}).map(function(k){return nm[k]})}
 function formHtml(){var m=editId?load().filter(function(x){return x.id===editId})[0]||{}:(prefill||{});
 return '<div class="rm-form" id="rmForm">'+
 '<div class="full rm-ph"><div id="rmPh">'+phHtml()+'</div><div><input type="file" id="rmFile" accept="image/*" multiple style="display:none"><button type="button" class="btn small" id="rmPick">📷 Add photos (up to 4)</button></div></div>'+
@@ -13266,7 +13322,7 @@ return '<div class="rm-form" id="rmForm">'+
 '<label>Pack price (₹) – rate per piece is worked out for you<input class="field-in" id="rmPackP" type="number" min="0" step="any" value="'+(m.packPrice>0?m.packPrice:'')+'" placeholder="e.g. 400"></label>'+
 '<label>Available in our store<input class="field-in" id="rmQty" type="number" min="0" step="any" value="'+(m.qty!=null?m.qty:'')+'"></label>'+
 '<label>Low-stock alert at<input class="field-in" id="rmLow" type="number" min="0" step="any" value="'+(m.low!=null?m.low:'')+'" placeholder="e.g. 50"></label>'+
-'<label>Supplier / where bought<input class="field-in" id="rmSup" value="'+esc(m.supplier||'')+'"></label>'+
+'<label>Supplier / where bought<input class="field-in" id="rmSup" list="rmSupList" autocomplete="off" placeholder="Type or pick an earlier supplier" value="'+esc(m.supplier||'')+'"><datalist id="rmSupList">'+supList().map(function(x){return '<option value="'+esc(x)+'"></option>'}).join('')+'</datalist></label>'+
 '<label class="full">Basic details (size, colour, quality, notes)<textarea class="field-in" id="rmDet" rows="3">'+esc(m.details||'')+'</textarea></label>'+
 '<div class="full rm-tools"><button type="button" class="btn" id="rmSave">'+(editId?'Save changes':'Add material')+'</button><button type="button" class="btn small" id="rmCancel">Cancel</button></div></div>'}
 var cropCss=false;
@@ -13476,7 +13532,7 @@ function dupGroups(){var by={};load().forEach(function(m){var k=skuKey(m.sku);if
 function skuLive(){var i=$('#rmSku'),h=$('#rmSkuHint');if(!i||!h)return;var d=findSku(i.value,editId);h.textContent=d?'⚠ Already used by “'+d.name+'”':''}
 function boxShow(id,html){hideBoxes();var b=$('#'+id);if(!b)return;b.innerHTML=html;b.hidden=false;try{b.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}}
 function proxyId(id){var v=$('#view-rawmat');if(!v)return;var b=document.createElement('button');b.type='button';b.id=id;b.style.display='none';v.appendChild(b);b.click();b.remove()}
-function toolMenu(btn){menuClose();var k=btn.dataset.tm,items=k==='inv'?[['rmBulk','✏️ Bulk stock update'],['rmImp','📥 Import from Excel / CSV'],['rmCnt','📋 Physical stock audit'],['rmAdjT','⚖️ Stock adjustment'],['rmDup','🔎 Check duplicate SKUs'],null,['rmCsv','⬇ Download Excel (CSV)']]:[['rmVal','💰 Inventory valuation'],['rmHist','📅 Monthly purchase report'],['rmCons','📈 Stock consumption report'],['rmDead','💤 Dead stock report']];
+function toolMenu(btn){menuClose();var k=btn.dataset.tm,items=k==='inv'?[['rmBulk','✏️ Bulk stock update'],['rmImp','📥 Import from Excel / CSV'],['rmCnt','📋 Physical stock audit'],['rmAdjT','⚖️ Stock adjustment'],['rmDup','🔎 Check duplicate SKUs'],null,['rmCsv','⬇ Download Excel (CSV)']]:[['rmAlertPdf','🚨 Low & out-of-stock report (PDF)'],['rmVal','💰 Inventory valuation'],['rmHist','📅 Monthly purchase report'],['rmCons','📈 Stock consumption report'],['rmDead','💤 Dead stock report']];
 var d=document.createElement('div');d.className='rm-menu';d.dataset.id='tm:'+k;d.innerHTML=items.map(function(x){return x?'<button type="button" data-tid="'+x[0]+'">'+x[1]+'</button>':'<hr>'}).join('');document.body.appendChild(d);
 var r=btn.getBoundingClientRect(),w=d.offsetWidth,h=d.offsetHeight,left=Math.min(Math.max(8,r.left),innerWidth-w-8),top=r.bottom+6;if(top+h>innerHeight-8)top=Math.max(8,r.top-h-6);d.style.left=left+'px';d.style.top=top+'px';
 d.addEventListener('click',function(e){var t=e.target.closest('[data-tid]');if(!t)return;var id=t.dataset.tid;menuClose();proxyId(id)})}
@@ -13680,6 +13736,37 @@ if(k<PER-1&&n+1<l.length){c.fillStyle='#ddd';c.fillRect(M,y0+slot-20,W-2*M,2)}}
 if(p>0)pdf.addPage();pdf.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)}
 var fn='shopping-list-'+new Date().toISOString().slice(0,10)+'.pdf';
 if(mode==='share'){var f=new File([pdf.output('blob')],fn,{type:'application/pdf'});navigator.share({files:[f],text:shopText()}).catch(function(){toast('Sharing cancelled')})}else{pdf.save(fn);toast('PDF downloaded')}})},function(){toast('Could not load the PDF tool – check your internet and try again.')})}
+function alertPdf(){
+var K=window.sscPdfKit,all=load(),rows=all.filter(function(m){return stOf(m)!=='ok'}).sort(function(a,b){var o={out:0,low:1};return (o[stOf(a)]-o[stOf(b)])||String(a.name).localeCompare(String(b.name))});
+if(!rows.length){toast('Nothing is low or out of stock right now 🎉');return}
+toast('Making report…');var lg=document.querySelector('img.logo');
+pdfLib(function(){Promise.all([Promise.all(rows.map(function(m){var ph=(m.photos&&m.photos.length?m.photos[0]:m.photo)||'';return imgLoad(ph)})),imgLoad(lg?(lg.currentSrc||lg.src):'')]).then(function(R){
+var imgs=R[0],logo=R[1],W=1654,H=2339,M=90,TOP=330,HEADH=64,RH=150,per=Math.floor((H-110-TOP-HEADH)/RH),pages=Math.max(1,Math.ceil(rows.length/per)),J=window.jspdf.jsPDF,pdf=new J({orientation:'portrait',unit:'mm',format:'a4',compress:true}),
+FF='"Segoe UI","Noto Sans","Noto Sans Devanagari",Arial,sans-serif',nOut=rows.filter(function(m){return stOf(m)==='out'}).length,nLow=rows.length-nOut,sup={};
+rows.forEach(function(m){var v=vendorOf(m,null);if(v)sup[v]=1});
+var stats=[['OUT OF STOCK',String(nOut)],['LOW STOCK',String(nLow)],['TOTAL MATERIALS',String(all.length)],['SUPPLIERS TO CALL',String(Object.keys(sup).length||'–')]],
+ds=new Date().toISOString().slice(0,10).split('-').reverse().join('/'),
+cols=[{t:'#',x:0,w:60,a:'c'},{t:'PHOTO',x:60,w:150,a:'c'},{t:'MATERIAL',x:210,w:430,a:'l'},{t:'IN STORE',x:640,w:150,a:'c'},{t:'ALERT AT',x:790,w:130,a:'c'},{t:'STATUS',x:920,w:140,a:'c'},{t:'SUPPLIER',x:1060,w:270,a:'l'},{t:'SUGGEST BUY',x:1330,w:144,a:'c'}],
+tone={low:['#b26a00','rgba(245,165,36,.22)','LOW'],out:['#d92d20','rgba(217,45,32,.14)','OUT']};
+for(var p=0;p<pages;p++){var cv=document.createElement('canvas');cv.width=W;cv.height=H;var c=cv.getContext('2d');
+K.pageFrame(c,W,H,M,logo,{title:'LOW & OUT OF STOCK',sub:'Raw material alert report',date:ds,stats:stats,p:p+1,pages:pages,foot:'Shubh Shringar Creations  ·  Raw Material Stock'});
+var tx=function(col,t,y,font,color){c.font=font;c.fillStyle=color;var px=M+col.x;if(col.a==='c'){c.textAlign='center';c.fillText(t,px+col.w/2,y)}else{c.textAlign='left';c.fillText(t,px+8,y)}c.textAlign='left'};
+c.fillStyle='#7a2e2a';c.fillRect(M,TOP,W-2*M,HEADH);cols.forEach(function(col){tx(col,col.t,TOP+22,'700 19px '+FF,'#fff')});
+for(var k=0;k<per;k++){var n=p*per+k;if(n>=rows.length)break;var m=rows[n],st=stOf(m),y=TOP+HEADH+k*RH,cy=y+RH/2,u=m.unit||'pcs';
+c.fillStyle=k%2?'rgba(255,255,255,.9)':'rgba(251,246,238,.94)';c.fillRect(M,y,W-2*M,RH);c.fillStyle='#e6dccb';c.fillRect(M,y+RH-2,W-2*M,2);
+tx(cols[0],String(n+1),cy-14,'600 24px '+FF,'#777');
+var px0=M+cols[1].x+10,py0=y+10,sz=RH-20;c.fillStyle='#f1efe9';c.fillRect(px0,py0,sz,sz);c.strokeStyle='#e0d6c2';c.lineWidth=2;c.strokeRect(px0,py0,sz,sz);
+var im=imgs[n];if(im){var r=Math.min(sz/im.width,sz/im.height);c.drawImage(im,px0+(sz-im.width*r)/2,py0+(sz-im.height*r)/2,im.width*r,im.height*r)}else{c.fillStyle='#aaa';c.font='400 20px '+FF;c.textAlign='center';c.fillText('No photo',px0+sz/2,py0+sz/2-10);c.textAlign='left'}
+c.fillStyle='#111';c.font='700 27px '+FF;var ls=[],cur='';String(m.name).split(/\s+/).forEach(function(w){var t=cur?cur+' '+w:w;if(c.measureText(t).width>cols[2].w-16&&cur){ls.push(cur);cur=w}else cur=t});ls.push(cur);if(ls.length>2){ls=ls.slice(0,2);ls[1]=ls[1].replace(/.{0,2}$/,'…')}
+var ty=cy-(ls.length===2?52:36);ls.forEach(function(l,i){c.fillText(l,M+cols[2].x+8,ty+i*34)});var yy=ty+ls.length*34;
+c.fillStyle='#777';c.font='400 22px '+FF;var meta=[m.sku,m.cat].filter(Boolean).join('  ·  ');if(meta)c.fillText(meta.length>40?meta.slice(0,39)+'…':meta,M+cols[2].x+8,yy+2);
+var q=num(m.qty);tx(cols[3],String(Math.round(q*100)/100)+' '+u,cy-20,'700 32px '+FF,st==='out'?'#d92d20':'#111');
+tx(cols[4],(m.low!=null&&m.low!=='')?String(num(m.low)):'–',cy-15,'400 27px '+FF,'#444');
+var tt=tone[st],pw=110,pxx=M+cols[5].x+(cols[5].w-pw)/2;c.fillStyle=tt[1];c.beginPath();if(c.roundRect)c.roundRect(pxx,cy-20,pw,40,20);else c.rect(pxx,cy-20,pw,40);c.fill();tx(cols[5],tt[2],cy-13,'700 22px '+FF,tt[0]);
+var sv=vendorOf(m,null)||'–';c.font='600 24px '+FF;c.fillStyle='#333';var sl=[],sc2='';sv.split(/\s+/).forEach(function(w){var t=sc2?sc2+' '+w:w;if(c.measureText(t).width>cols[6].w-16&&sc2){sl.push(sc2);sc2=w}else sc2=t});sl.push(sc2);sl=sl.slice(0,2);sl.forEach(function(l,i){c.fillText(l,M+cols[6].x+8,cy-(sl.length===2?26:14)+i*30)});
+var sb=0;try{sb=suggest(m)}catch(e){}tx(cols[7],sb>0?sb+' '+u:'–',cy-15,'700 27px '+FF,'#7a2e2a')}
+if(p>0)pdf.addPage();pdf.addImage(cv.toDataURL('image/jpeg',.9),'JPEG',0,0,210,297)}
+pdf.save('low-out-of-stock-'+new Date().toISOString().slice(0,10)+'.pdf');toast('Report downloaded')})},function(){toast('Could not load the PDF tool – check your internet and try again.')})}
 function stOf(m){var q=m.qty,e=(q===undefined||q===null||q==='');if(!e&&num(q)<=0)return 'out';if(m.low!=null&&m.low!==''&&num(q)<=num(m.low))return 'low';return 'ok'}
 function isLow(m){return m.low!=null&&m.low!==''&&num(m.qty)<=num(m.low)||num(m.qty)<=0&&m.qty!==undefined&&m.qty!==''}
 function openForm(id,pre){editId=id||null;prefill=id?null:(pre||null);photos=id?(function(m){return (m.photos||(m.photo?[m.photo]:[])).slice()})(load().filter(function(x){return x.id===id})[0]||{}):((pre&&pre.photos)||[]).slice();formOpen=true;$('#rmFormBox').innerHTML=formHtml();$('#rmFormBox').hidden=false;$('#rmName').focus();if(pre&&pre.name)$('#rmName').select()}
@@ -13700,7 +13787,7 @@ if(t.id==='rmBuy'){shopSeen=true;updBlink();hideBoxes();buyList();return}
 if(t.id==='rmHist'){histPanel();return}if(t.id==='rmHX'){$('#rmHistBox').hidden=true;return}if(t.id==='rmHEx'){histToExp(t.dataset.mo);return}
 if(t.id==='rmHCsv'){var hl=histFiltered(t.dataset.mo);dl('raw-material-purchases-'+new Date().toISOString().slice(0,10)+'.csv',[['Date','Material','Category','Vendor','Qty','Unit','Rate','Total']].concat(hl.map(function(x){return [x.d.slice(0,10),x.name,x.cat,x.v,x.q,x.unit,x.r,x.tot]})));return}
 if(t.dataset&&t.dataset.bdel){if(confirm('Delete this purchase record? (Stock is not changed)')){var bb=buys().filter(function(x){return x.id!==t.dataset.bdel});buysSave(bb);histPanel(($('#rmHM')||{}).value)}return}
-if(t.id==='rmDead'){deadPanel();return}if(t.id==='rmDX'){$('#rmDeadBox').hidden=true;return}
+if(t.id==='rmAlertPdf'){alertPdf();return}if(t.id==='rmDead'){deadPanel();return}if(t.id==='rmDX'){$('#rmDeadBox').hidden=true;return}
 if(t.id==='rmDCsv'){var dd=num(t.dataset.d),cut=Date.now()-dd*864e5;dl('dead-stock-'+new Date().toISOString().slice(0,10)+'.csv',[['Material','Category','In store','Unit','Rate','Value tied','Last used']].concat(load().filter(function(m){return num(m.qty)>0&&lastUse(m)<cut&&(!m.updated||Date.parse(m.updated)<cut)}).map(function(m){return [m.name,m.cat,num(m.qty),m.unit,num(m.rate),Math.round(num(m.qty)*num(m.rate)*100)/100,lastUse(m)?new Date(lastUse(m)).toISOString().slice(0,10):'never']})));return}
 if(t.id==='rmCnt'){cntPanel();return}if(t.id==='rmCntX'){$('#rmCntBox').hidden=true;return}if(t.id==='rmCntOk'){cntApply();return}if(t.id==='rmCsv'){csv();return}if(t.id==='rmClr'){clearF();return}if(t.id==='rmBuyX'){$('#rmBuyBox').hidden=true;return}
 if(t.id==='rmBuyPdf'){shopPdf();return}if(t.id==='rmBuyCp'){var ta=$('#rmBuyTa');ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(x){}try{navigator.clipboard&&navigator.clipboard.writeText(ta.value)}catch(x){}toast('Shopping List copied');return}if(t.id==='rmCancel'){closeForm();return}if(t.id==='rmSave'){doSave();return}
@@ -13896,6 +13983,53 @@ html body.ssc-shell #view-orders #kpiRow,html body.ssc-shell #view-orders #metri
 html body.ssc-shell #view-orders .chan-card,html body.ssc-shell #view-orders .metric-card{padding:20px 22px}
 @media(max-width:700px){html body.ssc-shell #view-orders{gap:18px!important}}
 @media(prefers-reduced-motion:reduce){html body.ssc-shell #view-orders *{transition:none!important}}
+</style>
+<style id="dark-fix-1">
+/* ===== Dark mode fix, step 1: page base + Dashboard screen ===== */
+html[data-theme*="dark"] body{background:var(--bg)!important;color:var(--ink)}
+/* header card (business name, address, website, contact) */
+html[data-theme*="dark"] body .brand-addr{background:var(--glass)!important;border:1px solid var(--stroke)!important;border-left:4px solid #c8a96a!important}
+html[data-theme*="dark"] body .brand-addr .ba-name{color:#f1d9a4!important}
+html[data-theme*="dark"] body .brand-addr .ba-line small{color:#c8a96a!important}
+html[data-theme*="dark"] body .brand-addr .ba-line,html[data-theme*="dark"] body .brand-addr .ba-line span,html[data-theme*="dark"] body .brand-addr address,html[data-theme*="dark"] body .brand-addr .ba-line b{color:var(--ink-2)!important}
+html[data-theme*="dark"] body .brand-addr a{color:var(--accent)!important;border-bottom-color:rgba(200,169,106,.5)!important}
+html[data-theme*="dark"] body .brand-addr svg{stroke:#c8a96a!important}
+html[data-theme*="dark"] body .brand-addr .ba-edit{color:#f1d9a4;border-color:rgba(241,217,164,.4)}
+html[data-theme*="dark"] body .brand-addr .ba-gst{background:#0f3d2e!important}
+html[data-theme*="dark"] body .brand-addr .ba-gst b{color:#f1d9a4}
+/* toolbar + date filter bar */
+html[data-theme*="dark"] #proTools,html[data-theme*="dark"] #dashBar{background:var(--glass)!important;border-color:var(--stroke)!important;color:var(--ink)}
+html[data-theme*="dark"] #proTools label,html[data-theme*="dark"] #dashBar label{color:var(--ink-2)}
+html[data-theme*="dark"] #proTools #proCount{color:#c8a96a}
+html[data-theme*="dark"] #proTools input[type=date],html[data-theme*="dark"] #dashBar select,html[data-theme*="dark"] #dashBar input[type=date]{background:var(--field);color:var(--ink);border-color:var(--stroke);color-scheme:dark}
+html[data-theme*="dark"] #proTools .chip,html[data-theme*="dark"] #dashBar .dfb-chips button{background:var(--field);color:var(--ink);border-color:var(--stroke)}
+html[data-theme*="dark"] #proTools .chip:hover,html[data-theme*="dark"] #proTools .chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+html[data-theme*="dark"] #dashBar .dfb-chips button:hover{border-color:#fbbf24;color:#fbbf24}
+html[data-theme*="dark"] #dashBar .dfb-chips button[aria-pressed="true"]{background:#c98a12;border-color:#c98a12;color:#fff}
+/* Key numbers cards */
+html[data-theme*="dark"] #kpiRow .kpi{background:var(--glass);border-color:var(--stroke);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.4)}
+html[data-theme*="dark"] #kpiRow .kpi:hover{box-shadow:0 8px 22px rgba(0,0,0,.5)}
+html[data-theme*="dark"] #kpiRow .kpi-val{color:var(--ink)}
+html[data-theme*="dark"] #kpiRow .kpi-lb,html[data-theme*="dark"] #kpiRow .kpi-cmp{color:var(--ink-3)}
+html[data-theme*="dark"] #kpiRow .kpi-ic{background:color-mix(in srgb,var(--k) 20%,transparent)}
+html[data-theme*="dark"] #kpiRow .kpi-chip.up{background:rgba(52,211,153,.16);color:#34d399}
+html[data-theme*="dark"] #kpiRow .kpi-chip.dn{background:rgba(248,113,113,.16);color:#f87171}
+html[data-theme*="dark"] #kpiRow .kpi-chip.fl{background:rgba(255,255,255,.08);color:var(--ink-3)}
+html[data-theme*="dark"] #kpiRow .kpi-cap b{color:var(--ink)!important}
+html[data-theme*="dark"] #kpiRow .kpi-cap span{color:var(--ink-3)!important}
+</style>
+<style id="welAvCss">
+/* profile photo on the welcome screen */
+.ssc-wel .ssc-wel-av{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;overflow:hidden;font-size:3rem;font-weight:800;color:#f1d9a4;background:linear-gradient(135deg,#0f3d2e,#14513d);border:4px solid #c8a96a;box-shadow:0 0 0 6px rgba(200,169,106,.22),0 12px 28px rgba(0,0,0,.25);margin:4px 0 6px}
+.ssc-wel .ssc-wel-av img{width:100%;height:100%;object-fit:cover;display:block}
+.ssc-wel .ssc-wel-av.ph{background:#fff}
+.ssc-wel .ssc-logo{height:120px}
+#sscWelcome.on .ssc-wel>:nth-child(2){animation:sscPop .7s cubic-bezier(.2,.9,.3,1.2) .12s both}
+#sscWelcome.on .ssc-wel>:nth-child(3){animation-delay:.28s}
+#sscWelcome.on .ssc-wel>:nth-child(4){animation-delay:.4s}
+#sscWelcome.on .ssc-wel>:nth-child(5){animation-delay:.52s}
+@keyframes sscPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#sscWelcome.on .ssc-wel>:nth-child(2){animation:none!important}}
 </style>
 </body></html>
 <style>
@@ -15411,7 +15545,7 @@ function enter(u,isNew){
   if(isNew)logEv('login',u.username);lastAct=Date.now();
   cur=u;ssSet(SK,u.id);lsSet(LK,u.username);
   card.classList.add('out');
-  $('#sscWelHi').textContent=isNew?'Welcome':'Welcome back';$('#sscWelName').textContent=u.name;
+  $('#sscWelHi').textContent=isNew?'Welcome':'Welcome back';$('#sscWelName').textContent=u.name;(function(){var av=$('#sscWelAv');if(!av)return;av.innerHTML='';if(u.photo){var im=document.createElement('img');im.alt='';im.src=u.photo;av.appendChild(im);av.className='ssc-wel-av ph'}else{av.className='ssc-wel-av';av.textContent=String(u.name||'?').trim().charAt(0).toUpperCase()}})();
   welTimers.forEach(clearTimeout);welTimers=[];
   welTimers.push(setTimeout(function(){wel.hidden=false;void wel.offsetWidth;wel.classList.add('on')},300));
   welTimers.push(setTimeout(function(){lock.hidden=true;applyAccess(u);renderBar();lockPage(false)},950));
@@ -16843,6 +16977,39 @@ window.addEventListener('ssc-invoices-changed',function(){cache=null});
 <style id="ivFsCss">
 .iv-trk{border:0;background:transparent;cursor:pointer;font-size:.9rem;padding:0 4px;margin-left:6px;border-radius:6px;vertical-align:middle}
 .iv-trk:hover{background:color-mix(in srgb,var(--accent,#0a7aff) 18%,transparent)}
+html:root[data-theme*="dark"] body.ssc-shell:has(#view-orders:not([hidden])) header.top .ba-name{color:#f1d9a4!important}
+/* white "premium" cards on the Dashboard: Today, Needs attention, Money coming in, Goal, date bar */
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card,html[data-theme*="dark"] body.ssc-shell #view-orders section.dfb{background:var(--glass)!important;border-color:var(--stroke)!important;box-shadow:0 1px 2px rgba(0,0,0,.4)!important;--ink:inherit;--ink-2:inherit;--ink-3:inherit;--field:inherit;--stroke-2:inherit;--btn-bg:inherit;--glass-2:inherit}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .chan-head h3,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .today-t b,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .pw-sum b,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .pend-t td,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card #goalCard .goal-top b,#goalCard.pw-card .goal-top b,.pw-sum b{color:var(--ink)!important}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .chan-head p,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .pend-t th,.pw-sum span{color:var(--ink-3)!important}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .btn,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .attn-go button{background:var(--field)!important;color:var(--ink)!important;border-color:var(--stroke)!important}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .btn:hover,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .attn-go button:hover{border-color:#fbbf24!important;color:#fbbf24!important}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .btn.primary{background:#c98a12!important;color:#fff!important;border-color:#c98a12!important}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .today-t,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .attn-item{background:var(--field);border-color:var(--stroke)}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .attn-ic.red{background:rgba(248,113,113,.16);color:#f87171}html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .attn-ic.amber{background:rgba(251,191,36,.16);color:#fbbf24}html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .attn-ic.ok{background:rgba(52,211,153,.16);color:#34d399}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .attn-badge.ok{background:rgba(52,211,153,.16);color:#34d399}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .pend-t td{border-bottom-color:var(--stroke)}
+.pw-sum{background:rgba(248,113,113,.1)!important;border-color:rgba(248,113,113,.3)!important}
+#pendCard.pw-card .pend-big{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3)}
+#pendCard.pw-card .pend-big b{color:#34d399}
+#goalCard.pw-card .goal-bar{background:var(--field)}
+html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .goal-set input,html[data-theme*="dark"] body.ssc-shell #view-orders section.pw-card .rem-row input[type=time]{background:var(--field);color:var(--ink);border-color:var(--stroke);color-scheme:dark}
+html[data-theme*="dark"] #todayCard.pw-card .chan-head::before{background-color:rgba(201,138,18,.2)}
+html[data-theme*="dark"] #attnCard.pw-card .chan-head::before{background-color:rgba(248,113,113,.18)}
+html[data-theme*="dark"] #pendCard.pw-card .chan-head::before{background-color:rgba(52,211,153,.16)}
+html[data-theme*="dark"] #goalCard.pw-card .chan-head::before{background-color:rgba(129,140,248,.2)}
+html[data-theme*="dark"] #dashBar label,html[data-theme*="dark"] #dashBar .dash-note{color:var(--ink-3)}
+/* Top 3 sold: wider column so the sold counts stay inside the card */
+@media (min-width:1281px){html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top{grid-template-columns:minmax(0,1fr) 290px}}
+html body.ssc-shell .top3 ol,html body.ssc-shell .top3 li{min-width:0}
+html body.ssc-shell .top3 li{grid-template-columns:22px 38px minmax(0,1fr) minmax(30px,auto)}
+html body.ssc-shell .top3 .t3-qty{white-space:nowrap}
+/* bigger logo in the Dashboard header (scaled by screen width so nothing gets squeezed) */
+html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top .logo-plate{flex:none;width:150px}
+html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top img.logo{width:150px!important;max-width:150px!important;height:auto!important}
+@media (min-width:1500px){html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top .logo-plate{width:210px}html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top img.logo{width:210px!important;max-width:210px!important}}
+@media (min-width:1700px){html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top .logo-plate{width:230px}html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top img.logo{width:230px!important;max-width:230px!important}}
+@media (max-width:700px){html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top .logo-plate,html:root body.ssc-shell:has(#view-orders:not([hidden])) header.top img.logo{width:110px!important;max-width:110px!important}}
 </style>
 <script>
 /* Generate an invoice from a Sale Entry or a Tracker order */

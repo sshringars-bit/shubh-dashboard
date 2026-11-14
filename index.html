@@ -5247,18 +5247,39 @@ function setTab(t){
 
 var CAT_DEF=['Diwali','Rakhi','Navratri','Karwa Chauth','Wedding','Christmas','Everyday'];
 function catKeep(){try{return JSON.parse(localStorage.getItem('ssc-cats-v1')||'[]')||[]}catch(e){return []}}
-function catAll(prods){var seen={},L=[];(CAT_DEF.concat(catKeep())).concat((prods||state.products.map(normP)).reduce(function(a,p){return a.concat(p.cats||[])},[])).forEach(function(c){var k=String(c).toLowerCase();if(c&&!seen[k]){seen[k]=1;L.push(c)}});return L}
+function catHid(){try{return JSON.parse(localStorage.getItem('ssc-cats-hidden-v1')||'[]')||[]}catch(e){return []}}
+function catAll(prods){var seen={},L=[],hid=catHid().map(function(x){return String(x).toLowerCase()});(CAT_DEF.filter(function(c){return hid.indexOf(c.toLowerCase())<0}).concat(catKeep())).concat((prods||state.products.map(normP)).reduce(function(a,p){return a.concat(p.cats||[])},[])).forEach(function(c){var k=String(c).toLowerCase();if(c&&!seen[k]){seen[k]=1;L.push(c)}});return L}
 window.catAll=catAll;
 window.catFill=function(all){var sel=document.getElementById('pCat');if(!sel)return;var cnt={},none=0;all.forEach(function(p){if(!p.cats.length)none++;p.cats.forEach(function(c){cnt[c]=(cnt[c]||0)+1})});
   var cur=state.pCatF||'',o='<option value="">All categories ('+all.length+')</option>'+Object.keys(cnt).sort().map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+' ('+cnt[c]+')</option>'}).join('')+'<option value="__none">Uncategorised ('+none+')</option>';
   if(sel._o!==o){sel.innerHTML=o;sel._o=o}if(cur&&!cnt[cur]&&cur!=='__none')cur='';state.pCatF=cur;sel.value=cur;
   if(!sel._b){sel._b=1;sel.addEventListener('change',function(){state.pCatF=sel.value;state.pLimit=60;renderProducts()})}};
 window.catDraw=function(){var box=document.getElementById('p-cats');if(!box)return;var cs=state.pCats||[],all=catAll();cs.forEach(function(c){if(all.indexOf(c)<0)all.push(c)});
-  box.innerHTML=all.map(function(c){var on=cs.indexOf(c)>-1;return '<button type="button" class="catchip'+(on?' on':'')+'" data-cat="'+esc(c)+'" aria-pressed="'+on+'">'+esc(c)+'</button>'}).join('');
-  if(!box._b){box._b=1;box.addEventListener('click',function(e){var b=e.target.closest('[data-cat]');if(!b)return;var c=b.dataset.cat,i=(state.pCats||[]).indexOf(c);state.pCats=state.pCats||[];if(i>-1)state.pCats.splice(i,1);else state.pCats.push(c);window.catDraw()});
+  box.innerHTML=all.map(function(c){var on=cs.indexOf(c)>-1;return '<span class="catwrap"><button type="button" class="catchip'+(on?' on':'')+'" data-cat="'+esc(c)+'" aria-pressed="'+on+'">'+esc(c)+'</button><button type="button" class="catact" data-catedit="'+esc(c)+'" title="Rename category" aria-label="Rename '+esc(c)+'">&#9998;</button><button type="button" class="catact" data-catdel="'+esc(c)+'" title="Delete category" aria-label="Delete '+esc(c)+'">&#10005;</button></span>'}).join('');
+  if(!box._b){box._b=1;box.addEventListener('click',function(e){var ed=e.target.closest('[data-catedit]'),dl=e.target.closest('[data-catdel]');if(ed){window.catRename(ed.dataset.catedit);return}if(dl){window.catRemove(dl.dataset.catdel);return}var b=e.target.closest('[data-cat]');if(!b)return;var c=b.dataset.cat,i=(state.pCats||[]).indexOf(c);state.pCats=state.pCats||[];if(i>-1)state.pCats.splice(i,1);else state.pCats.push(c);window.catDraw()});
     var add=function(){var inp=document.getElementById('p-catnew'),v=inp.value.trim().replace(/\s+/g,' ').slice(0,30);if(!v)return;var ex=catAll().filter(function(c){return c.toLowerCase()===v.toLowerCase()})[0];if(ex)v=ex;else{var k=catKeep();k.push(v);try{localStorage.setItem('ssc-cats-v1',JSON.stringify(k))}catch(x){}}
       state.pCats=state.pCats||[];if(state.pCats.indexOf(v)<0)state.pCats.push(v);inp.value='';window.catDraw()};
     document.getElementById('p-catadd').addEventListener('click',add);document.getElementById('p-catnew').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();add()}})}};
+
+function catSetLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(x){}}
+function catTouchProducts(fn){var ch=[];state.products.forEach(function(p){var c=(p.cats||[]).slice(),n=fn(c);if(n){p.cats=n;ch.push(p)}});
+  if(!ch.length)return;if(db){ch.forEach(function(p){var q=normP(p);q.id=p.id;q.created=p.created;q.hist=p.hist;try{saveProduct(q,q.images)}catch(e){}})}else{persistProducts()}}
+window.catRename=function(old){var nv=prompt('Rename category "'+old+'" to:',old);if(nv===null)return;nv=nv.trim().replace(/\s+/g,' ').slice(0,30);if(!nv||nv===old)return;
+  var lo=old.toLowerCase(),ln=nv.toLowerCase(),ex=catAll().filter(function(c){return c.toLowerCase()===ln&&c.toLowerCase()!==lo})[0];
+  if(ex){if(!confirm('"'+ex+'" already exists. Merge "'+old+'" into it?'))return;nv=ex;ln=nv.toLowerCase()}
+  var keep=catKeep().filter(function(c){return c.toLowerCase()!==lo});if(!keep.some(function(c){return c.toLowerCase()===ln}))keep.push(nv);catSetLS('ssc-cats-v1',keep);
+  var hid=catHid();if(CAT_DEF.some(function(c){return c.toLowerCase()===lo})&&!hid.some(function(c){return c.toLowerCase()===lo}))hid.push(old);hid=hid.filter(function(c){return c.toLowerCase()!==ln});catSetLS('ssc-cats-hidden-v1',hid);
+  catTouchProducts(function(c){var ch=false,o=[];c.forEach(function(x){if(x.toLowerCase()===lo){x=nv;ch=true}if(o.map(function(y){return y.toLowerCase()}).indexOf(x.toLowerCase())<0)o.push(x)});return ch?o:null});
+  state.pCats=(state.pCats||[]).map(function(x){return x.toLowerCase()===lo?nv:x}).filter(function(x,i,a){return a.map(function(y){return y.toLowerCase()}).indexOf(x.toLowerCase())===i});
+  if((state.pCatF||'').toLowerCase()===lo)state.pCatF=nv;
+  window.catDraw();try{renderProducts()}catch(e){}try{toast('Category renamed')}catch(e){}};
+window.catRemove=function(name){var lo=name.toLowerCase(),n=state.products.filter(function(p){return (p.cats||[]).some(function(x){return x.toLowerCase()===lo})}).length;
+  if(!confirm('Delete category "'+name+'"?'+(n?'\n\nIt will be removed from '+n+' product'+(n>1?'s':'')+' (the products themselves are not deleted).':'')))return;
+  catSetLS('ssc-cats-v1',catKeep().filter(function(c){return c.toLowerCase()!==lo}));
+  if(CAT_DEF.some(function(c){return c.toLowerCase()===lo})){var hid=catHid();if(!hid.some(function(c){return c.toLowerCase()===lo}))hid.push(name);catSetLS('ssc-cats-hidden-v1',hid)}
+  catTouchProducts(function(c){var o=c.filter(function(x){return x.toLowerCase()!==lo});return o.length!==c.length?o:null});
+  state.pCats=(state.pCats||[]).filter(function(x){return x.toLowerCase()!==lo});if((state.pCatF||'').toLowerCase()===lo)state.pCatF='';
+  window.catDraw();try{renderProducts()}catch(e){}try{toast('Category deleted')}catch(e){}};
 function saveProduct(p,orig){
   if(db){
     var imgs=p.images||[],old=orig||[];
@@ -12276,8 +12297,8 @@ function orderInfo(p,d){
   return{url:u,label:wa?'Order on WhatsApp':'Order on our website',show:show.length>30?show.slice(0,29)+'…':show};
 }
 function corners(c,x,y,w,h,len,col){c.strokeStyle=col;c.lineWidth=5;c.lineCap='round';[[x,y,1,1],[x+w,y,-1,1],[x,y+h,1,-1],[x+w,y+h,-1,-1]].forEach(function(q){c.beginPath();c.moveTo(q[0],q[1]+q[3]*len);c.lineTo(q[0],q[1]);c.lineTo(q[0]+q[2]*len,q[1]);c.stroke()});c.lineCap='butt'}
-function render(p,mi){
-  var W=1240,H=1754,logo=document.querySelector('img.logo'),d=det(p),imgs=(p.images||[]).slice(0,5);
+function render(p,mi,pm){
+  var W=1240,H=1754,logo=document.querySelector('img.logo'),d=det(p),imgs=(p.images||[]).slice(0,5);if(pm==='with')d.sp=true;else if(pm==='without')d.sp=false;
   var order=imgs.slice();if(mi>0&&mi<order.length){var m=order.splice(mi,1)[0];order.unshift(m)}
   return Promise.all([limg(logo?(logo.currentSrc||logo.src):''),Promise.all(order.map(limg))]).then(function(r){
     var lg=r[0],ims=r[1].filter(Boolean),cv=document.createElement('canvas');cv.width=W*2;cv.height=H*2;var c=cv.getContext('2d'),hx=W/2;c.scale(2,2);
@@ -12581,7 +12602,7 @@ function renderPriceList(items,T){return Promise.all([logoImg(),Promise.all(item
 function init(){
   var v=$('#view-studio');if(!v||v._i)return;v._i=1;
   v.innerHTML='<section class="ptools glass"><h3>Photo Studio</h3><p>Pick a product to make a festive PDF page with its photos, SKU, size, colour and your contact details. Share it with anyone.</p></section>'+
-  '<section class="glass stu-tools"><div><b>Catalogue PDF</b><span>Tick products in the list, then make one PDF with a cover page and a page for each product, or a price list (ticked products, or all products that have a price).</span><div class="stu-act"><button class="btn" id="stuAll" type="button">Select all</button><button class="btn" id="stuNone" type="button">Clear</button><button class="btn" id="stuCat" type="button">Catalogue PDF (0)</button><button class="btn" id="stuBulk" type="button">Bulk price / offer (ticked)</button><button class="btn" id="stuPL" type="button">Price list PDF</button><button class="btn" id="stuWeb" type="button">Online catalogue page (.html)</button><button class="btn" id="stuTags" type="button">Price tags with QR (A4)</button><button class="btn" id="stuCombo" type="button">Combo image (tick 2–3)</button></div></div>'+
+  '<section class="glass stu-tools"><div><b>Catalogue PDF</b><span>Tick products in the list, then make one PDF with a cover page and a page for each product, or a price list (ticked products, or all products that have a price).</span><div class="stu-act"><button class="btn" id="stuAll" type="button">Select all</button><button class="btn" id="stuNone" type="button">Clear</button><select class="field-in" id="stuCatPrice" aria-label="Prices in catalogue" title="Show or hide prices on the catalogue PDF"><option value="as">Price: as set per product</option><option value="with">With price</option><option value="without">Without price</option></select><button class="btn" id="stuCat" type="button">Catalogue PDF (0)</button><button class="btn" id="stuBulk" type="button">Bulk price / offer (ticked)</button><button class="btn" id="stuPL" type="button">Price list PDF</button><button class="btn" id="stuWeb" type="button">Online catalogue page (.html)</button><button class="btn" id="stuTags" type="button">Price tags with QR (A4)</button><button class="btn" id="stuCombo" type="button">Combo image (tick 2–3)</button></div></div>'+
   '<div><b>Sales report for partners</b><span>Product-wise units sold and returns in the same festive style.</span><div class="stu-act"><select class="field-in" id="stuPer"><option value="month">This month</option><option value="last">Last month</option><option value="q3">Last 3 months</option><option value="year">This year</option><option value="all">All time</option></select><select class="field-in" id="stuTop"><option value="0">All products</option><option value="10">Top 10</option><option value="20">Top 20</option></select><label><input type="checkbox" id="stuRev"> Revenue</label><label><input type="checkbox" id="stuPro"> Profit</label><button class="btn" id="stuSales" type="button">Sales report PDF</button></div></div>'+
   '<div><b>Prepared for (customer name)</b><span>Shows on every page header, for example when you share a catalogue with one customer. Leave empty for the normal tagline.</span><div class="stu-act"><input class="field-in" id="stuCust" placeholder="e.g. Mrs. Sharma" style="flex:1;min-width:132px"></div></div>'+
   '<div><b>Festival greeting</b><span>Make a festive wishes page to send to customers (PDF or image).</span><div class="stu-gr"><select class="field-in" id="stuGrLang" aria-label="Greeting language"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option><option value="both">English + हिन्दी</option></select><select class="field-in" id="stuGrSel"></select><input class="field-in" id="stuGrName" placeholder="Festival name, e.g. Diwali"><input class="field-in" id="stuGrNameHi" placeholder="त्योहार का नाम, e.g. दिवाली" lang="hi"><textarea class="field-in" id="stuGrMsg" rows="3" placeholder="Your message (English)"></textarea><textarea class="field-in" id="stuGrMsgHi" rows="3" placeholder="आपका संदेश (हिन्दी)" lang="hi"></textarea><input class="field-in" id="stuGrOffer" placeholder="Offer line (optional), e.g. Festive offer: 20% OFF till 15 Nov"></div><div class="stu-act"><button class="btn" id="stuGrPrev" type="button">Preview</button><button class="btn" id="stuGrPdf" type="button">Greeting PDF</button><button class="btn" id="stuGrImg" type="button">Share image</button></div></div>'+
@@ -12616,7 +12637,7 @@ function init(){
     if(e.target.id==='stuCat'){var chosen=plist().filter(function(p){return sel[key(p)]});if(!chosen.length){toast('Tick at least one product first');return}if(chosen.length>40&&!confirm('That is '+chosen.length+' products and the PDF will be large. Continue?'))return;
       var bt=e.target,old=bt.textContent;bt.disabled=true;var T=themeFor(),pages=[];
       (function step(i){bt.textContent='Making page '+(i+1)+' of '+(chosen.length+1)+'\u2026';
-        var pr=i===0?renderCover(chosen,T):render(chosen[i-1],0);
+        var pr=i===0?renderCover(chosen,T):render(chosen[i-1],0,($('#stuCatPrice')||{}).value);
         return pr.then(function(cv){pages.push(cv.toDataURL('image/jpeg',.86));cv.width=1;if(i<chosen.length)return new Promise(function(r){setTimeout(r,20)}).then(function(){return step(i+1)})})})(0)
       .then(function(){return pdfFrom(pages)}).then(function(b){return shareOrDl(b,'Catalogue_'+new Date().toISOString().slice(0,10)+'.pdf','Product catalogue','application/pdf')}).catch(function(){toast('Could not make the catalogue. Check your internet and try again.')}).then(function(){bt.disabled=false;bt.textContent=old;drawSel()});return}
     if(e.target.id==='stuSales'){var bt2=e.target,old2=bt2.textContent,per=$('#stuPer').value,top=+$('#stuTop').value,opt={rev:$('#stuRev').checked,prof:$('#stuPro').checked,label:PERIODS[per]};var rows=salesRows(per);if(top)rows=rows.slice(0,top);
@@ -12928,7 +12949,12 @@ html[data-theme*="dark"] #instOv .in{background:#14231d;color:#e9f3ee}html[data-
   setInterval(ensure,2000);ensure();
 })();
 </script>
-<style>.catlbl{display:block;font-size:12px;opacity:.75;margin-bottom:6px}.catchips{display:flex;flex-wrap:wrap;gap:6px}.catchip{border:1px solid rgba(120,120,120,.4);background:transparent;color:inherit;border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.catchip.on{background:#7a1f2b;color:#fff;border-color:#7a1f2b}.catadd{display:flex;gap:8px;margin-top:8px}.catadd .field-in{flex:1}.catshow{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}.catshow span{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(122,31,43,.14);color:inherit}</style>
+<style>.catlbl{display:block;font-size:12px;opacity:.75;margin-bottom:6px}.catchips{display:flex;flex-wrap:wrap;gap:6px}.catchip{border:1px solid rgba(120,120,120,.4);background:transparent;color:inherit;border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.catchip.on{background:#7a1f2b;color:#fff;border-color:#7a1f2b}
+.catwrap{display:inline-flex;align-items:center;gap:2px}
+.catact{border:0;background:transparent;color:inherit;opacity:.45;cursor:pointer;font-size:12px;line-height:1;padding:3px 4px;border-radius:6px}
+.catact:hover,.catact:focus-visible{opacity:1;background:rgba(120,120,120,.18)}
+.catact[data-catdel]:hover{color:#b3261e}
+#pform .catwrap>.catchip{padding:3px 10px!important;font-size:.76rem!important}.catadd{display:flex;gap:8px;margin-top:8px}.catadd .field-in{flex:1}.catshow{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}.catshow span{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(122,31,43,.14);color:inherit}</style>
 <style>.hl-wrap{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:center}.hl-s{text-align:center}.hl-g{width:100%;max-width:190px}.hl-s b{display:block;font-size:1.05rem;margin-top:2px}.hl-l{display:grid;gap:12px}.hl-t{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.9rem}.hl-t span{opacity:.75;font-size:.82rem}.hl-b{height:8px;border-radius:99px;background:rgba(128,128,128,.22);overflow:hidden;margin:5px 0 3px}.hl-b i{display:block;height:100%;border-radius:99px}.hl-l small{opacity:.75}@media(max-width:700px){.hl-wrap{grid-template-columns:1fr}}</style>
 <script id="trkInsJs">
 (function(){
@@ -13276,7 +13302,7 @@ html[data-theme*="dark"] .costs .sell dd{color:#a8e0cb}
 #pform .field-in{padding:6px 10px!important;min-height:0!important;height:34px;font-size:.85rem}
 #pform .catlbl{font-size:.7rem;margin-bottom:3px}
 #pform .catchips{gap:4px}
-#pform .catchips>*{padding:3px 10px!important;font-size:.76rem!important}
+#pform .catchips>*{font-size:.76rem!important}
 #pform .catadd{margin-top:4px}
 #pform .preview{margin:8px 0 0;padding:7px 14px;border-radius:12px;font-size:.85rem}
 #pform .err{margin:2px 0}

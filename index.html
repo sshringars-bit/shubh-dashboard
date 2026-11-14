@@ -13180,7 +13180,7 @@ var SKEY='ssc-rawmat-shop-v1',PKEY='rawmat-pref-local';
 function shopLoad(){try{var o=JSON.parse(localStorage.getItem(SKEY)||'{}');return o&&typeof o==='object'&&!Array.isArray(o)?o:{}}catch(e){return{}}}
 function shopSave(o){try{localStorage.setItem(SKEY,JSON.stringify(o))}catch(e){toast('Could not save the shopping list.')}}
 function sg(sh,id){var v=sh[id];if(v===undefined)return null;return typeof v==='object'&&v?v:{q:v}}
-function pref(){try{var o=JSON.parse(localStorage.getItem(PKEY)||'{}');return{grp:o.grp!==0,per:o.per===1?1:2,sort:o.sort||'name'}}catch(e){return{grp:true,per:2,sort:'name'}}}
+function pref(){try{var o=JSON.parse(localStorage.getItem(PKEY)||'{}');return{grp:o.grp!==0,per:[1,2,4,6,8].indexOf(o.per)>-1?o.per:6,sort:o.sort||'name'}}catch(e){return{grp:true,per:6,sort:'name'}}}
 function prefSet(p){try{localStorage.setItem(PKEY,JSON.stringify(p))}catch(e){}}
 function latestQuotes(m){var by={};(m.quotes||[]).forEach(function(q){by[q.v]=q});return Object.keys(by).map(function(k){return by[k]}).sort(function(x,y){return x.r-y.r})}
 function bestQuote(m){return latestQuotes(m)[0]||null}
@@ -13206,7 +13206,7 @@ function buyList(){var b=$('#rmBuyBox'),l=shopItems(),pf=pref();
 if(!l.length){b.innerHTML='<div class="full">✅ Shopping list is empty. Use “Add to shopping list” on any material – low-stock items appear here automatically.</div><div class="full"><button type="button" class="btn small" id="rmBuyX">Close</button></div>';b.hidden=false;return}
 var T=shopTotal(l),last=null,rows='';l.forEach(function(i){if(pf.grp&&i.v!==last){last=i.v;rows+='<div class="rm-sgrp">'+esc(i.v||'No supplier')+'</div>'}rows+=rowHtml(i,pf)});
 b.innerHTML='<div class="full"><b>🛒 '+l.length+' item(s) to buy</b> <span id="rmTot" style="margin-left:10px">'+(T>0?'Estimated total: <b>'+inr(T)+'</b>':'<span style="opacity:.7">Enter quantities to see the estimated total</span>')+'</span></div>'+
-'<div class="full rm-tools"><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem"><input type="checkbox" id="rmGrp"'+(pf.grp?' checked':'')+'> Group by supplier</label><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem"><input type="checkbox" id="rmPer"'+(pf.per===1?' checked':'')+'> PDF: one item per page (bigger photo)</label></div>'+
+'<div class="full rm-tools"><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem"><input type="checkbox" id="rmGrp"'+(pf.grp?' checked':'')+'> Group by supplier</label><label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:.85rem">PDF items per page <select class="field-in" id="rmPer" style="width:auto">'+[[1,'1 (biggest photo)'],[2,'2'],[4,'4'],[6,'6 (compact)'],[8,'8 (smallest)']].map(function(o){return '<option value="'+o[0]+'"'+(pf.per===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label></div>'+
 '<div class="full">'+rows+'</div><textarea class="field-in full" id="rmBuyTa" rows="'+Math.min(14,l.length+5)+'" readonly>'+esc(shopText())+'</textarea><div class="full rm-tools"><button type="button" class="btn" id="rmBuyWa">📤 Share on WhatsApp</button><button type="button" class="btn" id="rmBuyPdf">⬇ Download PDF</button><button type="button" class="btn" id="rmBuyCp">Copy text</button><button type="button" class="btn small" id="rmBuyX">Close</button></div>';b.hidden=false}
 
 function histPanel(mo){var b=$('#rmHistBox'),all=buys().sort(function(x,y){return y.d.localeCompare(x.d)});hideBoxes();
@@ -13261,6 +13261,21 @@ function wrapTxt(c,t,x,y,w,lh,max){var lines=[],paras=String(t).split('\n');para
 function shareList(){var t=shopText();function fb(){window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');toast('WhatsApp opened with the list. Use Download PDF to send photos.')}
 var ok=false;try{ok=!!(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File(['x'],'a.pdf',{type:'application/pdf'})]}))}catch(e){}
 if(ok)shopPdf('share');else fb()}
+function cellDraw(c,it,im,n,k,PER,W,H,M,top){var FF='"Segoe UI","Noto Sans","Noto Sans Devanagari",Arial,sans-serif',m=it.m,rows=PER/2,gx=30,gy=24,w=(W-2*M-gx)/2,h=(H-top-90-(rows-1)*gy)/rows,x=M+(k%2)*(w+gx),y=top+10+Math.floor(k/2)*(h+gy),stacked=PER===4,F=PER===4?1.1:PER===6?.9:.8,pad=14;
+c.strokeStyle='#ddd';c.lineWidth=2;c.strokeRect(x,y,w,h);
+var ix=x+pad,iy=y+pad,iw,ih,tx,ty,tw;if(stacked){iw=w-2*pad;ih=Math.round(h*.52);tx=ix;ty=iy+ih+14;tw=iw}else{ih=h-2*pad;iw=Math.min(Math.round(w*.42),ih);tx=ix+iw+16;ty=iy;tw=x+w-pad-tx}
+c.fillStyle='#f1f1f1';c.fillRect(ix,iy,iw,ih);
+if(im){var r=Math.min(iw/im.width,ih/im.height),dw=im.width*r,dh=im.height*r;c.drawImage(im,ix+(iw-dw)/2,iy+(ih-dh)/2,dw,dh)}else{c.fillStyle='#999';c.font='400 '+Math.round(26*F)+'px '+FF;c.textAlign='center';c.fillText('No photo',ix+iw/2,iy+ih/2-10);c.textAlign='left'}
+var yy=ty,bot=y+h-pad,bx=Math.round(26*F);c.strokeStyle='#444';c.lineWidth=3;c.strokeRect(tx,yy+4,bx,bx);
+c.fillStyle='#111';c.font='700 '+Math.round(34*F)+'px '+FF;yy=wrapTxt(c,(n+1)+'. '+m.name,tx+bx+10,yy,tw-bx-10,Math.round(42*F),2)+6;
+if(m.cat){c.fillStyle='#666';c.font='400 '+Math.round(24*F)+'px '+FF;yy=wrapTxt(c,m.cat,tx,yy,tw,Math.round(30*F),1)+4}
+yy+=6;c.fillStyle='#000';c.font='700 '+Math.round(38*F)+'px '+FF;
+if(it.q){yy=wrapTxt(c,'Buy: '+it.q+' '+(m.unit||'pcs'),tx,yy,tw,Math.round(46*F),2)+6}else{var bw0=c.measureText('Buy: ').width;c.fillText('Buy: ',tx,yy);c.fillRect(tx+bw0+8,yy+Math.round(40*F),tw-bw0-8,3);yy+=Math.round(52*F)}
+c.fillStyle='#333';var lh=Math.round(32*F);c.font='400 '+Math.round(26*F)+'px '+FF;
+if(it.q)yy=wrapTxt(c,'Est: Rs. '+fmtN(it.tot)+' (@ Rs. '+fmtN(it.rate)+')',tx,yy,tw,lh,2)+2;else yy=wrapTxt(c,'Rate: Rs. '+fmtN(it.rate)+' / '+(m.unit||'pcs'),tx,yy,tw,lh,2)+2;
+yy=wrapTxt(c,'In store: '+num(m.qty)+' '+(m.unit||'pcs'),tx,yy,tw,lh,2)+2;
+if(it.v){c.font='700 '+Math.round(26*F)+'px '+FF;yy=wrapTxt(c,'Supplier: '+it.v,tx,yy,tw,lh,2)+2;c.font='400 '+Math.round(26*F)+'px '+FF}
+if(m.details){var dl=Math.floor((bot-yy-6)/Math.round(30*F));if(dl>=1){c.fillStyle='#555';c.font='400 '+Math.round(23*F)+'px '+FF;wrapTxt(c,m.details,tx,yy+6,tw,Math.round(30*F),dl)}}}
 function shopPdf(mode){var l=shopItems(),pf=pref();if(!l.length){toast('Shopping list is empty');return}
 toast('Making PDF…');
 pdfLib(function(){Promise.all(l.map(function(i){var ps=(i.m.photos&&i.m.photos.length?i.m.photos:(i.m.photo?[i.m.photo]:[])).slice(0,4);return Promise.all(ps.map(imgLoad))})).then(function(imgs){
@@ -13268,7 +13283,7 @@ var W=1654,H=2339,M=90,PER=pf.per,top=150,slot=(H-top-90)/PER,pages=Math.ceil(l.
 var d=new Date().toISOString().slice(0,10).split('-').reverse().join('/'),FF='"Segoe UI","Noto Sans","Noto Sans Devanagari",Arial,sans-serif';
 for(var p=0;p<pages;p++){var cv=document.createElement('canvas');cv.width=W;cv.height=H;var c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,W,H);c.textBaseline='top';
 c.fillStyle='#222';c.font='700 46px '+FF;c.fillText('Shopping list'+(T>0?'  ·  Est. Rs. '+Math.round(T).toLocaleString('en-IN'):''),M,60);c.font='400 32px '+FF;c.fillStyle='#666';c.textAlign='right';c.fillText(d+'   ·   Page '+(p+1)+' of '+pages,W-M,70);c.textAlign='left';c.fillStyle='#ccc';c.fillRect(M,125,W-2*M,3);
-for(var k=0;k<PER;k++){var n=p*PER+k;if(n>=l.length)break;var it=l[n],m=it.m,ims=imgs[n].filter(Boolean),im=ims[0],y0=top+k*slot+20,big=PER===1,bw=big?W-2*M:800,th=ims.length>1?(big?330:170):0,bh=(big?1250:slot-60)-(th?th+12:0);
+for(var k=0;k<PER;k++){var n=p*PER+k;if(n>=l.length)break;if(PER>=4){cellDraw(c,l[n],(imgs[n]||[]).filter(Boolean)[0],n,k,PER,W,H,M,top);continue}var it=l[n],m=it.m,ims=imgs[n].filter(Boolean),im=ims[0],y0=top+k*slot+20,big=PER===1,bw=big?W-2*M:800,th=ims.length>1?(big?330:170):0,bh=(big?1250:slot-60)-(th?th+12:0);
 c.fillStyle='#f1f1f1';c.fillRect(M,y0,bw,bh);
 if(im){var r=Math.min(bw/im.width,bh/im.height),iw=im.width*r,ih=im.height*r;c.drawImage(im,M+(bw-iw)/2,y0+(bh-ih)/2,iw,ih)}else{c.fillStyle='#999';c.font='400 34px '+FF;c.textAlign='center';c.fillText('No photo',M+bw/2,y0+bh/2-17);c.textAlign='left'}
 if(th){var gp=12,tw3=(bw-2*gp)/3;for(var j=1;j<ims.length;j++){var tx0=M+(j-1)*(tw3+gp),ty0=y0+bh+12;c.fillStyle='#f1f1f1';c.fillRect(tx0,ty0,tw3,th);var ri=Math.min(tw3/ims[j].width,th/ims[j].height);c.drawImage(ims[j],tx0+(tw3-ims[j].width*ri)/2,ty0+(th-ims[j].height*ri)/2,ims[j].width*ri,ims[j].height*ri)}}
@@ -13330,7 +13345,7 @@ if(e.target.id==='rmSort'){var pf3=pref();pf3.sort=e.target.value;prefSet(pf3);d
 if(e.target.id==='rmHM'){histPanel(e.target.value)}
 if(e.target.id==='rmDD'){deadPanel(+e.target.value)}
 if(e.target.dataset&&e.target.dataset.cq!==undefined){var ds0=cntDiffs().filter(function(x){return x.m.id===e.target.dataset.cq})[0],el0=document.querySelector('[data-cd="'+e.target.dataset.cq+'"]');if(el0)el0.innerHTML=ds0?(ds0.d===0?'<span style="color:#2e7d32">✓ matches</span>':'<b style="color:'+(ds0.d>0?'#2e7d32':'#d9480f')+'">'+(ds0.d>0?'+':'')+ds0.d+'</b>'):''}
-if(e.target.id==='rmGrp'||e.target.id==='rmPer'){var pf2=pref();if(e.target.id==='rmGrp')pf2.grp=e.target.checked?1:0;else pf2.per=e.target.checked?1:2;prefSet(pf2);buyList()}});
+if(e.target.id==='rmGrp'||e.target.id==='rmPer'){var pf2=pref();if(e.target.id==='rmGrp')pf2.grp=e.target.checked?1:0;else pf2.per=+e.target.value;prefSet(pf2);buyList()}});
 v.addEventListener('input',function(e){if(e.target.id==='rmQ')draw();
 if(e.target.id==='rmPack'||e.target.id==='rmPackP'){var pr=packRate(NaN);if(isFinite(pr))$('#rmRate').value=pr}
 if(e.target.id==='rmCntQ'){var qq=e.target.value.toLowerCase();document.querySelectorAll('#rmCntBox [data-cn]').forEach(function(r){r.style.display=!qq||r.dataset.cn.indexOf(qq)>-1?'':'none'})}});

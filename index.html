@@ -986,7 +986,135 @@ label.btn.disabled{opacity:.55;pointer-events:none}
 .t10-img{width:60px;height:60px;object-fit:cover;border-radius:12px;border:1px solid var(--stroke-2);background:var(--field);display:block}
 .t10-noimg{width:60px;height:60px;border-radius:12px;border:1px dashed var(--stroke-2);display:grid;place-items:center;font-size:.62rem;color:var(--ink-3);text-align:center;line-height:1.2}
 .t10-none{padding:26px 8px;text-align:center;color:var(--ink-3)}
-</style><style id="mobileFix">/* ===== phone layout: fit the screen width, no sideways zoom ===== */
+</style><style id="sscLuxLogin">/* ===== LUXURY STEP 1A: premium login (background untouched) ===== */
+#sscCard{--lux-gold:#c9965a;--lux-gold-2:#e6c58f;--lux-maroon:#9b4f45;--lux-maroon-2:#7a3a33;width:min(880px,100%);padding:0;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);overflow:hidden;border-radius:32px;border:1px solid rgba(201,150,90,.45);box-shadow:0 30px 80px rgba(80,40,45,.20),0 2px 0 rgba(255,255,255,.7) inset,0 0 0 6px rgba(255,255,255,.28)}
+#sscCard::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,transparent,var(--lux-gold),var(--lux-gold-2),var(--lux-gold),transparent);pointer-events:none}
+#sscCard .ssc-lux-side{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:44px 30px;background:radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.75),transparent 60%),linear-gradient(160deg,rgba(255,244,232,.85),rgba(246,222,214,.78) 55%,rgba(232,200,170,.70));border-right:1px solid rgba(201,150,90,.35)}
+#sscCard .ssc-lux-side::before{content:"";position:absolute;inset:12px;border:1px solid rgba(201,150,90,.45);border-radius:22px;pointer-events:none}
+#sscCard .ssc-lux-side .ssc-logo{height:132px;margin:0;filter:drop-shadow(0 14px 18px rgba(110,50,45,.30))}
+#sscCard .ssc-lux-name{font-family:'Playfair Display',Georgia,serif;font-size:1.28rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;line-height:1.3;color:var(--lux-maroon)}
+#sscCard .ssc-lux-orn{display:flex;align-items:center;gap:10px;width:70%;color:var(--lux-gold);font-size:.8rem;line-height:1}
+#sscCard .ssc-lux-orn i{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--lux-gold))}
+#sscCard .ssc-lux-orn i:last-child{background:linear-gradient(270deg,transparent,var(--lux-gold))}
+#sscCard .ssc-lux-tag{margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:.95rem;color:#7a5a50}
+#sscCard .ssc-lux-mods{margin:6px 0 0;font-size:.66rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#9a7a62}
+#sscCard .ssc-lux-main{padding:40px 40px 30px;display:flex;flex-direction:column;justify-content:center;min-width:0;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.25))}
+#sscCard .ssc-eyebrow{display:block;text-align:left;font-size:.68rem;font-weight:800;letter-spacing:.26em;text-transform:uppercase;color:var(--lux-gold);margin-bottom:6px}
+#sscCard .ssc-title{text-align:left;font-family:'Playfair Display',Georgia,serif;font-size:1.9rem;font-weight:700;letter-spacing:-.005em;color:var(--ink)}
+#sscCard .ssc-sub{text-align:left;margin:6px 0 20px;font-size:.88rem}
+#sscCard .ssc-seg{background:rgba(155,79,69,.07);border-color:rgba(201,150,90,.35)}
+#sscCard .ssc-seg button[aria-selected="true"]{background:linear-gradient(135deg,var(--lux-maroon),var(--lux-maroon-2));color:#fff;box-shadow:0 8px 18px rgba(155,79,69,.32)}
+#sscCard .ssc-form label{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+#sscCard .ssc-in{padding:13px 16px;border-radius:14px;border:1px solid rgba(201,150,90,.40);background:rgba(255,255,255,.72);transition:border-color .2s,box-shadow .2s}
+#sscCard .ssc-in:focus{outline:none;border-color:var(--lux-gold);box-shadow:0 0 0 4px rgba(201,150,90,.22)}
+#sscCard .ssc-pw button{color:var(--lux-maroon);letter-spacing:.06em;text-transform:uppercase;font-size:.68rem}
+#sscCard .ssc-go{position:relative;overflow:hidden;margin-top:4px;padding:14px 18px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--lux-maroon),var(--lux-maroon-2));color:#fff;font-weight:700;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;box-shadow:0 14px 28px rgba(155,79,69,.34),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .2s,box-shadow .2s}
+#sscCard .ssc-go::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,235,200,.45),transparent);transform:skewX(-20deg);transition:left .7s}
+#sscCard .ssc-go:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(155,79,69,.42),inset 0 1px 0 rgba(255,255,255,.3)}
+#sscCard .ssc-go:hover::after{left:130%}
+#sscCard .ssc-link{color:var(--lux-maroon)}
+#sscCard .ssc-note{text-align:left;font-size:.74rem}
+#sscCard .ssc-lux-foot{margin:18px 0 0;padding-top:14px;border-top:1px solid rgba(201,150,90,.30);display:flex;align-items:center;gap:8px;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+#sscCard .ssc-lux-foot svg{width:14px;height:14px;fill:none;stroke:var(--lux-gold);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+@media(max-width:760px){
+ #sscCard{grid-template-columns:1fr;border-radius:26px}
+ #sscCard .ssc-lux-side{flex-direction:row;justify-content:center;gap:14px;padding:18px 20px;border-right:0;border-bottom:1px solid rgba(201,150,90,.35);text-align:left}
+ #sscCard .ssc-lux-side::before,#sscCard .ssc-lux-orn,#sscCard .ssc-lux-mods,#sscCard .ssc-lux-tag{display:none}
+ #sscCard .ssc-lux-side .ssc-logo{height:60px}
+ #sscCard .ssc-lux-name{font-size:.95rem}
+ #sscCard .ssc-lux-main{padding:26px 22px 22px}
+ #sscCard .ssc-title{font-size:1.55rem}
+}
+@media(prefers-reduced-motion:reduce){#sscCard .ssc-go,#sscCard .ssc-go::after{transition:none}}
+html[data-theme="ios-dark"] #sscCard .ssc-lux-side{background:linear-gradient(160deg,rgba(60,40,44,.7),rgba(40,30,34,.7))}
+html[data-theme="ios-dark"] #sscCard .ssc-lux-name{color:var(--lux-gold-2)}
+html[data-theme="ios-dark"] #sscCard .ssc-lux-tag,html[data-theme="ios-dark"] #sscCard .ssc-lux-mods{color:var(--ink-3)}
+html[data-theme="ios-dark"] #sscCard .ssc-in{background:rgba(255,255,255,.08)}
+</style>
+<style id="sscLuxMotion">/* ===== LUXURY STEP 1B: subtle animated gradient (pastel base unchanged) ===== */
+#sscLock::before,#sscWelcome::before{will-change:transform;animation:luxDrift 26s ease-in-out infinite alternate}
+#sscLock::after,#sscWelcome::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;background:linear-gradient(115deg,rgba(255,214,235,0) 0%,rgba(255,228,196,.55) 22%,rgba(196,222,255,.50) 46%,rgba(226,206,255,.55) 70%,rgba(255,214,235,0) 100%);background-size:300% 300%;animation:luxFlow 22s ease-in-out infinite}
+#sscLock .ssc-card,#sscWelcome .ssc-wel{position:relative;z-index:1}
+#sscCard::after{background-size:200% 100%;animation:luxLine 9s linear infinite}
+@keyframes luxDrift{0%{transform:translate3d(0,0,0) scale(1.08)}50%{transform:translate3d(-2%,1.5%,0) scale(1.16) rotate(1.2deg)}100%{transform:translate3d(2%,-1.5%,0) scale(1.10) rotate(-1deg)}}
+@keyframes luxFlow{0%{background-position:0% 40%}50%{background-position:100% 60%}100%{background-position:0% 40%}}
+@keyframes luxLine{0%{background-position:200% 0}100%{background-position:-200% 0}}
+html[data-theme="ios-dark"] #sscLock::after,html[data-theme="ios-dark"] #sscWelcome::after{opacity:.12}
+@media(prefers-reduced-motion:reduce){#sscLock::before,#sscWelcome::before,#sscLock::after,#sscWelcome::after,#sscCard::after{animation:none}}
+</style>
+<style id="sscLuxGlass">/* ===== LUXURY STEP 1C: more compact card + soft glass ===== */
+#sscCard{width:min(760px,100%);border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.46),rgba(255,255,255,.20));-webkit-backdrop-filter:blur(30px) saturate(175%);backdrop-filter:blur(30px) saturate(175%);border:1px solid rgba(255,255,255,.65);box-shadow:0 24px 60px rgba(80,40,45,.16),0 0 0 1px rgba(201,150,90,.32),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(201,150,90,.18)}
+#sscCard .ssc-lux-side{gap:10px;padding:30px 22px;background:radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.55),transparent 62%),linear-gradient(160deg,rgba(255,244,232,.38),rgba(246,222,214,.30) 55%,rgba(232,200,170,.26));border-right:1px solid rgba(255,255,255,.55)}
+#sscCard .ssc-lux-side::before{inset:10px;border-radius:20px;border-color:rgba(201,150,90,.38)}
+#sscCard .ssc-lux-side .ssc-logo{height:100px}
+#sscCard .ssc-lux-name{font-size:1.08rem;letter-spacing:.14em}
+#sscCard .ssc-lux-tag{font-size:.86rem}
+#sscCard .ssc-lux-mods{font-size:.6rem;letter-spacing:.18em;margin-top:2px}
+#sscCard .ssc-lux-main{padding:28px 30px 20px;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.06))}
+#sscCard .ssc-eyebrow{font-size:.62rem;margin-bottom:4px}
+#sscCard .ssc-title{font-size:1.6rem}
+#sscCard .ssc-sub{margin:4px 0 14px;font-size:.84rem}
+#sscCard .ssc-seg{margin-bottom:12px;background:rgba(255,255,255,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#sscCard .ssc-seg button{padding:7px 10px;font-size:.84rem}
+#sscCard .ssc-form{gap:9px}
+#sscCard .ssc-form label{font-size:.64rem;gap:4px}
+#sscCard .ssc-in{padding:10px 14px;background:rgba(255,255,255,.52);border-color:rgba(255,255,255,.75);box-shadow:inset 0 1px 2px rgba(120,80,70,.08),0 0 0 1px rgba(201,150,90,.22)}
+#sscCard .ssc-in:focus{background:rgba(255,255,255,.78);border-color:var(--lux-gold)}
+#sscCard .ssc-go{padding:12px 16px;font-size:.78rem}
+#sscCard .ssc-err{min-height:1em;font-size:.78rem}
+#sscCard .ssc-lux-foot{margin-top:12px;padding-top:10px;font-size:.62rem;border-top-color:rgba(201,150,90,.26)}
+@media(max-width:760px){#sscCard{width:min(440px,100%)}#sscCard .ssc-lux-side{padding:14px 18px;border-bottom-color:rgba(255,255,255,.55)}#sscCard .ssc-lux-side .ssc-logo{height:52px}#sscCard .ssc-lux-main{padding:22px 20px 18px}#sscCard .ssc-title{font-size:1.4rem}}
+html[data-theme="ios-dark"] #sscCard{background:linear-gradient(135deg,rgba(60,48,56,.55),rgba(30,26,34,.40));border-color:rgba(255,255,255,.14)}
+html[data-theme="ios-dark"] #sscCard .ssc-lux-side{background:linear-gradient(160deg,rgba(70,50,54,.40),rgba(40,30,34,.30))}
+html[data-theme="ios-dark"] #sscCard .ssc-in{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16)}
+</style>
+<style id="sscLuxGold">/* ===== LUXURY STEP 1D: golden border + shadow (logo untouched) ===== */
+#sscCard{border:1px solid transparent;box-shadow:0 26px 60px rgba(120,76,36,.20),0 8px 22px rgba(201,150,90,.26),0 0 70px rgba(230,197,143,.26),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(201,150,90,.22)}
+#sscCard::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;background:linear-gradient(135deg,#f3dcae 0%,#c9965a 28%,rgba(201,150,90,.35) 52%,#d9ad72 76%,#f3dcae 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+html[data-theme="ios-dark"] #sscCard{box-shadow:0 26px 60px rgba(0,0,0,.45),0 8px 22px rgba(201,150,90,.20),0 0 70px rgba(201,150,90,.16),inset 0 1px 0 rgba(255,255,255,.12)}
+</style>
+<style id="sscLuxType">/* ===== LUXURY STEP 1E: typography, spacing, button motion ===== */
+#sscCard{font-family:'Inter','Manrope',var(--font-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+#sscCard .ssc-lux-side{gap:12px;padding:32px 24px}
+#sscCard .ssc-lux-name{font-size:1.04rem;font-weight:700;letter-spacing:.18em;line-height:1.45;max-width:15ch}
+#sscCard .ssc-lux-orn{width:60%;margin:2px 0}
+#sscCard .ssc-lux-tag{font-size:.88rem;line-height:1.5;max-width:22ch}
+#sscCard .ssc-lux-mods{font-size:.58rem;font-weight:600;letter-spacing:.24em;line-height:1.8;margin-top:6px}
+#sscCard .ssc-lux-main{padding:32px 34px 22px}
+#sscCard .ssc-eyebrow{font-size:.6rem;font-weight:700;letter-spacing:.3em;margin-bottom:8px}
+#sscCard .ssc-title{font-size:1.65rem;font-weight:700;line-height:1.2;letter-spacing:-.01em;margin:0}
+#sscCard .ssc-sub{margin:8px 0 18px;font-size:.86rem;line-height:1.6;font-weight:400;max-width:34ch}
+#sscCard .ssc-seg{margin-bottom:16px}
+#sscCard .ssc-seg button{font-size:.8rem;font-weight:600;letter-spacing:.02em;transition:background .35s ease,color .35s ease,box-shadow .35s ease,transform .2s ease}
+#sscCard .ssc-seg button:active{transform:scale(.97)}
+#sscCard .ssc-form{gap:14px}
+#sscCard .ssc-form label{gap:6px;font-size:.64rem;font-weight:700;letter-spacing:.16em;line-height:1.2}
+#sscCard .ssc-in{padding:11px 15px;font-size:.92rem;font-weight:500;line-height:1.4;letter-spacing:.005em}
+#sscCard .ssc-in::placeholder{color:var(--ink-3);font-weight:400}
+#sscCard .ssc-pw button{font-size:.62rem;font-weight:800;letter-spacing:.12em;transition:color .25s ease,opacity .25s ease}
+#sscCard .ssc-pw button:hover{color:var(--lux-gold)}
+#sscCard .ssc-err{min-height:1.3em;margin:-2px 0 0;font-size:.8rem;line-height:1.4}
+#sscCard .ssc-note{margin:4px 0 0;font-size:.74rem;line-height:1.5}
+#sscCard .ssc-lux-foot{margin-top:16px;padding-top:12px;font-size:.6rem;font-weight:600;letter-spacing:.14em}
+/* smooth button animation */
+#sscCard .ssc-go{padding:13px 18px;font-size:.76rem;font-weight:700;letter-spacing:.2em;cursor:pointer;transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s cubic-bezier(.2,.8,.2,1),letter-spacing .45s cubic-bezier(.2,.8,.2,1),filter .3s ease}
+#sscCard .ssc-go:hover{transform:translateY(-2px);letter-spacing:.24em;filter:saturate(1.08) brightness(1.04)}
+#sscCard .ssc-go:active{transform:translateY(0) scale(.98);box-shadow:0 6px 14px rgba(155,79,69,.30),inset 0 2px 4px rgba(0,0,0,.18);transition-duration:.12s}
+#sscCard .ssc-go:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(255,255,255,.8),0 0 0 6px rgba(201,150,90,.6),0 14px 28px rgba(155,79,69,.34)}
+#sscCard .ssc-go:disabled{opacity:.7;cursor:progress;transform:none}
+#sscCard .ssc-link{transition:color .25s ease}
+#sscCard .ssc-link:hover{color:var(--lux-gold)}
+@media(max-width:760px){#sscCard .ssc-lux-main{padding:24px 22px 18px}#sscCard .ssc-title{font-size:1.4rem}#sscCard .ssc-form{gap:12px}#sscCard .ssc-sub{margin:6px 0 14px}}
+@media(prefers-reduced-motion:reduce){#sscCard .ssc-go,#sscCard .ssc-seg button,#sscCard .ssc-pw button,#sscCard .ssc-link{transition:none}#sscCard .ssc-go:hover{transform:none;letter-spacing:.2em}}
+</style>
+<style id="sscLuxIcons">/* ===== LUXURY STEP 1F: field icons (CSS only, login logic untouched) ===== */
+#sscCard #sscU,#sscCard #sscN,#sscCard .ssc-pw .ssc-in{padding-left:46px;background-repeat:no-repeat;background-position:16px 50%;background-size:18px 18px}
+#sscCard #sscU,#sscCard #sscN{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b4f45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7'/%3E%3C/svg%3E")}
+#sscCard #sscU:focus,#sscCard #sscN:focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9965a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7'/%3E%3C/svg%3E")}
+#sscCard .ssc-pw .ssc-in{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b4f45' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='10' rx='2.5'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3Ccircle cx='12' cy='16' r='1' fill='%239b4f45' stroke='none'/%3E%3C/svg%3E");padding-right:72px}
+#sscCard .ssc-pw .ssc-in:focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9965a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='10' rx='2.5'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3Ccircle cx='12' cy='16' r='1' fill='%23c9965a' stroke='none'/%3E%3C/svg%3E")}
+</style>
+<style id="mobileFix">/* ===== phone layout: fit the screen width, no sideways zoom ===== */
 html,body{max-width:100%;overflow-x:hidden}
 @media (max-width:760px){
   main.page{grid-template-columns:minmax(0,1fr)}
@@ -1869,7 +1997,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
 </style>
 </head><body>
 <div id="sscLock" role="dialog" aria-modal="true" aria-label="Sign in"><div class="ssc-card" id="sscCard"></div></div>
-<div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><span class="ssc-wel-av" id="sscWelAv" aria-hidden="true"></span><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><div class="ssc-bar"><i></i></div></div></div>
+<div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><span class="ssc-wel-av" id="sscWelAv" aria-hidden="true"></span><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><p class="ssc-wel-sub">Business Intelligence &amp; Sales Management Workspace</p><div class="ssc-bar"><i></i></div><p class="ssc-wel-prep">Preparing your dashboard<span class="ssc-wel-dots" aria-hidden="true"><b>.</b><b>.</b><b>.</b></span></p></div></div>
 
 
 <div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
@@ -16798,7 +16926,7 @@ var bar=document.createElement('div');bar.id='sscUserBar';bar.className='glass';
 function lockPage(on){try{page.inert=on}catch(e){}page.setAttribute('aria-hidden',on?'true':'false')}
 lockPage(true);
 
-function head(t,s){return '<img class="ssc-logo" src="'+esc(LOGO)+'" alt="'+BRAND+'"><h1 class="ssc-title">'+esc(t)+'</h1><p class="ssc-sub">'+esc(s)+'</p>'}
+function head(t,s){return '<span class="ssc-eyebrow">Secure access</span><h1 class="ssc-title">'+esc(t)+'</h1><p class="ssc-sub">'+esc(s)+'</p>'}
 function pwField(id,label,ac){return '<label>'+label+'<span class="ssc-pw"><input class="ssc-in" id="'+id+'" type="password" autocomplete="'+(ac||'current-password')+'"><button type="button" data-show aria-label="Show or hide password">Show</button></span></label>'}
 function qaFields(opt){return '<label>Security question'+(opt?' (optional)':'')+'<select class="ssc-in" id="sscQ">'+QS.map(function(q){return '<option>'+esc(q)+'</option>'}).join('')+'</select></label><label>Your answer<input class="ssc-in" id="sscA" autocomplete="off"></label>'}
 function seg(active){return '<div class="ssc-seg" role="tablist" aria-label="Sign-in options"><button type="button" role="tab" data-m="signin" aria-selected="'+(active==='signin')+'">Sign in</button><button type="button" role="tab" data-m="forgot1" aria-selected="'+(active!=='signin')+'">Forgot password</button></div>'}
@@ -16811,7 +16939,7 @@ function render(m,msg,ok){
     pwField('sscP','Password (min 8, letters &amp; numbers)','new-password')+pwField('sscP2','Confirm password','new-password')+qaFields(false)+
     '<p class="ssc-err" id="sscE" role="alert"></p><button class="btn primary ssc-go" type="submit">Create admin &amp; continue</button><p class="ssc-note">The security question lets you reset your password if you forget it.</p></form>';
   }else if(m==='signin'){
-    h=head(BRAND,'Sign in to open the dashboard')+seg('signin')+
+    h=head('Welcome back','Sign in to open your business dashboard')+seg('signin')+
     '<form class="ssc-form" novalidate><label>Username<input class="ssc-in" id="sscU" autocomplete="username" autocapitalize="none" spellcheck="false" value="'+esc(lsGet(LK)||'')+'"></label>'+pwField('sscP','Password')+
     '<p class="ssc-err" id="sscE" role="alert"></p><button class="btn primary ssc-go" type="submit">Sign in</button><p class="ssc-note">New users are created by the admin.</p></form>';
   }else if(m==='forgot1'){
@@ -16828,7 +16956,7 @@ function render(m,msg,ok){
     '<form class="ssc-form" novalidate>'+pwField('sscP','New password (min 8, letters &amp; numbers)','new-password')+pwField('sscP2','Confirm new password','new-password')+(pending.qa?'':qaFields(false))+
     '<p class="ssc-err" id="sscE" role="alert"></p><button class="btn primary ssc-go" type="submit">Save &amp; continue</button></form>';
   }
-  card.className='ssc-card';card.innerHTML=h;
+  card.className='ssc-card';var luxSide='<aside class="ssc-lux-side"><img class="ssc-logo" src="'+esc(LOGO)+'" alt="'+BRAND+'"><div class="ssc-lux-name">'+esc(BRAND)+'</div><div class="ssc-lux-orn"><i></i>&#10022;<i></i></div><p class="ssc-lux-tag">Crafted with love, made by hand.</p><p class="ssc-lux-mods">Orders &middot; Stock &middot; Invoices &middot; Finance</p></aside>';var luxFoot='<p class="ssc-lux-foot"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg>Your workspace is protected.</p>';card.innerHTML=luxSide+'<div class="ssc-lux-main">'+h+luxFoot+'</div>';
   if(msg)setErr(msg,ok);
   var f=card.querySelector('input:not([readonly]):not([value=""])');var first=card.querySelector('#sscU,#sscN,#sscA,#sscP');
   var target=(m==='signin'&&$('#sscU').value)?$('#sscP'):first;setTimeout(function(){try{target&&target.focus()}catch(e){}},60);
@@ -16913,8 +17041,8 @@ function enter(u,isNew){
   welTimers.forEach(clearTimeout);welTimers=[];
   welTimers.push(setTimeout(function(){wel.hidden=false;void wel.offsetWidth;wel.classList.add('on')},300));
   welTimers.push(setTimeout(function(){lock.hidden=true;applyAccess(u);renderBar();lockPage(false)},950));
-  welTimers.push(setTimeout(function(){wel.classList.remove('on')},2750));
-  welTimers.push(setTimeout(function(){wel.hidden=true},3350));
+  welTimers.push(setTimeout(function(){wel.classList.remove('on')},3900));
+  welTimers.push(setTimeout(function(){wel.hidden=true},4500));
 }
 function enterSilently(u){cur=u;lock.hidden=true;applyAccess(u);renderBar();lockPage(false)}
 function signOut(msg){
@@ -18453,3 +18581,75 @@ var tt=$('tab-tracker');if(tt)tt.addEventListener('click',function(){setTimeout(
 })();
 </script>
 
+<style id="sscLuxLoad">/* ===== LUXURY STEP 1G: Sign in loading animation (login logic untouched) ===== */
+#sscCard .ssc-go .ssc-spin{display:inline-block;width:14px;height:14px;margin-right:10px;vertical-align:-2px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sscSpin .7s linear infinite}
+@keyframes sscSpin{to{transform:rotate(360deg)}}
+#sscCard .ssc-go.is-loading,#sscCard .ssc-go.is-loading:disabled{opacity:1;cursor:progress;transform:none;letter-spacing:.2em;filter:none}
+#sscCard .ssc-go.is-loading::after{left:130%;transition:none}
+@media(prefers-reduced-motion:reduce){#sscCard .ssc-go .ssc-spin{animation-duration:1.6s}}
+</style>
+<script>
+/* ===== LUXURY STEP 1G: show a short spinner on the Sign in button, then run the normal sign-in ===== */
+(function(){
+  var card=document.getElementById('sscCard');if(!card)return;
+  var passing=false,busy=false;
+  card.addEventListener('submit',function(e){
+    if(passing)return;
+    var form=e.target,btn=form&&form.querySelector?form.querySelector('.ssc-go'):null;
+    if(!btn||busy)return;
+    if(String(btn.textContent).trim().toLowerCase()!=='sign in')return;
+    var u=form.querySelector('#sscU'),p=form.querySelector('#sscP');
+    if(!u||!p||!u.value.trim()||!p.value)return; /* empty fields: let the normal message show at once */
+    e.preventDefault();e.stopImmediatePropagation();
+    busy=true;
+    var old=btn.innerHTML;
+    btn.classList.add('is-loading');btn.disabled=true;btn.setAttribute('aria-busy','true');
+    btn.innerHTML='<span class="ssc-spin" aria-hidden="true"></span>Signing in\u2026';
+    setTimeout(function(){
+      try{btn.classList.remove('is-loading');btn.disabled=false;btn.removeAttribute('aria-busy');btn.innerHTML=old}catch(x){}
+      busy=false;passing=true;
+      try{if(form.requestSubmit)form.requestSubmit();else form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))}catch(x){}
+      passing=false;
+    },650);
+  },true);
+})();
+</script>
+<style id="sscLuxWelcome">/* ===== LUXURY STEP 1I: welcome screen, logo fades in smoothly (CSS only) ===== */
+@keyframes sscLogoFade{from{opacity:0;transform:scale(.94);filter:blur(8px) drop-shadow(0 8px 12px rgba(110,50,45,.28))}60%{filter:blur(0) drop-shadow(0 8px 12px rgba(110,50,45,.28))}to{opacity:1;transform:none;filter:drop-shadow(0 8px 12px rgba(110,50,45,.28))}}
+#sscWelcome.on .ssc-wel>.ssc-logo{animation:sscLogoFade 1.1s cubic-bezier(.22,.61,.36,1) .05s both}
+@media(prefers-reduced-motion:reduce){#sscWelcome.on .ssc-wel>.ssc-logo{animation:none!important}}
+</style>
+<style id="sscLuxWelcome2">/* ===== LUXURY STEP 1J: welcome screen, golden photo ring (2) + WELCOME BACK (3). Order: logo, photo, text, then name and bar ===== */
+@property --wa{syntax:'<angle>';inherits:false;initial-value:0deg}
+.ssc-wel .ssc-wel-av{border:4px solid transparent;background:linear-gradient(135deg,#0f3d2e,#14513d) padding-box,conic-gradient(from var(--wa),#8a6a2c,#f3dcae,#c8a96a,#8a6a2c 50%,#f3dcae,#c8a96a,#8a6a2c) border-box}
+.ssc-wel .ssc-wel-av.ph{background:#fff padding-box,conic-gradient(from var(--wa),#8a6a2c,#f3dcae,#c8a96a,#8a6a2c 50%,#f3dcae,#c8a96a,#8a6a2c) border-box}
+@keyframes sscAvRing{from{--wa:0deg}to{--wa:360deg}}
+@keyframes sscAvRipple{from{box-shadow:0 0 0 6px rgba(200,169,106,.22),0 0 0 6px rgba(201,150,90,.6),0 12px 28px rgba(0,0,0,.25)}to{box-shadow:0 0 0 6px rgba(200,169,106,.22),0 0 0 34px rgba(201,150,90,0),0 12px 28px rgba(0,0,0,.25)}}
+@keyframes sscWelIn{from{opacity:0;transform:translateY(8px);letter-spacing:.5em}to{opacity:1;transform:none;letter-spacing:.18em}}
+#sscWelcome.on .ssc-wel>:nth-child(2){animation:sscPop .7s cubic-bezier(.2,.9,.3,1.2) .6s both,sscAvRing 1.8s cubic-bezier(.3,.6,.3,1) .6s both,sscAvRipple 1.3s ease-out .95s both}
+#sscWelcome.on .ssc-wel>:nth-child(3){animation:sscWelIn .9s cubic-bezier(.2,.8,.2,1) 1.3s both}
+#sscWelcome.on .ssc-wel>:nth-child(4){animation-delay:1.7s}
+#sscWelcome.on .ssc-wel>:nth-child(5){animation-delay:2s}
+#sscWelcome.on .ssc-bar i{animation-duration:1.2s;animation-delay:2s}
+@media(prefers-reduced-motion:reduce){#sscWelcome.on .ssc-wel>:nth-child(2),#sscWelcome.on .ssc-wel>:nth-child(3){animation:none!important}}
+</style>
+<style id="sscLuxWelcome3">/* ===== LUXURY STEP 1K: welcome screen, name gradient shimmer (4) + subtitle (5). Order: logo, photo, WELCOME BACK, name, subtitle, bar ===== */
+.ssc-wel h2{background-image:linear-gradient(100deg,var(--accent) 0%,var(--c1) 38%,#c9965a 52%,var(--c1) 66%,var(--accent) 100%);background-size:260% 100%;background-position:100% 50%}
+@keyframes sscNameShimmer{from{background-position:100% 50%}to{background-position:0% 50%}}
+.ssc-wel .ssc-wel-sub{margin:2px 0 6px;max-width:92vw;text-align:center;font-size:clamp(.6rem,1.7vw,.78rem);font-weight:600;letter-spacing:.16em;line-height:1.6;text-transform:uppercase;color:#9a7a62}
+html[data-theme="ios-dark"] .ssc-wel .ssc-wel-sub{color:var(--ink-3)}
+#sscWelcome.on .ssc-wel>:nth-child(4){animation:sscRise .7s cubic-bezier(.2,.8,.2,1) 1.6s both,sscNameShimmer 3.2s ease-in-out 1.6s both}
+#sscWelcome.on .ssc-wel>:nth-child(5){animation:sscRise .7s cubic-bezier(.2,.8,.2,1) 2s both}
+#sscWelcome.on .ssc-wel>:nth-child(6){animation-delay:2.3s}
+#sscWelcome.on .ssc-bar i{animation-duration:1.1s;animation-delay:2.3s}
+@media(prefers-reduced-motion:reduce){#sscWelcome.on .ssc-wel>:nth-child(4),#sscWelcome.on .ssc-wel>:nth-child(5){animation:none!important}}
+</style>
+<style id="sscLuxWelcome4">/* ===== LUXURY STEP 1L: welcome screen, small "Preparing your dashboard..." indicator under the bar (6) ===== */
+.ssc-wel .ssc-wel-prep{margin:6px 0 0;font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9a7a62}
+html[data-theme="ios-dark"] .ssc-wel .ssc-wel-prep{color:var(--ink-3)}
+.ssc-wel-dots b{display:inline-block;font-weight:700;opacity:.25;animation:sscDot 1.2s ease-in-out infinite}
+.ssc-wel-dots b:nth-child(2){animation-delay:.2s}.ssc-wel-dots b:nth-child(3){animation-delay:.4s}
+@keyframes sscDot{0%,100%{opacity:.25}40%{opacity:1}}
+#sscWelcome.on .ssc-wel>:nth-child(7){animation-delay:2.3s}
+@media(prefers-reduced-motion:reduce){.ssc-wel-dots b{animation:none;opacity:1}}
+</style>

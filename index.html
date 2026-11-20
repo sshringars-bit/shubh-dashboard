@@ -2045,6 +2045,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
     <button type="button" role="tab" id="tab-studio" data-tab="studio" aria-selected="false" tabindex="-1">Photo Studio</button>
     <button type="button" role="tab" id="tab-festcal" data-tab="festcal" aria-selected="false" tabindex="-1">Festival Calendar</button>
     <button type="button" role="tab" id="tab-rawmat" data-tab="rawmat" aria-selected="false" tabindex="-1">Raw Material Stock</button>
+    <button type="button" role="tab" id="tab-backup" data-tab="backup" aria-selected="false" tabindex="-1">Backup</button>
   </nav>
   <button class="btn small" id="tabMove" type="button" aria-expanded="false" title="Change the order of the tabs. On a computer you can also drag a tab.">⇆ Move tabs</button>
   <span class="tabmove glass" id="tabMoveCtl" hidden><span id="tabMoveLbl"></span><button class="btn small" id="tabLeft" type="button" aria-label="Move tab left">‹ Left</button><button class="btn small" id="tabRight" type="button" aria-label="Move tab right">Right ›</button><button class="btn small primary" id="tabMoveDone" type="button">Done</button></span>
@@ -2354,6 +2355,7 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
   <div class="view" id="view-studio" hidden></div>
   <div class="view" id="view-festcal" hidden></div>
   <div class="view" id="view-rawmat" hidden></div>
+  <div class="view" id="view-backup" hidden></div>
   <div class="view" id="view-stock" hidden>
     <section class="glass stk-wrap">
       <div class="stk-head"><div><h2>Available Ready Stock</h2><p>Track how many pieces of each product you have, and get a warning when stock runs low.</p></div><div class="stk-actions"><button class="btn small" type="button" id="stkAll">Apply all new sales</button><button class="btn small" type="button" id="stkPdf">&#128424; Stock sheet PDF</button><button class="btn small" type="button" id="stkCsv">&#11015; Download CSV</button><button class="btn small" type="button" id="stkWa">Share reorder list</button><button class="btn small primary stk-main" type="button" id="stkTake">&#9989; Stock-taking</button></div></div>
@@ -3273,7 +3275,7 @@ function bindPay(){
   renderPay();
 }
 /* ---- movable tabs ---- */
-var TABS=['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','finance','topten','stock','studio','festcal','rawmat'],TORD_KEY='ssc-tab-order';
+var TABS=['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','finance','topten','stock','studio','festcal','rawmat','backup'],TORD_KEY='ssc-tab-order';
 function tabOrder(){
   var o=[];try{o=JSON.parse(localStorage.getItem(TORD_KEY)||'[]')}catch(e){}
   o=(Array.isArray(o)?o:[]).filter(function(t,i,a){return TABS.indexOf(t)>-1&&a.indexOf(t)===i});
@@ -3331,13 +3333,14 @@ function bindZoom(){
 }
 
 /* ---- export / import ---- */
-function dStatus(m){$('#dataStatus').textContent=m||''}
+function dStatus(m){['#dataStatus','#bkStatus'].forEach(function(q){var e=$(q);if(e)e.textContent=m||''});try{window.bkLastRefresh&&window.bkLastRefresh()}catch(e){}}
+function setImp(h){['#impPanel','#bkImpPanel'].forEach(function(q){var e=$(q);if(e)e.innerHTML=h})}
 function openData(){
   var n=function(a){return a.filter(function(x){return !x.sample}).length};
   $('#expInfo').textContent='Saves everything in this dashboard into one file: '+n(state.orders)+' orders, '+n(state.products)+' products (with photos), '+n(state.sales)+' sale entries, blacklisted customers, trackers, expenses, staff, payments, returns, purchases, platform sheets, notes, user accounts and settings.';
-  $('#impPanel').innerHTML='';state.imp=null;dStatus('');
+  setImp('');state.imp=null;dStatus('');
   $('#impPick').classList.toggle('disabled',!state.canWrite);
-  if(!state.canWrite)$('#impPanel').innerHTML='<p class="muted">You have view-only access, so importing is turned off.</p>';
+  if(!state.canWrite)setImp('<p class="muted">You have view-only access, so importing is turned off.</p>');
   $('#dataStudio').hidden=false;setTimeout(function(){$('#dataClose').focus()},30);
 }
 function closeData(){$('#dataStudio').hidden=true}
@@ -3456,10 +3459,10 @@ function applyImport(d,mode){
 }
 function showImportChoice(d){
   state.imp=d;
-  $('#impPanel').innerHTML='<p class="imp-sum">Found <b>'+d.orders.length+'</b> orders, <b>'+d.products.length+'</b> products ('+d.images+' photos), <b>'+d.sales.length+'</b> sale entries and <b>'+d.customers.length+'</b> blacklisted customers.</p>'+
+  setImp('<p class="imp-sum">Found <b>'+d.orders.length+'</b> orders, <b>'+d.products.length+'</b> products ('+d.images+' photos), <b>'+d.sales.length+'</b> sale entries and <b>'+d.customers.length+'</b> blacklisted customers.</p>'+
     (d.raw?'<p class="imp-sum"><b>Full backup:</b> also contains every other saved sheet and setting ('+d.raw.nl+' settings/sheets, '+d.raw.ni+' saved records such as staff, payments, returns, purchases, Amazon/Myntra/Flipkart/Meesho sheets and user accounts).</p><p class="muted"><b>Restore everything</b> puts this device back exactly as it was when the backup was made (current data is replaced) and then reloads the page.</p><div class="imp-actions"><button class="btn primary small" type="button" data-imp="full">Restore everything</button></div>':'')+
     '<p class="muted"><b>Merge</b> keeps what you have and adds or updates records from the backup. <b>Replace</b> deletes the orders, products, sales and blacklist currently here first.</p>'+
-    '<div class="imp-actions"><button class="btn primary small" type="button" data-imp="merge">Merge into current data</button><button class="btn small danger" type="button" data-imp="replace">Replace everything</button><button class="btn small" type="button" data-imp="cancel">Cancel</button></div>';
+    '<div class="imp-actions"><button class="btn primary small" type="button" data-imp="merge">Merge into current data</button><button class="btn small danger" type="button" data-imp="replace">Replace everything</button><button class="btn small" type="button" data-imp="cancel">Cancel</button></div>');
 }
 var impArm=null;
 function bindData(){
@@ -3471,28 +3474,94 @@ function bindData(){
     var f=e.target.files&&e.target.files[0];e.target.value='';
     if(!f||!state.canWrite)return;
     if(f.size>120*1024*1024){dStatus('That file is too large to be a backup.');return}
-    dStatus('Reading '+f.name+'…');$('#impPanel').innerHTML='';
+    dStatus('Reading '+f.name+'…');setImp('');
     f.text().then(function(t){var d=parseBackup(t);dStatus('');showImportChoice(d)}).catch(function(err){dStatus(err&&err.message?err.message:'Could not read that file.')});
   });
-  $('#impPanel').addEventListener('click',function(e){
+  var impClick=function(e){
     var b=e.target.closest('[data-imp]');if(!b||!state.imp)return;
     var m=b.dataset.imp;
-    if(m==='cancel'){state.imp=null;$('#impPanel').innerHTML='';dStatus('');return}
+    if(m==='cancel'){state.imp=null;setImp('');dStatus('');return}
     if((m==='replace'||m==='full')&&!impArm){var lbl=b.textContent;impArm=setTimeout(function(){impArm=null;if(b.isConnected)b.textContent=lbl},4000);b.textContent='Tap again to confirm';return}
     clearTimeout(impArm);impArm=null;
     if(m==='full'){
-      var fd=state.imp;state.imp=null;$('#impPanel').innerHTML='';dStatus('Restoring everything…');
+      var fd=state.imp;state.imp=null;setImp('');dStatus('Restoring everything…');
       (db?applyImport(fd,'replace'):Promise.resolve()).then(function(){return rawRestore(fd.raw)}).then(function(failed){
         dStatus('Restore finished'+(failed?' ('+failed+' item(s) could not be saved by this browser)':'')+'. Reloading…');toast('Restore finished');
         (window.__fbFlushAll?window.__fbFlushAll():Promise.resolve()).then(function(){setTimeout(function(){location.reload()},800)});
       }).catch(function(err){dStatus('Restore stopped. '+(err&&err.code?saveErr(err):'Some data may not have been restored.'))});
       return;
     }
-    var d=state.imp;state.imp=null;$('#impPanel').innerHTML='';dStatus('Importing…');
+    var d=state.imp;state.imp=null;setImp('');dStatus('Importing…');
     applyImport(d,m).then(function(){dStatus('Import finished: '+d.orders.length+' orders, '+d.products.length+' products, '+d.sales.length+' sale entries, '+d.customers.length+' blacklisted customers.');toast('Import finished')})
       .catch(function(err){dStatus('Import stopped. '+(err&&err.code?saveErr(err):'Some records may not have been saved.'))});
-  });
+  };
+  $('#impPanel').addEventListener('click',impClick);
+  window.bkImpClick=impClick;
 }
+/* ---- Backup tab ---- */
+function bkFmt(n){return n>=1048576?(n/1048576).toFixed(1)+' MB':n>=1024?Math.round(n/1024)+' KB':n+' B'}
+function bkLastRefresh(){
+  var e=$('#bkLast');if(!e)return;
+  var lb=0;try{lb=+localStorage.getItem('ssc-last-backup')||0}catch(x){}
+  if(!lb){e.textContent='No backup downloaded from this device yet.';e.style.color='#b3261e';return}
+  var d=Math.floor((Date.now()-lb)/864e5);
+  e.style.color='';
+  e.textContent='Last backup: '+new Date(lb).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})+(d<=0?' (today)':d===1?' (yesterday)':' ('+d+' days ago)');
+}
+function bkStats(){
+  var box=$('#bkStats');if(!box)return;
+  box.innerHTML='<p class="muted">Counting everything…</p>';
+  rawDump().then(function(raw){
+    var nl=0,ni=0,sz=0,rows=[];
+    Object.keys(raw.ls).forEach(function(k){var l=String(raw.ls[k]).length;nl++;sz+=l+k.length;rows.push(['Settings / sheet',k,l])});
+    Object.keys(raw.idb).forEach(function(db){Object.keys(raw.idb[db]).forEach(function(k){var v=raw.idb[db][k],l=typeof v==='string'?v.length:JSON.stringify(v||'').length;ni++;sz+=l+k.length;rows.push(['Saved record ('+db.replace('ssc-','')+')',k,l])})});
+    var cnt=function(a){return a.filter(function(x){return !x.sample}).length};
+    var photos=0;state.products.forEach(function(p){photos+=((p.images&&p.images.length)||(state.pimgs&&state.pimgs[p.id]&&state.pimgs[p.id].length)||0)});
+    var tr=0,ex=0;try{tr=(window.mfGetRows?window.mfGetRows():[]).length}catch(e){}try{ex=(window.exGet?window.exGet():[]).length}catch(e){}
+    var rmN=0;try{var rmA=JSON.parse(raw.ls['ssc-rawmat-v1']||'null');if(!Array.isArray(rmA)){var rmB=raw.idb['ssc-dashboard']&&raw.idb['ssc-dashboard']['bk:ssc-rawmat-v1'];var rmO=typeof rmB==='string'?JSON.parse(rmB):rmB;rmA=rmO&&Array.isArray(rmO.v)?rmO.v:[]}rmN=rmA.length}catch(e){}
+    var T=[['Orders',cnt(state.orders)],['Products',cnt(state.products)],['Raw materials',rmN],['Product photos',photos],['Sale entries',cnt(state.sales)],['Tracker rows',tr],['Expenses',ex],['Settings & sheets',nl],['Saved records',ni],['Backup file size (approx.)',bkFmt(Math.round(sz*1.02))]];
+    box.innerHTML=T.map(function(t){return '<div class="bk-tile"><b>'+esc(String(t[1]))+'</b><span>'+esc(t[0])+'</span></div>'}).join('');
+    rows.sort(function(a,b){return b[2]-a[2]});
+    var L=$('#bkList');if(L)L.innerHTML='<table class="bk-tbl"><thead><tr><th>Type</th><th>Name</th><th>Size</th></tr></thead><tbody>'+rows.slice(0,300).map(function(r){return '<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+bkFmt(r[2])+'</td></tr>'}).join('')+'</tbody></table>'+(rows.length>300?'<p class="muted">Showing the 300 largest of '+rows.length+' items. All of them are in the backup.</p>':'');
+  }).catch(function(){box.innerHTML='<p class="muted">Could not count the saved data in this browser. The backup button may still work.</p>'});
+}
+function bkTabRender(){
+  var v=$('#view-backup');if(!v)return;
+  if(!v._i){
+    v._i=1;
+    if(!$('#bktCss')){var st=document.createElement('style');st.id='bktCss';st.textContent=
+      '#view-backup .bk-wrap{display:grid;gap:14px}#view-backup .bk-card{padding:20px 22px}#view-backup .bk-card h3,#view-backup .bk-card h4{margin:0 0 6px}#view-backup .bk-card p{margin:0 0 10px}'+
+      '#view-backup .bk-hero{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between}#view-backup .bk-hero>div{flex:1 1 320px}'+
+      '#view-backup .bk-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0 12px}'+
+      '#view-backup .bk-tile{border:1px solid rgba(120,120,120,.25);border-radius:12px;padding:12px 14px}#view-backup .bk-tile b{display:block;font-size:1.25rem}#view-backup .bk-tile span{font-size:.78rem;opacity:.75}'+
+      '#view-backup .bk-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}#view-backup .bk-tabs span{border:1px solid rgba(22,131,74,.35);background:rgba(22,131,74,.08);border-radius:99px;padding:3px 10px;font-size:.78rem;font-weight:600}'+
+      '#view-backup details{margin-top:8px}#view-backup summary{cursor:pointer;font-weight:700;font-size:.86rem}'+
+      '#view-backup .bk-tbl{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:8px}#view-backup .bk-tbl th,#view-backup .bk-tbl td{text-align:left;padding:5px 8px;border-bottom:1px solid rgba(120,120,120,.18);word-break:break-all}#view-backup .bk-tbl th{opacity:.7}'+
+      '#view-backup .bk-tips{margin:0;padding-left:18px;font-size:.86rem;line-height:1.7}';
+      document.head.appendChild(st)}
+    v.innerHTML='<div class="bk-wrap">'+
+      '<section class="glass bk-card bk-hero"><div><h3>Full backup of the whole dashboard</h3><p class="muted">One file with everything on this device: every tab, product photos, sheets, notes, user accounts and settings. Keep a copy somewhere safe (Google Drive, email to yourself).</p><p id="bkLast" class="muted" style="font-weight:700"></p></div><button class="btn primary" id="bkDl" type="button">⇅ Download full backup (.json)</button></section>'+
+      '<p class="status" id="bkStatus" role="status" aria-live="polite"></p>'+
+      '<section class="glass bk-card"><h4>What is saved in the backup</h4><div class="bk-tabs" id="bkTabs"></div><div id="bkStats" class="bk-tiles"></div><details><summary>Show every saved item</summary><div id="bkList"></div></details></section>'+
+      '<section class="glass bk-card"><h4>Restore from a backup</h4><p class="muted">Choose a backup file downloaded from this dashboard. You can merge it into your current data, or restore everything exactly as it was.</p><label class="btn small" id="bkPick" for="bk-file">Choose backup file</label><input class="sr-only" id="bk-file" type="file" accept=".json,application/json"><div id="bkImpPanel"></div></section>'+
+      '<section class="glass bk-card"><h4>Good habits</h4><ul class="bk-tips"><li>Download a backup every week, and before using “Clear all data” or “Restore”.</li><li>Save the file outside this device too, so a lost phone or cleared browser does not lose your records.</li><li>Open the dashboard in the same browser you normally use. Backups are read from that browser’s saved data.</li></ul></section>'+
+      '</div>';
+    $('#bkDl').addEventListener('click',exportData);
+    $('#bkImpPanel').addEventListener('click',function(e){if(window.bkImpClick)window.bkImpClick(e)});
+    $('#bk-file').addEventListener('change',function(e){
+      var f=e.target.files&&e.target.files[0];e.target.value='';
+      if(!f||!state.canWrite)return;
+      if(f.size>120*1024*1024){dStatus('That file is too large to be a backup.');return}
+      dStatus('Reading '+f.name+'…');setImp('');
+      f.text().then(function(t){var d=parseBackup(t);dStatus('');showImportChoice(d)}).catch(function(err){dStatus(err&&err.message?err.message:'Could not read that file.')});
+    });
+  }
+  $('#bkPick').classList.toggle('disabled',!state.canWrite);
+  if(!state.canWrite&&!$('#bkImpPanel').innerHTML)$('#bkImpPanel').innerHTML='<p class="muted">You have view-only access, so restoring is turned off.</p>';
+  $('#bkTabs').innerHTML=[].slice.call(document.querySelectorAll('#tabs [data-tab]')).filter(function(b){return b.dataset.tab!=='backup'&&getComputedStyle(b).display!=='none'}).map(function(b){return '<span>✓ '+esc(b.textContent.trim())+'</span>'}).join('');
+  bkLastRefresh();bkStats();
+}
+window.bkTabRender=bkTabRender;window.bkLastRefresh=bkLastRefresh;
 function openFx(){$('#fxStudio').hidden=false;setTimeout(function(){playFx($('#fxPrev'));$('#fxClose').focus()},30)}
 function closeFx(){$('#fxStudio').hidden=true;playFx($('#view-'+state.tab))}
 
@@ -5455,14 +5524,14 @@ window.sscApi.products=function(){return state.products.map(normP).filter(functi
 window.sscApi.invData=function(){var ph=cphMap(),prods=state.products.map(normP);return {sales:state.sales.map(normS).filter(function(e){return !e.sample}).map(function(e){var p=matchProduct(e,prods),k=custKey(e),cid=k?custId(k):'',pn=cid&&ph[cid]?ph[cid]:'';return {id:e.id,mp:e.marketplace,customer:e.customer,address:e.address,orderId:e.orderId,sku:e.sku,date:e.date,status:e.status,orderValue:e.orderValue,paid:e.paymentReceived,phone:pn?cphShow(pn):'',prod:p?{name:p.name,sku:p.sku,hsn:p.hsn,gst:p.gst,price:p.price}:null}}),customers:buildCustomers().filter(function(c){return !(c.flag&&c.flag.blacklisted)}).map(function(c){return {id:c.id,name:c.name,address:c.address||'',phone:ph[c.id]||'',n:c.n,last:c.last||''}})}};
 function setTab(t){
   state.tab=t;
-  ['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','finance','topten','stock','studio','festcal','rawmat'].forEach(function(v){$('#view-'+v).hidden=v!==t});
+  ['orders','tracker','products','sales','invoice','customers','staff','recon','expenses','states','returns','purchases','finance','topten','stock','studio','festcal','rawmat','backup'].forEach(function(v){$('#view-'+v).hidden=v!==t});
   document.querySelectorAll('#tabs [role="tab"]').forEach(function(b){
     var on=b.dataset.tab===t;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;
   });
-  $('#pageTitle').textContent={orders:'Sales Dashboard',tracker:'Tracker',products:'Products',sales:'Sale entries',invoice:'Invoice',customers:'Customers',staff:'Staff Payment',recon:'Reconciliation',expenses:'Expenses',states:'State Sales',returns:'Return Tracking',purchases:'Purchase Records',finance:'Financial Control Centre',topten:'Top 10 Sold Products',stock:'Available Ready Stock',studio:'Photo Studio',festcal:'Festival Calendar',rawmat:'Raw Material Stock'}[t];
+  $('#pageTitle').textContent={orders:'Sales Dashboard',tracker:'Tracker',products:'Products',sales:'Sale entries',invoice:'Invoice',customers:'Customers',staff:'Staff Payment',recon:'Reconciliation',expenses:'Expenses',states:'State Sales',returns:'Return Tracking',purchases:'Purchase Records',finance:'Financial Control Centre',topten:'Top 10 Sold Products',stock:'Available Ready Stock',studio:'Photo Studio',festcal:'Festival Calendar',rawmat:'Raw Material Stock',backup:'Backup & Restore'}[t];
   try{var pt=$('#pageTitle');pt.setAttribute('data-crumb','Home  /  '+(t==='orders'?'Overview':pt.textContent))}catch(e){}
-  $('#addBtn').textContent={orders:'+ New order',tracker:'',products:'+ New product',sales:'+ Manual entry',invoice:'',customers:'',staff:'',recon:'',expenses:'',states:'',returns:'',purchases:'',finance:'',topten:'',stock:'',studio:'',festcal:'',rawmat:''}[t];
-  $('#addBtn').hidden=!state.canWrite||t==='invoice'||t==='customers'||t==='staff'||t==='recon'||t==='tracker'||t==='expenses'||t==='states'||t==='returns'||t==='purchases'||t==='finance'||t==='topten'||t==='stock'||t==='studio'||t==='festcal'||t==='rawmat';
+  $('#addBtn').textContent={orders:'+ New order',tracker:'',products:'+ New product',sales:'+ Manual entry',invoice:'',customers:'',staff:'',recon:'',expenses:'',states:'',returns:'',purchases:'',finance:'',topten:'',stock:'',studio:'',festcal:'',rawmat:'',backup:''}[t];
+  $('#addBtn').hidden=!state.canWrite||t==='invoice'||t==='customers'||t==='staff'||t==='recon'||t==='tracker'||t==='expenses'||t==='states'||t==='returns'||t==='purchases'||t==='finance'||t==='topten'||t==='stock'||t==='studio'||t==='festcal'||t==='rawmat'||t==='backup';
   if(t==='recon')rcRender();
   if(t==='recon'&&window.__mpayDirty){window.__mpayDirty=false;try{mpayRender()}catch(e){}}
   try{if(t==='expenses'&&window.exRender)window.exRender();if(t==='states'&&window.stRender)window.stRender();if(t==='returns'&&window.rtRender)window.rtRender();if(t==='purchases'&&window.prRender)window.prRender();if(t==='topten'&&window.t10Render)window.t10Render()}catch(e){}
@@ -5472,6 +5541,7 @@ function setTab(t){
   if(t==='studio'){try{window.studioRender&&window.studioRender()}catch(e){}}
   if(t==='festcal'){try{window.fcalProRender&&window.fcalProRender()}catch(e){}}
   if(t==='rawmat'){try{window.rawmatRender&&window.rawmatRender()}catch(e){}}
+  if(t==='backup'){try{window.bkTabRender&&window.bkTabRender()}catch(e){}}
   if(t==='tracker'){try{if(window.mfRefresh)window.mfRefresh()}catch(e){}}
   if(!$('#tabMoveCtl').hidden)updMoveLbl();
   try{localStorage.setItem(TAB_KEY,t)}catch(e){}
@@ -7406,13 +7476,13 @@ function init(){
   bindZoom();
   bindData();
   $('#today').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  var t0='orders';try{var sv=localStorage.getItem(TAB_KEY);if(sv==='products'||sv==='sales'||sv==='invoice'||sv==='customers'||sv==='staff'||sv==='recon'||sv==='expenses'||sv==='states'||sv==='returns'||sv==='purchases'||sv==='finance'||sv==='topten'||sv==='stock'||sv==='studio'||sv==='festcal'||sv==='rawmat')t0=sv}catch(e){}
+  var t0='orders';try{var sv=localStorage.getItem(TAB_KEY);if(sv==='products'||sv==='sales'||sv==='invoice'||sv==='customers'||sv==='staff'||sv==='recon'||sv==='expenses'||sv==='states'||sv==='returns'||sv==='purchases'||sv==='finance'||sv==='topten'||sv==='stock'||sv==='studio'||sv==='festcal'||sv==='rawmat'||sv==='backup')t0=sv}catch(e){}
   bind();render();setTab(t0);startData();
   var cab=$('#clearAllBtn');if(cab)cab.addEventListener('click',clearAllData);
 }
 /* Tracker storage: same local copy (IndexedDB + localStorage) as the rest of the dashboard, or the shared db when published */
 var MF_CHUNK=150000,mfPrevN={},mfSnapP=null,mfSnapT=0;
-function mfLoadHook(){if(window.mfLoad)window.mfLoad();else window.__mfWantLoad=true;['azLoad','myLoad','fkLoad'].forEach(function(n){if(typeof window[n]==='function'){try{window[n]()}catch(e){}}})}
+function mfLoadHook(){if(window.mfLoad)window.mfLoad();else window.__mfWantLoad=true;['azLoad','myLoad','fkLoad','rmLoad'].forEach(function(n){if(typeof window[n]==='function'){try{window[n]()}catch(e){}}})}
 /* One read of the whole tracker collection, asking the server first (a cache-only first answer can be incomplete),
    falling back to the local cache only when the server cannot be reached. Shared by all tabs loading at the same time. */
 function mfSnapshot(){
@@ -9236,6 +9306,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){var o=docum
 #view-festcal .fcp-p{color:#fff}#view-festcal .fcp-p.sm{color:var(--a)}
 #view-festcal .fcp-mini button.fb{color:#fff}
 body:has(#view-festcal:not([hidden])) #proTools{display:none!important}
+body:has(#view-backup:not([hidden])) #proTools{display:none!important}
 
 /* step 23: poster-style month grid (colored weekdays, wrapped festival names, gold frame) */
 #view-festcal .fcp-cal{border:2px solid #e0b24f;box-shadow:0 8px 28px rgba(176,120,20,.18)}
@@ -14460,8 +14531,48 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function num(v){var n=parseFloat(v);return isFinite(n)?n:0}
 function inr(n){return '₹'+(Math.round(n*100)/100).toLocaleString('en-IN')}
 function toast(m){try{window.sscApi.toast(m)}catch(e){}}
-function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
-function save(a){try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){toast('Could not save – browser storage is full. Try a smaller photo.');return false}}
+/* Raw Material Stock records: kept in memory, saved through sscStore (IndexedDB backup + shared cloud db), localStorage kept only as a quick extra copy */
+var CACHE=null,DIRTY=false,HYD=false;
+function lsRead(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function load(){if(CACHE===null)CACHE=lsRead();return CACHE}
+function save(a){
+  CACHE=a;DIRTY=true;var lsOk=true;
+  try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){lsOk=false}
+  if(!window.sscStore){rmNote(lsOk?'local':'fail');if(!lsOk)toast('Could not save – browser storage is full. Try a smaller photo.');return lsOk}
+  rmPut(KEY,a,lsOk,'Could not save Raw Material Stock. Please use Backup.');
+  return true;
+}
+/* small "Saved" indicator at the bottom of the screen while the Raw Material tab is open */
+function rmNote(state){
+  var v=$('#view-rawmat'),el=document.getElementById('rmSaveNote');
+  if(!el){el=document.createElement('div');el.id='rmSaveNote';el.setAttribute('role','status');el.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:100000;padding:7px 14px;border-radius:99px;font:700 .8rem system-ui,sans-serif;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none;pointer-events:none;max-width:90vw;text-align:center';document.body.appendChild(el)}
+  clearTimeout(el._t);
+  if(state!=='fail'&&v&&v.hidden){el.style.display='none';return}
+  el.textContent=state==='ok'?'\u2713 Saved':state==='local'?'\u26a0 Saved in this browser only \u2013 use Backup':'\u26a0 NOT saved \u2013 use Backup now';
+  el.style.background=state==='ok'?'#1f7a3a':state==='local'?'#b88700':'#b42318';
+  el.style.display='block';
+  if(state!=='fail')el._t=setTimeout(function(){el.style.display='none'},state==='ok'?2500:7000);
+}
+function rmPut(key,v,lsOk,msg){
+  var st=window.sscStore;
+  if(!st){rmNote(lsOk?'local':'fail');if(!lsOk)toast(msg);return}
+  var bad=function(){rmNote(lsOk?'local':'fail');if(!lsOk)toast(msg)};
+  try{Promise.resolve(st.put(key,v)).then(function(r){if(r)rmNote('ok');else bad()},bad)}catch(e){bad()}
+}
+window.rmLoad=function(){
+  var st=window.sscStore;if(!st)return;
+  try{Promise.resolve(st.get(KEY)).then(function(sv){
+    HYD=true;if(DIRTY)return;
+    var cloud=Array.isArray(sv)?sv:[],cur=load();
+    if(!cloud.length){if(cur.length){try{st.put(KEY,cur)}catch(e){}}return}
+    var ids={};cloud.forEach(function(x){if(x&&x.id)ids[x.id]=1});
+    var extra=cur.filter(function(x){return x&&x.id&&!ids[x.id]});
+    CACHE=cloud.concat(extra);
+    try{localStorage.setItem(KEY,JSON.stringify(CACHE))}catch(e){}
+    if(extra.length){try{st.put(KEY,CACHE)}catch(e){}}
+    var v=$('#view-rawmat');if(v&&v._i&&!v.hidden){try{draw()}catch(e){}}
+  },function(){})}catch(e){}
+};
 var editId=null,photos=[],formOpen=false,prefill=null;
 function css(){if($('#rawmatCss'))return;var s=document.createElement('style');s.id='rawmatCss';s.textContent='@keyframes rmBlink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,140,0,.7)}50%{opacity:.25;box-shadow:0 0 0 8px rgba(255,140,0,0)}}.rm-blink{animation:rmBlink 1s ease-in-out infinite;outline:2px solid #ff8c00;font-weight:700}'+
 '#view-rawmat .rm-wrap{padding:20px;display:grid;gap:14px}'+
@@ -14596,8 +14707,8 @@ ov.addEventListener('click',function(e){var t=e.target;if(t===ov){ov.remove();re
 ov.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target===qa){go(num(qa.value))}if(e.key==='Escape')ov.remove()})}
 var RK='ssc-rawmat-recipes-v1',curP='',cN=100;
 function prods(){try{return window.sscApi.products()}catch(e){return[]}}
-function rl(){try{var o=JSON.parse(localStorage.getItem(RK)||'{}');return o&&typeof o==='object'?o:{}}catch(e){return{}}}
-function rsv(o){try{localStorage.setItem(RK,JSON.stringify(o))}catch(e){toast('Could not save')}}
+function rl(){var o=xGet(RK,{});return o&&typeof o==='object'&&!Array.isArray(o)?o:{}}
+function rsv(o){xPut(RK,o,'Could not save')}
 function costPanel(){var b=$('#rmCostBox'),ps=prods();
 b.innerHTML='<div class="full"><b>Product material cost</b><div style="opacity:.75;font-size:.8rem">Pick a product, then add the raw materials one piece needs. Saved automatically.</div></div><label class="full">Product<select class="field-in" id="rmCP"><option value="">Choose product…</option>'+ps.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===curP?' selected':'')+'>'+esc(p.name+(p.sku?' ('+p.sku+')':''))+'</option>'}).join('')+'</select></label><div class="full" id="rmCI"></div><div class="full"><button type="button" class="btn small" id="rmCostX">Close</button></div>';b.hidden=false;costItems()}
 function costItems(){var box=$('#rmCI');if(!box)return;if(!curP){box.innerHTML='';return}
@@ -14612,8 +14723,8 @@ var rows=[['Material','SKU','Category','Unit','Original rate','In store','Stock 
 var blob=new Blob(['\ufeff'+rows.map(function(r){return r.map(c).join(',')}).join('\r\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),l=document.createElement('a');
 l.href=u;l.download='raw-material-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},1000);toast('Downloaded')}
 var BKEY='ssc-rawmat-buys-v1';
-function buys(){try{var a=JSON.parse(localStorage.getItem(BKEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
-function buysSave(a){try{localStorage.setItem(BKEY,JSON.stringify(a))}catch(e){toast('Could not save purchase history')}}
+function buys(){var a=xGet(BKEY,[]);return Array.isArray(a)?a:[]}
+function buysSave(a){xPut(BKEY,a,'Could not save purchase history')}
 function parseRate(v){var m=String(v==null?'':v).match(/^\s*([\d.]+)\s*\/\s*([\d.]+)\s*$/);if(m&&num(m[2])>0)return Math.round(num(m[1])/num(m[2])*10000)/10000;return num(v)}
 function packRate(r){var k=num(($('#rmPack')||{}).value),p=num(($('#rmPackP')||{}).value);return k>0&&p>0?Math.round(p/k*10000)/10000:r}
 function packsTxt(m,q){return m.pack>0&&q>0?' (≈ '+Math.ceil(q/m.pack*100)/100+' pack'+(q/m.pack>1?'s':'')+')':''}
@@ -14621,10 +14732,36 @@ function hideBoxes(){['rmBuyBox','rmCostBox','rmHistBox','rmCntBox','rmDeadBox',
 function ymd(iso){return iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(2,4)}
 function dl(name,rows){function c(x){x=String(x==null?'':x);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}var blob=new Blob(['\ufeff'+rows.map(function(r){return r.map(c).join(',')}).join('\r\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),l=document.createElement('a');l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},1000)}
 var SKEY='ssc-rawmat-shop-v1',PKEY='rawmat-pref-local';
-function shopLoad(){try{var o=JSON.parse(localStorage.getItem(SKEY)||'{}');return o&&typeof o==='object'&&!Array.isArray(o)?o:{}}catch(e){return{}}}
+/* Recipes / purchase history / shopping list: same safe storage (sscStore + localStorage copy) */
+var XC={};
+function xGet(key,def){if(!(key in XC)){var v=null;try{v=JSON.parse(localStorage.getItem(key)||'null')}catch(e){}XC[key]={v:v==null?def:v,d:false}}return XC[key].v}
+function xPut(key,v,msg){
+  XC[key]={v:v,d:true};var ok=true;
+  try{localStorage.setItem(key,JSON.stringify(v))}catch(e){ok=false}
+  rmPut(key,v,ok,msg);
+}
+function xHyd(key){
+  var st=window.sscStore;if(!st)return;var isArr=(key===BKEY);
+  try{Promise.resolve(st.get(key)).then(function(sv){
+    var e=XC[key];if(e&&e.d)return;
+    var cloud=isArr?(Array.isArray(sv)?sv:[]):(sv&&typeof sv==='object'&&!Array.isArray(sv)?sv:{});
+    var cur=xGet(key,isArr?[]:{});
+    var cn=isArr?cloud.length:Object.keys(cloud).length,ln=isArr?cur.length:Object.keys(cur).length;
+    if(!cn){if(ln){try{st.put(key,cur)}catch(x){}}return}
+    var m,extra=false;
+    if(isArr){var seen={};cloud.forEach(function(x){seen[JSON.stringify(x)]=1});var add=cur.filter(function(x){return !seen[JSON.stringify(x)]});m=cloud.concat(add);extra=add.length>0}
+    else{m=Object.assign({},cloud);Object.keys(cur).forEach(function(k){if(!(k in m)){m[k]=cur[k];extra=true}})}
+    XC[key]={v:m,d:false};try{localStorage.setItem(key,JSON.stringify(m))}catch(x){}
+    if(extra){try{st.put(key,m)}catch(x){}}
+    if(JSON.stringify(m)!==JSON.stringify(cur)){var v=$('#view-rawmat');if(v&&v._i&&!v.hidden){try{draw()}catch(x){}}}
+  },function(){})}catch(e){}
+}
+var _rm1=window.rmLoad;window.rmLoad=function(){_rm1();[RK,BKEY,SKEY].forEach(xHyd)};
+
+function shopLoad(){var o=xGet(SKEY,{});return o&&typeof o==='object'&&!Array.isArray(o)?o:{}}
 var shopSeen=true,shopCnt=Object.keys(shopLoad()).length;
 function updBlink(){var b=$('#rmBuy');if(b)b.classList.toggle('rm-blink',Object.keys(shopLoad()).length>0&&!shopSeen)}
-function shopSave(o){try{localStorage.setItem(SKEY,JSON.stringify(o))}catch(e){toast('Could not save the shopping list.')}var n=Object.keys(o).length;if(n>shopCnt)shopSeen=false;shopCnt=n;updBlink()}
+function shopSave(o){xPut(SKEY,o,'Could not save the shopping list.');var n=Object.keys(o).length;if(n>shopCnt)shopSeen=false;shopCnt=n;updBlink()}
 function sg(sh,id){var v=sh[id];if(v===undefined)return null;return typeof v==='object'&&v?v:{q:v}}
 function pref(){try{var o=JSON.parse(localStorage.getItem(PKEY)||'{}');return{grp:o.grp!==0,per:[1,2,4,6,8].indexOf(o.per)>-1?o.per:6,sort:o.sort||'name'}}catch(e){return{grp:true,per:6,sort:'name'}}}
 function prefSet(p){try{localStorage.setItem(PKEY,JSON.stringify(p))}catch(e){}}
@@ -15051,7 +15188,7 @@ if(t.id==='rmCAdd'&&curP){var o=rl();o[curP]=(o[curP]||[]).concat([{mid:'',q:1}]
 if(t.dataset&&t.dataset.cdel!==undefined&&curP){var o2=rl();(o2[curP]||[]).splice(+t.dataset.cdel,1);rsv(o2);costItems()}});
 v.addEventListener('change',function(e){var t=e.target;if(t.id==='rmCP'){curP=t.value;costItems();return}
 if(t.dataset&&t.dataset.ci!==undefined&&curP){var o=rl(),it=(o[curP]||[])[+t.dataset.ci];if(it){it[t.dataset.f]=t.dataset.f==='q'?num(t.value):t.value;rsv(o);costItems()}}})}
-window.rawmatRender=function(){build();draw()};
+window.rawmatRender=function(){build();draw();if(!HYD)window.rmLoad()};
 })();
 </script>
 
@@ -17187,6 +17324,7 @@ window.sscAuth={signOut:function(){signOut('You have been signed out.')}};
     expenses:'<path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/>',
     topten:'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
     festcal:'<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>',
+    backup:'<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/>',
     studio:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>'
   };
   function init(){
@@ -17204,7 +17342,7 @@ window.sscAuth={signOut:function(){signOut('You have been signed out.')}};
       btn.insertAdjacentHTML('afterbegin','<svg class="sb-i" viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg>');
     });
     /* grouped menu */
-    var GROUPS=[['Overview',['orders']],['Inventory',['rawmat','products','stock','purchases']],['Sales & Operations',['tracker','sales','invoice','customers','returns','states']],['Finance',['finance','recon','staff','expenses']],['Analytics',['topten','festcal']],['Tools',['studio']]];
+    var GROUPS=[['Overview',['orders']],['Inventory',['rawmat','products','stock','purchases']],['Sales & Operations',['tracker','sales','invoice','customers','returns','states']],['Finance',['finance','recon','staff','expenses']],['Analytics',['topten','festcal']],['Tools',['studio','backup']]];
     var glabs=GROUPS.map(function(g){var d=document.createElement('div');d.className='sb-grp';d.setAttribute('role','presentation');d.textContent=g[0];return d});
     nav.querySelectorAll('button[data-tab]').forEach(function(btn){btn.title=btn.textContent.trim()});
     function regroup(){

@@ -1,4 +1,7 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0}body{min-height:100vh}[hidden]{display:none!important} 
+<!doctype html><html><head><meta charset="utf-8"><script>/* perf: short polling timers do nothing while the tab is hidden (no data is touched; they resume on return) */
+(function(){var si=window.setInterval;window.setInterval=function(f,ms){var a=[].slice.call(arguments,2);
+ if(typeof f==='function'&&ms>0&&ms<=5000){return si.apply(window,[function(){if(document.hidden)return;return f.apply(this,arguments)},ms].concat(a))}
+ return si.apply(window,arguments)}})();</script><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0}body{min-height:100vh}[hidden]{display:none!important} 
 .recon-market-tab{display:inline-flex;align-items:center;gap:8px}
 .amazon-mini{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:#232f3e;color:#ff9900;font-weight:900;text-transform:lowercase}
 .amazon-logo{display:inline-flex;align-items:baseline;gap:1px;background:#fff;color:#232f3e;padding:8px 10px;border-radius:10px;font-size:22px;font-weight:900;letter-spacing:-1.3px;box-shadow:inset 0 0 0 1px #e4e8ed}
@@ -1587,11 +1590,11 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
   }
   function flush(){
     timer=null;var keys=Object.keys(pend),ps=[];
-    keys.forEach(function(k){var v=pend[k];delete pend[k];if(sync[k]===h(v))return;ps.push(push(k,v).then(function(ok){if(!ok){pend[k]=v;if(!timer)timer=setTimeout(flush,15000)}})) });
+    keys.forEach(function(k){var v=pend[k];delete pend[k];if(sync[k]===h(v))return;ps.push(push(k,v).then(function(ok){if(!ok){pend[k]=v;if(!timer)timer=setTimeout(flush,4000)}})) });
     return Promise.all(ps);
   }
   window.__fbFlushAll=function(){if(timer){clearTimeout(timer)}return flush()};
-  function note(k,v){if(!hydrated)return;pend[k]=v;if(timer)clearTimeout(timer);timer=setTimeout(flush,1500)}
+  function note(k,v){if(!hydrated)return;pend[k]=v;if(timer)clearTimeout(timer);timer=setTimeout(flush,400)}
   function freeSpace(){try{var d=[];for(var i=0;i<LS.length;i++){var x=LS.key(i);if(x&&(x.indexOf('bk:')===0||/^ssc-(wx|wx-data|fest-online|loginlog)-?/.test(x)))d.push(x)}d.forEach(function(x){LS.removeItem(x)});return d.length}catch(e){return 0}}
   var fullShown=false;
   function fullMsg(){
@@ -1614,9 +1617,9 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
   var op=IDBObjectStore.prototype.put;
   IDBObjectStore.prototype.put=function(v,k){try{if(!applying&&typeof v==='string'&&typeof k==='string'&&IDBDBS[this.transaction.db.name]&&IDBMAP[k])note(k,v)}catch(e){}return op.apply(this,arguments)};
   window.addEventListener('pagehide',function(){if(timer){clearTimeout(timer);flush()}});
-  function assemble(snap){
+  function assemble(snap,only){
     var g={},out={};
-    snap.docs.forEach(function(d){var x=d.data();if(!x||typeof x.k!=='string'||!Number.isInteger(x.i))return;var o=g[x.k]||(g[x.k]={n:x.n,p:[]});o.n=x.n;o.p[x.i]=x.s});
+    snap.docs.forEach(function(d){var x=d.data();if(!x||typeof x.k!=='string'||!Number.isInteger(x.i))return;if(only&&!only[x.k])return;var o=g[x.k]||(g[x.k]={n:x.n,p:[]});o.n=x.n;o.p[x.i]=x.s});
     Object.keys(g).forEach(function(k){var o=g[k],s='',ok=true;for(var i=0;i<o.n;i++){if(typeof o.p[i]!=='string'){ok=false;break}s+=o.p[i]}if(ok){out[k]=s;cloudN[k]=o.n}});
     return out;
   }
@@ -1726,7 +1729,8 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
         fs.collection('kv').onSnapshot(function(sn){
           var onlyP=false;try{onlyP=presenceChanges(sn)}catch(e){}
           if(onlyP||sn.metadata.hasPendingWrites)return;
-          var c=assemble(sn),any=false;
+          var only=null;try{var dc=sn.docChanges();if(dc.length&&dc.length<200){only={};dc.forEach(function(ch){var x=ch.doc.data();if(x&&typeof x.k==='string')only[x.k]=1;else only[String(ch.doc.id).split('__')[0]]=1})}}catch(e){only=null}
+          var c=assemble(sn,only),any=false;
           Object.keys(c).forEach(function(k){
             if(!ELIG(k)||sync[k]===h(c[k]))return;
             var L=null;try{L=LS.getItem(k)}catch(e){}
@@ -2002,7 +2006,10 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
 #view-finance .pos,.fcc-card .pos{color:#0f9d4a}#view-finance .neg,.fcc-card .neg{color:#e5484d}.fcc-mut{color:var(--ink-3)}
 .fcc-note{font-size:.8rem;color:var(--ink-3);margin:10px 0 0}.fcc-verdict{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--stroke-2);font-weight:600;font-size:.9rem}
 </style>
-</head><body>
+<style id="sscPerf">
+.blob{animation:none!important;will-change:auto!important;filter:blur(48px)!important}
+@media (prefers-reduced-motion:no-preference){#sscLock::before,#sscWelcome::before{animation-duration:90s!important}}
+</style></head><body>
 <div id="sscLock" role="dialog" aria-modal="true" aria-label="Sign in"><div class="ssc-card" id="sscCard"></div></div>
 <div id="sscWelcome" hidden aria-live="polite"><div class="ssc-wel"><img class="ssc-logo" alt="Shubh Shringar Creations"><span class="ssc-wel-av" id="sscWelAv" aria-hidden="true"></span><small id="sscWelHi">Welcome back</small><h2 id="sscWelName"></h2><p class="ssc-wel-sub">Business Intelligence &amp; Sales Management Workspace</p><div class="ssc-bar"><i></i></div><p class="ssc-wel-prep">Preparing your dashboard<span class="ssc-wel-dots" aria-hidden="true"><b>.</b><b>.</b><b>.</b></span></p></div></div>
 
@@ -5671,7 +5678,30 @@ function saveErr(e){
 }
 
 /* product image: shrink in the browser so it fits in the saved record */
-function readImage(file){
+/* ---- originals: the full-quality file is kept in this browser only (IndexedDB 'ssc-originals'), never synced online ---- */
+function imgKey(d){var x=5381,i,n=d.length;for(i=0;i<n;i++)x=((x<<5)+x+d.charCodeAt(i))|0;return 'o:'+n+':'+x}
+var origP=null;
+function origDb(){
+  if(origP)return origP;
+  origP=new Promise(function(res,rej){try{var q=indexedDB.open('ssc-originals',1);q.onupgradeneeded=function(){q.result.createObjectStore('o')};q.onsuccess=function(){res(q.result)};q.onerror=function(){rej(q.error)}}catch(e){rej(e)}});
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+  return origP;
+}
+function origPut(d,file){
+  if(!file||file.size>40*1024*1024)return;
+  origDb().then(function(db){var tx=db.transaction('o','readwrite');tx.objectStore('o').put({blob:file,name:file.name||'',type:file.type||'image/jpeg',t:Date.now()},imgKey(d))}).catch(function(){});
+}
+function origFor(d){
+  return origDb().then(function(db){return new Promise(function(res){
+    var rq=db.transaction('o').objectStore('o').get(imgKey(d));
+    rq.onsuccess=function(){var r=rq.result;if(!r||!r.blob)return res(null);
+      var fr=new FileReader();fr.onload=function(){var u=new Uint8Array(fr.result),t=r.type||'image/jpeg',e=(/png/.test(t)?'png':/webp/.test(t)?'webp':/gif/.test(t)?'gif':/heic|heif/.test(t)?'heic':'jpg');res({data:u,mime:t,ext:e})};
+      fr.onerror=function(){res(null)};fr.readAsArrayBuffer(r.blob)};
+    rq.onerror=function(){res(null)};
+  })}).catch(function(){return null});
+}
+function readImage(file){return readImage0(file).then(function(d){origPut(d,file);return d})}
+function readImage0(file){
   return new Promise(function(res,rej){
     if(!file||!/^image\//.test(file.type)){rej(new Error('type'));return}
     var fr=new FileReader();
@@ -6446,15 +6476,20 @@ function makeZip(files){
 }
 function findP(pid){return state.products.map(normP).filter(function(x){return x.id===pid})[0]}
 function downloadOne(){
-  var l=state.lb;if(!l)return;var d=l.imgs[l.i];
-  afterSave(saveFile(slug(l.name)+'-'+(l.i+1)+'.'+imgExt(d),dataBytes(d),imgMime(d)));
+  var l=state.lb;if(!l)return;var d=l.imgs[l.i],n=l.i+1,nm=slug(l.name);
+  origFor(d).then(function(o){
+    if(o)afterSave(saveFile(nm+'-'+n+'.'+o.ext,o.data,o.mime));
+    else afterSave(saveFile(nm+'-'+n+'.'+imgExt(d),dataBytes(d),imgMime(d)));
+  });
 }
 function downloadAll(pid){
   var p=findP(pid);if(!p||!p.images.length)return;
   var base=slug(p.name);
-  if(p.images.length===1){var d=p.images[0];afterSave(saveFile(base+'-1.'+imgExt(d),dataBytes(d),imgMime(d)));return}
-  var files=p.images.map(function(d,i){return {name:base+'-'+(i+1)+'.'+imgExt(d),data:dataBytes(d)}});
-  afterSave(saveFile(base+'-images.zip',makeZip(files),'application/zip'));
+  Promise.all(p.images.map(function(d){return origFor(d)})).then(function(os){
+    if(p.images.length===1){var d=p.images[0],o=os[0];afterSave(o?saveFile(base+'-1.'+o.ext,o.data,o.mime):saveFile(base+'-1.'+imgExt(d),dataBytes(d),imgMime(d)));return}
+    var files=p.images.map(function(d,i){var o=os[i];return o?{name:base+'-'+(i+1)+'.'+o.ext,data:o.data}:{name:base+'-'+(i+1)+'.'+imgExt(d),data:dataBytes(d)}});
+    afterSave(saveFile(base+'-images.zip',makeZip(files),'application/zip'));
+  });
 }
 function openLb(pid,i){
   var p=findP(pid);if(!p||!p.images.length)return;
@@ -17441,7 +17476,7 @@ window.sscAuth={signOut:function(){signOut('You have been signed out.')}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hero);else hero();
 })();
 </script>
-<div id="appVer" style="text-align:center;font:11px system-ui,sans-serif;opacity:.5;padding:4px 0 16px">App version: 24 Oct 2026 · build 8 (GST reminders on)</div>
+<div id="appVer" style="text-align:center;font:11px system-ui,sans-serif;opacity:.5;padding:4px 0 16px">App version: 24 Oct 2026 · build 11 (GST reminders on)</div>
 <script>(function(){
 'use strict';
 var HK='ssc-hours-v1-',DK='ssc-dev-v1';

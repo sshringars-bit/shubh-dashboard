@@ -1583,7 +1583,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
     var n=Math.max(1,Math.ceil(v.length/CH)),b=fs.batch(),t=Date.now();
     for(var i=0;i<n;i++)b.set(fs.collection('kv').doc(k+'__'+i),{k:k,i:i,n:n,s:v.slice(i*CH,(i+1)*CH),t:t});
     for(var j=n;j<(cloudN[k]||0);j++)b.delete(fs.collection('kv').doc(k+'__'+j));
-    return b.commit().then(function(){cloudN[k]=n;sync[k]=(qfail[k]?'!':'')+h(v);delete qfail[k];ws();return true},function(){return false});
+    return b.commit().then(function(){cloudN[k]=n;sync[k]=(qfail[k]?'!':'')+h(v);delete qfail[k];ws();return true},function(){if(qfail[k])fullMsg();return false});
   }
   function flush(){
     timer=null;var keys=Object.keys(pend),ps=[];
@@ -1598,7 +1598,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
     if(fullShown||document.getElementById('fbFull')||!document.body)return;fullShown=true;
     var d=document.createElement('div');d.id='fbFull';
     d.style.cssText='position:fixed;left:12px;right:12px;top:12px;z-index:99999;background:#b42318;color:#fff;border-radius:12px;padding:12px 14px;font:600 .9rem system-ui,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between';
-    d.innerHTML='<span>This browser is out of storage space. Your data is being saved online instead — please keep this page open for a minute before refreshing.</span><button type="button" style="border:0;border-radius:8px;padding:8px 14px;background:#fff;color:#b42318;font-weight:700;cursor:pointer">OK</button>';
+    d.innerHTML='<span>This browser is full AND the online save failed — please check your internet and keep this page open. Do not refresh yet.</span><button type="button" style="border:0;border-radius:8px;padding:8px 14px;background:#fff;color:#b42318;font-weight:700;cursor:pointer">OK</button>';
     d.querySelector('button').onclick=function(){d.remove()};document.body.appendChild(d);
   }
   Storage.prototype.setItem=function(k,v){
@@ -1606,7 +1606,7 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
     try{origSet.apply(this,arguments)}catch(e){
       if(self===LS&&!applying&&ELIG(k)){
         freeSpace();
-        try{origSet.apply(this,arguments)}catch(e2){failed=true;qfail[k]=1;fullMsg()}
+        try{origSet.apply(this,arguments)}catch(e2){failed=true;qfail[k]=1;try{console.warn('[storage] browser full, saved online only:',k,(String(v).length/1024|0)+' KB')}catch(x){}}
       }else throw e;
     }
     try{if(this===LS&&!applying&&ELIG(k))note(k,String(v))}catch(e){}
@@ -17441,7 +17441,7 @@ window.sscAuth={signOut:function(){signOut('You have been signed out.')}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hero);else hero();
 })();
 </script>
-<div id="appVer" style="text-align:center;font:11px system-ui,sans-serif;opacity:.5;padding:4px 0 16px">App version: 24 Oct 2026 · build 7 (GST reminders on)</div>
+<div id="appVer" style="text-align:center;font:11px system-ui,sans-serif;opacity:.5;padding:4px 0 16px">App version: 24 Oct 2026 · build 8 (GST reminders on)</div>
 <script>(function(){
 'use strict';
 var HK='ssc-hours-v1-',DK='ssc-dev-v1';

@@ -2056,6 +2056,33 @@ html body.ssc-shell #view-returns.hl-no #rtTable tbody tr:not(:has(td.rt-no)) td
       <div><h2>Business Dashboard</h2><p id="metricPeriod">Current month & current year · synced from Tracker</p></div>
       <span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="metric-live">● Live from Tracker</span><button class="btn small danger" id="clearAllBtn" type="button">Clear all data</button></span>
     </section>
+    <section class="glass wx-card" id="wxCard" aria-label="Weather">
+      <div class="wx-bar" id="wxBar" aria-hidden="true"></div>
+      <div class="wx-main">
+        <div class="wx-ic" id="wxIc" aria-hidden="true">⛅</div>
+        <div class="wx-temp"><b id="wxT">--</b><sup>°C</sup></div>
+        <div class="wx-cond"><strong id="wxC">Loading weather…</strong><span id="wxFeel">&nbsp;</span></div>
+      </div>
+      <div class="wx-stats">
+        <div><small>Humidity</small><b id="wxH">--</b></div>
+        <div><small>Wind</small><b id="wxW">--</b></div>
+        <div><small>Rain chance</small><b id="wxR">--</b></div>
+        <div><small>High / Low</small><b id="wxHL">--</b></div>
+        <div><small>Air quality</small><b id="wxA">--</b></div>
+      </div>
+      <div class="wx-side">
+        <button type="button" class="wx-loc" id="wxLoc" aria-haspopup="true" aria-expanded="false" title="Change city">📍 <span id="wxPlace">New Delhi</span> ▾</button>
+        <span class="wx-sync" id="wxSyncRow" aria-live="off"><i class="wx-dot"></i><span id="wxSync">Syncing…</span></span>
+        <span class="wx-btns"><button type="button" id="wxRef" title="Refresh now" aria-label="Refresh weather now">↻ Refresh</button><button type="button" id="wxHide" title="Hide the weather gadget" aria-label="Hide weather gadget">Hide</button></span>
+      </div>
+      <div class="wx-pop" id="wxPop" hidden>
+        <form id="wxForm" autocomplete="off"><input class="field-in" id="wxQ" type="search" placeholder="Search a city…" aria-label="Search a city"><button type="submit" class="btn small">Search</button></form>
+        <button type="button" class="wx-geo" id="wxGeo">◎ Use my current location</button>
+        <ul class="wx-res" id="wxRes" role="listbox" aria-label="City results"></ul>
+        <p class="wx-msg" id="wxMsg"></p>
+      </div>
+    </section>
+    <button type="button" class="wx-show" id="wxShow" hidden>☁ Show weather</button>
     <section class="kpi-row" id="kpiRow" aria-label="Key business numbers"></section>
     <section class="dash-filter glass dfb" id="dashBar" aria-label="Dashboard period filter">
       <label>Date range <select id="dfMode" class="field-in"><option value="month">Month</option><option value="quarter">Quarter</option><option value="fy">Financial year</option><option value="year">Year</option><option value="last30">Last 30 days</option><option value="all">All time</option><option value="custom">Custom range</option></select></label>
@@ -17173,18 +17200,21 @@ var welTimers=[];
 function enter(u,isNew){
   if(isNew)logEv('login',u.username);lastAct=Date.now();
   cur=u;ssSet(SK,u.id);lsSet(LK,u.username);
-  card.classList.add('out');
+  card.classList.add('out');lock.classList.add('ssc-leaving');
   $('#sscWelHi').textContent=isNew?'Welcome':'Welcome back';$('#sscWelName').textContent=u.name;(function(){var av=$('#sscWelAv');if(!av)return;av.innerHTML='';if(u.photo){var im=document.createElement('img');im.alt='';im.src=u.photo;av.appendChild(im);av.className='ssc-wel-av ph'}else{av.className='ssc-wel-av';av.textContent=String(u.name||'?').trim().charAt(0).toUpperCase()}})();
   welTimers.forEach(clearTimeout);welTimers=[];
-  welTimers.push(setTimeout(function(){wel.hidden=false;void wel.offsetWidth;wel.classList.add('on')},300));
-  welTimers.push(setTimeout(function(){lock.hidden=true;applyAccess(u);renderBar();lockPage(false)},950));
-  welTimers.push(setTimeout(function(){wel.classList.remove('on')},3900));
-  welTimers.push(setTimeout(function(){wel.hidden=true},4500));
+  /* cinematic sequence: 0s card recedes -> .7s screen dissolves into the dashboard -> 1.2s welcome animation */
+  welTimers.push(setTimeout(function(){lock.classList.add('ssc-dissolve');applyAccess(u);renderBar();lockPage(false);document.body.classList.add('ssc-dash-in')},700));
+  welTimers.push(setTimeout(function(){wel.hidden=false;void wel.offsetWidth;wel.classList.add('on')},1200));
+  welTimers.push(setTimeout(function(){lock.hidden=true;lock.classList.remove('ssc-leaving','ssc-dissolve')},1700));
+  welTimers.push(setTimeout(function(){document.body.classList.remove('ssc-dash-in')},2000));
+  welTimers.push(setTimeout(function(){wel.classList.remove('on')},4800));
+  welTimers.push(setTimeout(function(){wel.hidden=true},5400));
 }
 function enterSilently(u){cur=u;lock.hidden=true;applyAccess(u);renderBar();lockPage(false)}
 function signOut(msg){
   if(cur&&!/inactive/.test(msg||''))logEv('logout',cur.username);
-  welTimers.forEach(clearTimeout);welTimers=[];wel.classList.remove('on');wel.hidden=true;
+  welTimers.forEach(clearTimeout);welTimers=[];wel.classList.remove('on');wel.hidden=true;lock.classList.remove('ssc-leaving','ssc-dissolve');document.body.classList.remove('ssc-dash-in');
   ssSet(SK,null);cur=null;pending=null;closeModals();bar.hidden=true;lockPage(true);lock.hidden=false;
   render(users.length?'signin':'setup',msg,true);
 }
@@ -18741,14 +18771,18 @@ var tt=$('tab-tracker');if(tt)tt.addEventListener('click',function(){setTimeout(
     e.preventDefault();e.stopImmediatePropagation();
     busy=true;
     var old=btn.innerHTML;
+    btn.style.height=btn.offsetHeight+'px';
     btn.classList.add('is-loading');btn.disabled=true;btn.setAttribute('aria-busy','true');
     btn.innerHTML='<span class="ssc-spin" aria-hidden="true"></span>Signing in\u2026';
     setTimeout(function(){
-      try{btn.classList.remove('is-loading');btn.disabled=false;btn.removeAttribute('aria-busy');btn.innerHTML=old}catch(x){}
-      busy=false;passing=true;
+      passing=true;
       try{if(form.requestSubmit)form.requestSubmit();else form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))}catch(x){}
-      passing=false;
-    },650);
+      passing=false;busy=false;
+      /* success: card.out is set, so the golden loader stays on screen while the card recedes. Failure: bring the button back. */
+      if(!card.classList.contains('out')){
+        try{btn.classList.remove('is-loading');btn.disabled=false;btn.removeAttribute('aria-busy');btn.style.height='';btn.innerHTML=old}catch(x){}
+      }
+    },1150);
   },true);
 })();
 </script>
@@ -18791,3 +18825,502 @@ html[data-theme="ios-dark"] .ssc-wel .ssc-wel-prep{color:var(--ink-3)}
 #sscWelcome.on .ssc-wel>:nth-child(7){animation-delay:2.3s}
 @media(prefers-reduced-motion:reduce){.ssc-wel-dots b{animation:none;opacity:1}}
 </style>
+<style id="sscEmeraldGold">/* ===== LOGIN LOOK OPTION: Emerald & Gold with floating 3D logo (Classic stays the default) ===== */
+#sscLock .em-switch{position:fixed;top:14px;right:14px;z-index:6;display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.55);border:1px solid rgba(201,150,90,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);white-space:nowrap;font:600 .72rem/1 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.10)}
+#sscLock .em-switch button{white-space:nowrap;border:0;background:none;padding:8px 13px;border-radius:999px;cursor:pointer;color:#6b4a40;font:inherit;letter-spacing:.02em;transition:background .3s,color .3s}
+#sscLock .em-switch button[aria-pressed="true"]{background:linear-gradient(135deg,#9b4f45,#7a3a33);color:#fff}
+/* tall forms on small screens: never cut off the top of the card */
+#sscLock{align-items:start}#sscLock>#sscCard{margin-block:auto}
+#sscLock .em-dust,#sscLock .em-stage::before,#sscLock .em-stage::after{display:none}
+#sscLock .em-stage{display:contents}
+/* ---- background ---- */
+#sscLock.emerald{background:radial-gradient(90vmax 70vmax at 18% 8%,#0e6a4b 0%,transparent 60%),radial-gradient(80vmax 60vmax at 92% 100%,#0b5a40 0%,transparent 55%),linear-gradient(160deg,#032a1e,#06392a 45%,#021a13)}
+#sscLock.emerald::before{opacity:1;animation:emDrift 24s ease-in-out infinite alternate;background:radial-gradient(30vmax 30vmax at 12% 22%,rgba(236,196,112,.26),transparent 65%),radial-gradient(26vmax 26vmax at 88% 78%,rgba(212,165,70,.24),transparent 65%),radial-gradient(18vmax 18vmax at 72% 10%,rgba(255,229,155,.14),transparent 65%)}
+#sscLock.emerald::after{opacity:.5;animation:none;background:linear-gradient(45deg,rgba(230,197,143,.09) 1px,transparent 1px),linear-gradient(-45deg,rgba(230,197,143,.09) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(70% 70% at 50% 50%,#000 20%,transparent 100%);mask-image:radial-gradient(70% 70% at 50% 50%,#000 20%,transparent 100%)}
+@keyframes emDrift{0%{transform:translate3d(0,0,0) scale(1.05)}100%{transform:translate3d(2%,-2%,0) scale(1.15)}}
+#sscLock.emerald .em-dust{display:block;position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.em-dust i{position:absolute;bottom:-14px;border-radius:50%;background:radial-gradient(circle,#fff6cf 0%,#e8c068 45%,transparent 72%);opacity:0;animation:emRise linear infinite}
+@keyframes emRise{0%{transform:translate3d(0,0,0);opacity:0}12%{opacity:.9}100%{transform:translate3d(var(--dx,20px),-108vh,0);opacity:0}}
+/* ---- card ---- */
+#sscLock.emerald #sscCard{--lux-gold:#e0b862;--lux-gold-2:#f6dc9a;--ink:#f6efdc;--ink-2:rgba(246,239,220,.84);--ink-3:rgba(246,239,220,.68);--stroke-2:rgba(224,184,98,.38);--field:rgba(255,255,255,.07);--bad:#ffb4a8;--good:#8fe3b4;--accent:#e0b862;color:var(--ink);background:linear-gradient(145deg,rgba(8,78,58,.86),rgba(3,40,30,.92));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 34px 90px rgba(0,0,0,.6),0 0 70px rgba(224,184,98,.20),inset 0 1px 0 rgba(255,236,185,.28),inset 0 -1px 0 rgba(224,184,98,.25)}
+#sscLock.emerald #sscCard::before{background:linear-gradient(135deg,#fbe7ad 0%,#d9a93f 30%,rgba(217,169,63,.35) 55%,#e9c46f 78%,#fbe7ad 100%)}
+#sscLock.emerald #sscCard::after{background:linear-gradient(90deg,transparent,#d9a93f,#fbe7ad,#d9a93f,transparent);background-size:200% 100%}
+#sscLock.emerald #sscCard .ssc-lux-side{perspective:900px;background:radial-gradient(110% 70% at 50% 0%,rgba(224,184,98,.20),transparent 62%),linear-gradient(160deg,rgba(14,106,75,.55),rgba(3,40,30,.35));border-right:1px solid rgba(224,184,98,.35);border-bottom-color:rgba(224,184,98,.35)}
+#sscLock.emerald #sscCard .ssc-lux-side::before{border-color:rgba(224,184,98,.45)}
+#sscLock.emerald #sscCard .ssc-lux-name{color:#f6dc9a;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+#sscLock.emerald #sscCard .ssc-lux-tag{color:rgba(246,239,220,.82)}
+#sscLock.emerald #sscCard .ssc-lux-mods{color:#e0b862}
+#sscLock.emerald #sscCard .ssc-lux-main{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0))}
+#sscLock.emerald #sscCard .ssc-eyebrow{color:#e0b862}
+#sscLock.emerald #sscCard .ssc-title{color:#fbf3dc}
+#sscLock.emerald #sscCard .ssc-seg{background:rgba(0,0,0,.28);border-color:rgba(224,184,98,.35);-webkit-backdrop-filter:none;backdrop-filter:none}
+#sscLock.emerald #sscCard .ssc-seg button{color:rgba(246,239,220,.8)}
+#sscLock.emerald #sscCard .ssc-seg button[aria-selected="true"]{background:linear-gradient(135deg,#f3d58a,#c9993a);color:#06281b;box-shadow:0 8px 18px rgba(224,184,98,.32)}
+#sscLock.emerald #sscCard .ssc-in{color:#fbf3dc;background-color:rgba(255,255,255,.07);border-color:rgba(224,184,98,.45);box-shadow:inset 0 1px 3px rgba(0,0,0,.25);color-scheme:dark}
+#sscLock.emerald #sscCard .ssc-in::placeholder{color:rgba(246,239,220,.5)}
+#sscLock.emerald #sscCard .ssc-in:focus{background-color:rgba(255,255,255,.12);border-color:#f0cd7c;box-shadow:0 0 0 4px rgba(224,184,98,.25)}
+#sscLock.emerald #sscCard .ssc-in:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #0b4a37 inset!important;-webkit-text-fill-color:#fbf3dc!important;caret-color:#fbf3dc}
+#sscLock.emerald #sscCard #sscU,#sscLock.emerald #sscCard #sscN,#sscLock.emerald #sscCard #sscU:focus,#sscLock.emerald #sscCard #sscN:focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0b862' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6'/%3E%3C/svg%3E")}
+#sscLock.emerald #sscCard .ssc-pw .ssc-in,#sscLock.emerald #sscCard .ssc-pw .ssc-in:focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0b862' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='9' rx='2'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E")}
+#sscLock.emerald #sscCard .ssc-pw button,#sscLock.emerald #sscCard .ssc-link{color:#f0cd7c}
+#sscLock.emerald #sscCard .ssc-pw button:hover,#sscLock.emerald #sscCard .ssc-link:hover{color:#fff3c9}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary{background:linear-gradient(135deg,#f7dc93,#d9a93f 55%,#b98728)!important;color:#06281b!important;border:0!important;box-shadow:0 14px 30px rgba(0,0,0,.35),0 6px 18px rgba(224,184,98,.30),inset 0 1px 0 rgba(255,255,255,.55)}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary:hover{box-shadow:0 18px 36px rgba(0,0,0,.4),0 10px 26px rgba(224,184,98,.45),inset 0 1px 0 rgba(255,255,255,.6)}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary:focus-visible{box-shadow:0 0 0 3px #06281b,0 0 0 6px #f0cd7c}
+#sscLock.emerald #sscCard .ssc-go .ssc-spin{border-color:rgba(6,40,27,.28);border-top-color:#06281b}
+#sscLock.emerald #sscCard .ssc-lux-foot{border-top-color:rgba(224,184,98,.30);color:rgba(246,239,220,.7)}
+#sscLock.emerald #sscCard .ssc-lux-foot svg{stroke:#e0b862}
+#sscLock.emerald .em-switch{background:rgba(3,40,30,.65);border-color:rgba(224,184,98,.5)}
+#sscLock.emerald .em-switch button{color:#f0cd7c}
+#sscLock.emerald .em-switch button[aria-pressed="true"]{background:linear-gradient(135deg,#f7dc93,#c9993a);color:#06281b}
+/* ---- floating 3D logo ---- */
+#sscLock.emerald .em-stage{display:block;position:relative;width:min(220px,80%);margin:46px 0 62px;perspective:850px}
+#sscLock.emerald .em-stage::before{display:block;content:"";position:absolute;inset:-22%;border-radius:50%;background:radial-gradient(closest-side,rgba(246,220,154,.50),rgba(224,184,98,.14) 60%,transparent 75%);animation:emHalo 7s ease-in-out infinite;pointer-events:none}
+#sscLock.emerald .em-stage::after{display:block;content:"";position:absolute;left:10%;right:10%;bottom:-24px;height:16px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.60),transparent);animation:emShadow 7s ease-in-out infinite;pointer-events:none}
+#sscLock.emerald #sscCard .ssc-lux-side .ssc-logo{position:relative;z-index:1;display:block;width:100%;height:auto;max-width:none;padding:14px 14px 10px;border-radius:20px;background:radial-gradient(120% 100% at 28% 12%,#fffbf1,#f6ebd3 58%,#ead6ab);border:2px solid #e0b862;box-shadow:0 0 0 5px rgba(224,184,98,.22),0 28px 44px rgba(0,0,0,.45),0 0 56px rgba(246,220,154,.34),inset 0 0 22px rgba(201,150,90,.28);filter:none;will-change:transform;transform-origin:50% 50%;animation:emFloat 7s ease-in-out infinite}
+@keyframes emFloat{0%,100%{transform:translate3d(0,0,0) rotateX(calc(6deg + var(--my,0)*-10deg)) rotateY(calc(-18deg + var(--mx,0)*14deg))}50%{transform:translate3d(0,-16px,42px) rotateX(calc(-4deg + var(--my,0)*-10deg)) rotateY(calc(18deg + var(--mx,0)*14deg))}}
+@keyframes emShadow{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(.66);opacity:.5}}
+@keyframes emHalo{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+@media(max-width:760px){
+ #sscLock{padding-bottom:70px}
+ #sscLock .em-switch{top:auto;right:auto;bottom:12px;left:50%;transform:translateX(-50%)}
+ #sscLock.emerald .em-stage{width:92px;margin:14px 14px 14px 6px}
+ #sscLock.emerald .em-stage::after{bottom:-12px;height:9px}
+ #sscLock.emerald #sscCard .ssc-lux-side .ssc-logo{padding:6px 6px 4px;border-radius:12px;border-width:1.5px}
+ @keyframes emFloat{0%,100%{transform:translate3d(0,0,0) rotateY(-14deg)}50%{transform:translate3d(0,-6px,16px) rotateY(14deg)}}
+}
+@media(prefers-reduced-motion:reduce){#sscLock.emerald::before,.em-dust i,#sscLock.emerald .em-stage::before,#sscLock.emerald .em-stage::after,#sscLock.emerald #sscCard .ssc-lux-side .ssc-logo{animation:none}#sscLock.emerald #sscCard .ssc-lux-side .ssc-logo{transform:rotateY(-8deg)}.em-dust{display:none!important}}
+/* ---- step 2: rotating golden ring + floating particles around the logo ---- */
+#sscLock .em-ring,#sscLock .em-orbit{display:none}
+#sscLock.emerald .em-ring{display:block;position:absolute;left:50%;top:50%;width:116%;aspect-ratio:1/1;transform:translate(-50%,-50%);pointer-events:none;z-index:0}
+.em-ring span{position:absolute;border-radius:50%}
+.em-ring .r1{inset:0;background:conic-gradient(from 0deg,#fff1bd,#d9a93f 18%,#7a5a1a 36%,#f7dc93 52%,#b98728 70%,#7a5a1a 84%,#fff1bd);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));filter:drop-shadow(0 0 7px rgba(246,220,154,.75));animation:emSpin 20s linear infinite}
+.em-ring .r2{inset:-13px;border:1px dashed rgba(246,220,154,.6);animation:emSpin 46s linear infinite reverse}
+.em-ring .r3{inset:7px;border:1px solid rgba(224,184,98,.35);animation:emSpin 32s linear infinite}
+.em-ring .r3::before,.em-ring .r1::after{content:"";position:absolute;top:-4px;left:50%;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:radial-gradient(circle,#fff,#f7dc93 55%,transparent 72%);box-shadow:0 0 12px 4px rgba(246,220,154,.8)}
+.em-ring .r1::after{top:-1px}
+@keyframes emSpin{to{transform:rotate(360deg)}}
+#sscLock.emerald .em-orbit{display:block;position:absolute;inset:-34% -26%;pointer-events:none;z-index:2}
+.em-orbit i{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff8d6 0%,#f0cd7c 45%,transparent 72%);opacity:0;animation:emFloatP ease-in-out infinite}
+@keyframes emFloatP{0%{transform:translate3d(0,6px,0) scale(.5);opacity:0}25%{opacity:1}50%{transform:translate3d(var(--fx,8px),-16px,0) scale(1);opacity:.95}75%{opacity:.8}100%{transform:translate3d(calc(var(--fx,8px)*-1),-34px,0) scale(.4);opacity:0}}
+@media(max-width:760px){
+ #sscLock.emerald .em-ring{width:112%}
+ .em-ring .r1{-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px))}
+ .em-ring .r2,.em-ring .r3{display:none}
+ #sscLock.emerald .em-orbit{inset:-20%}
+}
+@media(prefers-reduced-motion:reduce){.em-ring span,.em-orbit i{animation:none!important}.em-orbit i{opacity:.8}}
+/* ---- step 3: glass card with depth, soft lighting, cinematic transitions ---- */
+#sscLock .em-light,#sscLock .em-veil{display:none}
+#sscLock.emerald .em-light{display:block;position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.em-light .beam{position:absolute;left:-20%;right:-20%;top:-12%;height:135%;transform-origin:50% 0;background:conic-gradient(from 163deg at 50% 0%,transparent 0deg,rgba(255,232,170,.22) 15deg,transparent 30deg,transparent 360deg),conic-gradient(from 176deg at 22% 0%,transparent 0deg,rgba(255,226,150,.12) 10deg,transparent 22deg,transparent 360deg);filter:blur(20px);mix-blend-mode:screen;animation:emBeam 16s ease-in-out infinite alternate}
+.em-light .orb{position:absolute;left:50%;top:46%;width:46vmax;height:46vmax;margin:-23vmax 0 0 -23vmax;border-radius:50%;background:radial-gradient(closest-side,rgba(246,220,154,.17),transparent);animation:emBreathe 9s ease-in-out infinite}
+.em-light .vig{position:absolute;inset:0;background:radial-gradient(120% 95% at 50% 46%,transparent 42%,rgba(0,12,8,.66) 100%)}
+.em-light .bloom{position:absolute;inset:0;background:radial-gradient(58% 48% at 50% 46%,rgba(255,240,190,.55),rgba(224,184,98,.16) 46%,transparent 72%);opacity:0;transition:opacity .5s ease}
+#sscLock.em-launch .em-light .bloom{opacity:1}
+@keyframes emBeam{0%{transform:rotate(-7deg)}100%{transform:rotate(7deg)}}
+@keyframes emBreathe{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+#sscLock.emerald .em-veil{display:block;position:fixed;inset:0;z-index:7;pointer-events:none;overflow:hidden;background:radial-gradient(70% 60% at 50% 45%,#04281d,#010b08);animation:emVeil 1.6s cubic-bezier(.4,0,.2,1) .05s both}
+.em-veil::after{content:"";position:absolute;top:-10%;bottom:-10%;width:28%;left:-40%;background:linear-gradient(100deg,transparent,rgba(255,232,170,.55),transparent);filter:blur(16px);transform:skewX(-18deg);animation:emGleam 1.5s ease-in-out .1s both}
+@keyframes emVeil{0%{opacity:1}50%{opacity:.9}100%{opacity:0;visibility:hidden}}
+@keyframes emGleam{to{left:125%}}
+/* glass card with real depth */
+#sscLock.emerald #sscCard{background:radial-gradient(70% 55% at calc(50% + var(--mx,0)*28%) calc(16% + var(--my,0)*22%),rgba(255,244,210,.20),transparent 62%),linear-gradient(150deg,rgba(255,255,255,.15),rgba(255,255,255,.03) 38%,rgba(2,30,22,.28) 100%),linear-gradient(145deg,rgba(10,94,68,.74),rgba(3,42,31,.84));-webkit-backdrop-filter:blur(28px) saturate(150%) brightness(1.06);backdrop-filter:blur(28px) saturate(150%) brightness(1.06);box-shadow:inset 0 1.5px 0 rgba(255,238,190,.34),inset 0 -2px 8px rgba(0,0,0,.40),inset 1px 0 0 rgba(255,238,190,.10),inset -1px 0 0 rgba(0,0,0,.25),0 2px 4px rgba(0,0,0,.35),0 24px 48px -14px rgba(0,22,14,.65),0 60px 110px -24px rgba(0,0,0,.72),0 0 100px rgba(224,184,98,.15);transition:transform .5s cubic-bezier(.16,1,.3,1),box-shadow .5s ease;animation:emCardIn 1.3s cubic-bezier(.16,1,.3,1) .4s backwards}
+@keyframes emCardIn{from{opacity:0;transform:perspective(1500px) translateY(54px) rotateX(11deg) scale(.92)}to{opacity:1;transform:perspective(1500px) translateY(0) rotateX(0) scale(1)}}
+#sscLock.emerald.em-launch #sscCard{transform:translateY(-8px) scale(1.012);box-shadow:inset 0 1.5px 0 rgba(255,238,190,.5),0 40px 90px -16px rgba(0,0,0,.7),0 0 140px rgba(246,220,154,.38)}
+#sscLock.emerald #sscCard .ssc-lux-side{box-shadow:inset 0 1px 0 rgba(255,238,190,.14),inset 0 -30px 60px -30px rgba(0,0,0,.35)}
+/* inputs sunk into the glass, button raised above it */
+#sscLock.emerald #sscCard .ssc-in{box-shadow:inset 0 2px 5px rgba(0,0,0,.38),inset 0 -1px 0 rgba(255,238,190,.10),0 1px 0 rgba(255,238,190,.08)}
+#sscLock.emerald #sscCard .ssc-in:focus{box-shadow:inset 0 2px 5px rgba(0,0,0,.30),0 0 0 4px rgba(224,184,98,.25),0 0 24px rgba(224,184,98,.25)}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary{box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -3px 6px rgba(130,88,12,.40),0 2px 0 #8f6a1c,0 16px 30px rgba(0,0,0,.40),0 8px 26px rgba(224,184,98,.30)}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -3px 6px rgba(130,88,12,.40),0 2px 0 #8f6a1c,0 22px 40px rgba(0,0,0,.42),0 12px 34px rgba(246,220,154,.50)}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary:active{transform:translateY(2px);box-shadow:inset 0 2px 6px rgba(120,80,10,.5),0 0 0 #8f6a1c,0 6px 14px rgba(0,0,0,.4)}
+/* content glides in each time the form is drawn */
+#sscLock.emerald #sscCard .ssc-lux-main>*{animation:emUp .85s cubic-bezier(.16,1,.3,1) backwards}
+#sscLock.emerald #sscCard .ssc-lux-main>:nth-child(1){animation-delay:.30s}
+#sscLock.emerald #sscCard .ssc-lux-main>:nth-child(2){animation-delay:.36s}
+#sscLock.emerald #sscCard .ssc-lux-main>:nth-child(3){animation-delay:.42s}
+#sscLock.emerald #sscCard .ssc-lux-main>:nth-child(4){animation-delay:.48s}
+#sscLock.emerald #sscCard .ssc-lux-main>:nth-child(5){animation-delay:.54s}
+#sscLock.emerald #sscCard .ssc-lux-main>:nth-child(n+6){animation-delay:.60s}
+#sscLock.emerald #sscCard .em-stage{animation:emLogoIn 1.6s cubic-bezier(.16,1,.3,1) .55s backwards}
+#sscLock.emerald #sscCard .ssc-lux-name,#sscLock.emerald #sscCard .ssc-lux-orn,#sscLock.emerald #sscCard .ssc-lux-tag,#sscLock.emerald #sscCard .ssc-lux-mods{animation:emUp 1s cubic-bezier(.16,1,.3,1) .9s backwards}
+@keyframes emUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes emLogoIn{from{opacity:0;transform:translateY(30px) scale(.82)}to{opacity:1;transform:none}}
+@media(max-width:760px){#sscLock.emerald #sscCard{transform:none;-webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%)}@keyframes emCardIn{from{opacity:0;transform:translateY(40px) scale(.95)}to{opacity:1;transform:none}}#sscLock.emerald.em-launch #sscCard{transform:scale(1.01)}}
+@media(prefers-reduced-motion:reduce){.em-light .beam,.em-light .orb{animation:none}#sscLock.emerald .em-veil{display:none}#sscLock.emerald #sscCard,#sscLock.emerald #sscCard .ssc-lux-main>*,#sscLock.emerald #sscCard .em-stage,#sscLock.emerald #sscCard .ssc-lux-name,#sscLock.emerald #sscCard .ssc-lux-orn,#sscLock.emerald #sscCard .ssc-lux-tag,#sscLock.emerald #sscCard .ssc-lux-mods{animation:none;transform:none}}
+/* ---- step 4: animated 3D emerald & gold environment (canvas, no libraries) ---- */
+#sscLock .em-env{display:none}
+#sscLock.emerald .em-env{display:block;position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0;animation:emEnvIn 2.4s ease .5s forwards}
+@keyframes emEnvIn{to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#sscLock.emerald .em-env{animation:none;opacity:1}}
+/* ---- step 5: layered mouse parallax (text stays still and crisp) + metallic gold button with light sweep ---- */
+#sscLock.emerald .em-stage{transform:translate3d(calc(var(--mx,0)*10px),calc(var(--my,0)*8px),0);transition:transform .6s cubic-bezier(.16,1,.3,1)}
+#sscLock.emerald .em-ring{transform:translate(calc(-50% + var(--mx,0)*-7px),calc(-50% + var(--my,0)*-5px));transition:transform .6s cubic-bezier(.16,1,.3,1)}
+#sscLock.emerald .em-orbit{transform:translate3d(calc(var(--mx,0)*14px),calc(var(--my,0)*10px),0);transition:transform .6s cubic-bezier(.16,1,.3,1)}
+#sscLock.emerald .em-light{transform:translate3d(calc(var(--mx,0)*-16px),calc(var(--my,0)*-10px),0) scale(1.04);transition:transform .8s cubic-bezier(.16,1,.3,1)}
+#sscLock.emerald .em-dust{transform:translate3d(calc(var(--mx,0)*-26px),calc(var(--my,0)*-16px),0) scale(1.05);transition:transform .8s cubic-bezier(.16,1,.3,1)}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary{position:relative;isolation:isolate;overflow:hidden;background:repeating-linear-gradient(180deg,rgba(255,255,255,.07) 0 1px,rgba(0,0,0,.03) 1px 2px),linear-gradient(180deg,#fff0b8 0%,#f3d58a 16%,#d9a93f 46%,#a87a22 52%,#d9a93f 74%,#f7dc93 100%)!important;color:#06281b!important;text-shadow:0 1px 0 rgba(255,244,200,.75),0 -1px 0 rgba(120,80,10,.25);border:0!important}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary::before{content:"";position:absolute;z-index:-1;left:0;right:0;top:0;height:50%;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.50),rgba(255,255,255,.04));pointer-events:none}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary::after{content:"";position:absolute;top:-20%;bottom:-20%;left:-60%;width:34%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.88),transparent);filter:blur(2px);transform:skewX(-22deg);transition:none;animation:emSweep 5s cubic-bezier(.45,0,.2,1) 2s infinite;pointer-events:none}
+html body #sscLock.emerald #sscCard button.ssc-go.btn.primary:hover::after{animation:emSweepFast 1s cubic-bezier(.45,0,.2,1) infinite}
+@keyframes emSweep{0%{left:-60%}28%,100%{left:140%}}
+@keyframes emSweepFast{0%{left:-60%}70%,100%{left:140%}}
+@media(max-width:760px){#sscLock.emerald .em-stage,#sscLock.emerald .em-orbit,#sscLock.emerald .em-light,#sscLock.emerald .em-dust{transform:none}#sscLock.emerald .em-ring{transform:translate(-50%,-50%)}#sscLock.emerald .em-light{transform:scale(1.04)}}
+@media(prefers-reduced-motion:reduce){#sscLock.emerald .em-stage,#sscLock.emerald .em-orbit,#sscLock.emerald .em-light,#sscLock.emerald .em-dust{transform:none}#sscLock.emerald .em-ring{transform:translate(-50%,-50%)}html body #sscLock.emerald #sscCard button.ssc-go.btn.primary::after{animation:none;display:none}}
+/* ---- step 6: 3D mouse parallax, part 2: ring changes perspective, card tilts gently, light follows the pointer ---- */
+#sscLock.emerald .em-ring{transform:translate(calc(-50% + var(--mx,0)*-7px),calc(-50% + var(--my,0)*-5px)) rotateX(calc(var(--my,0)*-28deg)) rotateY(calc(var(--mx,0)*28deg))}
+.em-light .spot{position:absolute;inset:0;background:radial-gradient(340px circle at var(--px,50%) var(--py,38%),rgba(255,232,170,.22),rgba(255,232,170,.07) 45%,transparent 72%);mix-blend-mode:screen}
+#sscLock.emerald.em-tilt #sscCard{transform:perspective(1600px) rotateX(calc(var(--my,0)*-1.7deg)) rotateY(calc(var(--mx,0)*2.2deg))}
+@media(max-width:760px){#sscLock.emerald .em-ring{transform:translate(-50%,-50%)}}
+@media(prefers-reduced-motion:reduce){#sscLock.emerald .em-ring{transform:translate(-50%,-50%)}#sscLock.emerald.em-tilt #sscCard{transform:none}}
+/* ---- step 7: password interaction (illuminated gold border, smooth focus, premium eye icon) ---- */
+@property --emAng{syntax:'<angle>';initial-value:0deg;inherits:false}
+#sscLock.emerald #sscCard .ssc-in{transition:border-color .4s ease,box-shadow .45s ease,background-color .4s ease,transform .45s cubic-bezier(.16,1,.3,1)}
+#sscLock.emerald #sscCard .ssc-in:focus{transform:translateY(-1px)}
+#sscLock.emerald #sscCard .ssc-form label{transition:color .35s ease,text-shadow .35s ease}
+#sscLock.emerald #sscCard .ssc-form label:focus-within{color:#f6dc9a;text-shadow:0 0 12px rgba(246,220,154,.45)}
+#sscLock.emerald #sscCard .ssc-pw::before{content:"";position:absolute;inset:-2px;border-radius:16px;padding:2px;pointer-events:none;z-index:2;opacity:0;transform:scale(.985);transition:opacity .45s ease,transform .6s cubic-bezier(.16,1,.3,1);background:conic-gradient(from var(--emAng),#fff1bd,#d9a93f 20%,rgba(217,169,63,.18) 44%,#f7dc93 64%,#b98728 80%,#fff1bd);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);filter:drop-shadow(0 0 7px rgba(246,220,154,.65))}
+#sscLock.emerald #sscCard .ssc-pw:focus-within::before{opacity:1;transform:none;animation:emAng 4.5s linear infinite}
+@keyframes emAng{to{--emAng:360deg}}
+#sscLock.emerald #sscCard .ssc-pw .ssc-in{padding-right:54px}
+#sscLock.emerald #sscCard .ssc-pw button{font-size:0;letter-spacing:0;color:transparent;width:34px;height:34px;padding:0;right:7px;border-radius:10px;display:grid;place-items:center;z-index:3;transition:background .3s ease}
+#sscLock.emerald #sscCard .ssc-pw button::before{content:"";display:block;width:21px;height:21px;background:linear-gradient(180deg,#f7dc93,#c9993a);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 0 3px rgba(224,184,98,.35));transition:transform .35s cubic-bezier(.16,1,.3,1),filter .35s ease}
+#sscLock.emerald #sscCard .ssc-pw:has(input[type=text]) button::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3Cpath d='M4 20L20 4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3Cpath d='M4 20L20 4'/%3E%3C/svg%3E")}
+#sscLock.emerald #sscCard .ssc-pw button:hover{background:rgba(224,184,98,.14)}
+#sscLock.emerald #sscCard .ssc-pw button:hover::before,#sscLock.emerald #sscCard .ssc-pw:focus-within button::before{transform:scale(1.1);filter:drop-shadow(0 0 7px rgba(246,220,154,.8))}
+#sscLock.emerald #sscCard .ssc-pw button:active::before{transform:scale(.86)}
+#sscLock.emerald #sscCard .ssc-pw button:focus-visible{outline:2px solid #f0cd7c;outline-offset:1px}
+@media(prefers-reduced-motion:reduce){#sscLock.emerald #sscCard .ssc-pw:focus-within::before{animation:none}#sscLock.emerald #sscCard .ssc-in,#sscLock.emerald #sscCard .ssc-pw::before{transition:none}}
+</style>
+<style id="sscCinematic">
+/* ===== CINEMATIC LOGIN TRANSITION: golden loader -> card recedes -> dashboard dissolve -> welcome ===== */
+/* 1. the Sign In button melts into a round golden loader */
+html body #sscLock#sscLock #sscCard button.ssc-go.btn.primary.is-loading.is-loading{
+  width:56px!important;height:56px!important;min-height:0!important;padding:0!important;margin:6px auto 0!important;justify-self:center;align-self:center;
+  border-radius:50%!important;font-size:0!important;letter-spacing:0!important;color:transparent!important;opacity:1!important;overflow:visible!important;
+  background:radial-gradient(circle at 50% 38%,#0f4a38,#041f17 78%)!important;
+  box-shadow:0 0 0 1.5px rgba(246,220,154,.35),0 0 30px rgba(246,220,154,.45),0 10px 26px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,238,190,.25)!important;
+  transform:none!important;filter:none!important;cursor:progress;
+  transition:width .55s cubic-bezier(.65,0,.2,1),height .55s cubic-bezier(.65,0,.2,1),border-radius .55s cubic-bezier(.65,0,.2,1),background .45s ease,box-shadow .5s ease,font-size .15s ease,color .15s ease,margin .5s ease}
+html body #sscLock#sscLock #sscCard button.ssc-go.btn.primary.is-loading::before{
+  content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;z-index:2;display:block;border-radius:50%;padding:3px;border:0;opacity:0;
+  background:conic-gradient(from 0deg,rgba(247,220,147,0) 0deg,#b98728 90deg,#f7dc93 200deg,#fff6cf 290deg,rgba(255,246,207,0) 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  filter:drop-shadow(0 0 6px rgba(246,220,154,.9));animation:sscCineSpin .9s linear infinite,sscCineFade .3s ease .4s forwards}
+html body #sscLock#sscLock #sscCard button.ssc-go.btn.primary.is-loading::after{
+  content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;display:block;border-radius:50%;
+  background:radial-gradient(circle,#fff8d6,#f0cd7c 60%,transparent 72%);box-shadow:0 0 14px 4px rgba(246,220,154,.7);
+  opacity:0;animation:sscCinePulse 1.2s ease-in-out infinite,sscCineFade .3s ease .4s forwards;transition:none}
+#sscCard .ssc-go.is-loading .ssc-spin{display:none!important}
+@keyframes sscCineSpin{to{transform:rotate(360deg)}}
+@keyframes sscCineFade{to{opacity:1}}
+@keyframes sscCinePulse{0%,100%{transform:scale(.7);opacity:.6}50%{transform:scale(1.25);opacity:1}}
+/* the rest of the form quietly steps aside while the loader runs */
+#sscCard:has(.ssc-go.is-loading) .ssc-form>label,#sscCard:has(.ssc-go.is-loading) .ssc-seg,#sscCard:has(.ssc-go.is-loading) .ssc-note,#sscCard:has(.ssc-go.is-loading) .ssc-err{opacity:.35;transition:opacity .5s ease;pointer-events:none}
+
+/* 2. the login card gently moves backwards */
+@keyframes sscRecede{
+  0%{opacity:1;transform:perspective(1500px) translate3d(0,0,0) scale(1);filter:blur(0)}
+  100%{opacity:.18;transform:perspective(1500px) translate3d(0,-14px,-340px) scale(.84) rotateX(5deg);filter:blur(5px)}}
+html body #sscLock#sscLock #sscCard.ssc-card.out{animation:sscRecede .95s cubic-bezier(.45,0,.2,1) both!important;pointer-events:none}
+#sscLock.ssc-leaving{perspective:1500px}
+#sscLock.ssc-leaving .em-light .bloom{opacity:1}
+
+/* 3. the whole screen dissolves into the dashboard (which settles in from slightly larger) */
+@keyframes sscLockOut{
+  0%{opacity:1;transform:scale(1);filter:blur(0) brightness(1)}
+  35%{filter:blur(2px) brightness(1.25)}
+  100%{opacity:0;transform:scale(1.07);filter:blur(10px) brightness(1.4)}}
+#sscLock.ssc-dissolve{animation:sscLockOut .95s cubic-bezier(.5,0,.2,1) both;pointer-events:none}
+@keyframes sscDashIn{
+  from{opacity:.0;transform:scale(1.035);filter:blur(7px) brightness(1.15)}
+  to{opacity:1;transform:none;filter:none}}
+body.ssc-dash-in>:not(#sscLock):not(#sscWelcome):not(script):not(style):not(.aurora){animation:sscDashIn 1.1s cubic-bezier(.2,.7,.2,1) backwards}
+
+/* 4. welcome appears as a frosted veil over the live dashboard */
+html body #sscWelcome#sscWelcome{background:color-mix(in srgb,var(--bg) 84%,transparent)!important;-webkit-backdrop-filter:blur(26px) saturate(150%)!important;backdrop-filter:blur(26px) saturate(150%)!important}
+#sscWelcome::before{opacity:.45!important}
+#sscWelcome.on{transition:opacity .7s ease}
+@media(prefers-reduced-motion:reduce){
+  html body #sscLock#sscLock #sscCard.ssc-card.out{animation:none!important;opacity:0}
+  #sscLock.ssc-dissolve{animation:none;opacity:0}
+  body.ssc-dash-in>*{animation:none!important}
+  html body #sscLock#sscLock #sscCard button.ssc-go.btn.primary.is-loading::before{animation-duration:2s}
+}
+</style>
+<style id="sscBigRing">
+/* ===== ROYAL EMERALD: large rotating 3D golden ring behind the card ===== */
+#sscLock .em-bigring{display:none}
+#sscLock.emerald .em-bigring{display:block;position:fixed;left:50%;top:50%;width:min(112vmin,980px);aspect-ratio:1/1;margin:calc(min(112vmin,980px)/-2) 0 0 calc(min(112vmin,980px)/-2);z-index:0;pointer-events:none;perspective:1600px;opacity:.92}
+.em-bigring .tilt{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(16deg) rotateZ(-14deg)}
+.em-bigring .spin{position:absolute;inset:0;transform-style:preserve-3d;animation:emBigSpin 30s linear infinite}
+.em-bigring .spin i{position:absolute;border-radius:50%;
+  background:conic-gradient(from 0deg,#fff1bd,#d9a93f 16%,#6f5216 34%,#f7dc93 50%,#b98728 68%,#6f5216 84%,#fff1bd);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - var(--w)),#000 calc(100% - var(--w) + 1px));mask:radial-gradient(farthest-side,transparent calc(100% - var(--w)),#000 calc(100% - var(--w) + 1px));
+  filter:drop-shadow(0 0 10px rgba(246,220,154,.55))}
+.em-bigring .spin i:nth-child(1){inset:0;--w:7px}
+.em-bigring .spin i:nth-child(2){inset:2.2%;--w:3px;opacity:.8}
+.em-bigring .spin i:nth-child(3){inset:4.2%;--w:2px;opacity:.6}
+.em-bigring .spin i:nth-child(4){inset:6%;--w:1.5px;opacity:.4}
+.em-bigring .glow{position:absolute;inset:-6%;border-radius:50%;background:radial-gradient(closest-side,transparent 78%,rgba(246,220,154,.22) 90%,transparent);animation:emBreathe 8s ease-in-out infinite}
+@keyframes emBigSpin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+#sscLock.em-launch .em-bigring{opacity:1;filter:brightness(1.25)}
+#sscLock.ssc-leaving .em-bigring{transition:transform 1s cubic-bezier(.45,0,.2,1),opacity 1s;transform:scale(1.25);opacity:.4}
+@media(max-width:760px){#sscLock.emerald .em-bigring{width:150vmin;margin:-75vmin 0 0 -75vmin;opacity:.7}.em-bigring .spin i:nth-child(n+3){display:none}}
+@media(prefers-reduced-motion:reduce){.em-bigring .spin,.em-bigring .glow{animation:none}.em-bigring .spin{transform:rotateY(58deg)}}
+</style>
+<style id="wxCss">
+/* ===== Weather gadget (auto-syncs every minute) ===== */
+.wx-card{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px 26px;padding:16px 22px;margin:2px 0;overflow:visible;border-radius:22px}
+.wx-card[hidden],.wx-show[hidden]{display:none!important}
+.wx-bar{position:absolute;left:22px;right:22px;bottom:0;height:2px;border-radius:2px;background:linear-gradient(90deg,#c9965a,#f3dcae);transform-origin:left;transform:scaleX(0);opacity:.75;pointer-events:none}
+.wx-bar.run{animation:wxCount 60s linear forwards}
+@keyframes wxCount{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.wx-main{display:flex;align-items:center;gap:14px;min-width:0}
+.wx-ic{font-size:2.6rem;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.18));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.wx-ic.pop{transform:scale(1.15) rotate(-6deg)}
+.wx-temp{display:flex;align-items:flex-start;line-height:1}
+.wx-temp b{font-size:2.6rem;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.wx-temp sup{font-size:1rem;font-weight:700;margin:6px 0 0 2px;color:var(--ink-3)}
+.wx-cond{display:grid;gap:2px;min-width:0}.wx-cond strong{font-size:1rem}.wx-cond span{font-size:.78rem;color:var(--ink-3)}
+.wx-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:10px 18px;min-width:0}
+.wx-stats>div{display:grid;gap:2px;padding-left:12px;border-left:2px solid rgba(201,150,90,.45)}
+.wx-stats small{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.wx-stats b{font-size:.98rem;font-variant-numeric:tabular-nums}
+.wx-aqi{display:inline-block;white-space:nowrap;padding:1px 8px;border-radius:999px;font-size:.74rem;font-weight:800;color:#fff;background:#6b7280}
+.wx-side{display:grid;gap:6px;justify-items:end;min-width:0}
+.wx-loc{border:0;background:none;color:var(--ink);font:inherit;font-weight:700;font-size:.95rem;cursor:pointer;padding:2px 4px;border-radius:8px}
+.wx-loc:hover{background:var(--field)}
+.wx-sync{display:inline-flex;align-items:center;gap:7px;font-size:.72rem;color:var(--ink-3);font-weight:600}
+.wx-dot{width:8px;height:8px;border-radius:50%;background:#1a8f4a;box-shadow:0 0 0 0 rgba(26,143,74,.5)}
+.wx-sync.ok .wx-dot{animation:wxPing 2s ease-out infinite}
+.wx-sync.err .wx-dot{background:#d6342c;animation:none}
+.wx-sync.busy .wx-dot{background:#c9965a;animation:none}
+@keyframes wxPing{0%{box-shadow:0 0 0 0 rgba(26,143,74,.55)}100%{box-shadow:0 0 0 8px rgba(26,143,74,0)}}
+.wx-btns{display:flex;gap:6px}
+.wx-btns button,.wx-geo{border:1px solid var(--stroke-2);background:var(--field);color:var(--ink);font:inherit;font-size:.74rem;font-weight:700;padding:5px 11px;border-radius:999px;cursor:pointer}
+.wx-btns button:hover,.wx-geo:hover{border-color:#c9965a}
+.wx-btns button.spin{opacity:.6;pointer-events:none}
+.wx-pop{position:absolute;right:16px;top:calc(100% - 8px);z-index:30;width:min(340px,calc(100vw - 32px));padding:14px;border-radius:18px;background:var(--sheet,#fff);color:var(--ink);border:1px solid var(--stroke-2);box-shadow:0 18px 50px rgba(0,0,0,.28);display:grid;gap:10px}
+.wx-pop[hidden]{display:none!important}
+.wx-pop form{display:flex;gap:8px}.wx-pop .field-in{flex:1;min-width:0}
+.wx-geo{justify-self:start}
+.wx-res{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:220px;overflow:auto}
+.wx-res li button{width:100%;text-align:left;justify-items:start;border:0;background:none;color:inherit;font:inherit;padding:8px 10px;border-radius:10px;cursor:pointer;display:grid;gap:1px}
+.wx-res li button:hover,.wx-res li button:focus-visible{background:var(--field);outline:none}
+.wx-res li small{color:var(--ink-3);font-size:.72rem}
+.wx-msg{margin:0;font-size:.78rem;color:var(--ink-3);min-height:1em}
+.wx-show{justify-self:start;align-self:start;margin:2px 0;border:1px solid var(--stroke-2);background:var(--field);color:var(--ink);font:inherit;font-weight:700;font-size:.8rem;padding:7px 14px;border-radius:999px;cursor:pointer}
+.wx-show:hover{border-color:#c9965a}
+@media(max-width:900px){.wx-card{grid-template-columns:1fr;gap:12px}.wx-side{justify-items:start}.wx-pop{left:12px;right:auto}}
+@media(prefers-reduced-motion:reduce){.wx-bar.run{animation:none;transform:scaleX(1)}.wx-sync.ok .wx-dot{animation:none}.wx-ic{transition:none}}
+</style>
+<script id="wxJs">
+(function(){
+  var SYNC=60000,KEY='ssc-wx-v1',DKEY='ssc-wx-data-v1';
+  var $=function(i){return document.getElementById(i)};
+  var card=$('wxCard'),showBtn=$('wxShow');if(!card||!showBtn)return;
+  var st={on:true,lat:28.6139,lon:77.2090,name:'New Delhi'};
+  try{var sv=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(sv&&typeof sv==='object'){if(typeof sv.on==='boolean')st.on=sv.on;
+      if(isFinite(sv.lat)&&isFinite(sv.lon)&&Math.abs(sv.lat)<=90&&Math.abs(sv.lon)<=180){st.lat=+sv.lat;st.lon=+sv.lon;st.name=String(sv.name||'My location').slice(0,60)}}}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+  var WMO={0:['Clear sky','☀️','🌙'],1:['Mainly clear','🌤️','🌙'],2:['Partly cloudy','⛅','☁️'],3:['Overcast','☁️','☁️'],45:['Fog','🌫️','🌫️'],48:['Rime fog','🌫️','🌫️'],
+    51:['Light drizzle','🌦️','🌧️'],53:['Drizzle','🌦️','🌧️'],55:['Heavy drizzle','🌧️','🌧️'],56:['Freezing drizzle','🌧️','🌧️'],57:['Freezing drizzle','🌧️','🌧️'],
+    61:['Light rain','🌦️','🌧️'],63:['Rain','🌧️','🌧️'],65:['Heavy rain','🌧️','🌧️'],66:['Freezing rain','🌧️','🌧️'],67:['Freezing rain','🌧️','🌧️'],
+    71:['Light snow','🌨️','🌨️'],73:['Snow','❄️','❄️'],75:['Heavy snow','❄️','❄️'],77:['Snow grains','❄️','❄️'],
+    80:['Rain showers','🌦️','🌧️'],81:['Rain showers','🌧️','🌧️'],82:['Violent showers','⛈️','⛈️'],85:['Snow showers','🌨️','🌨️'],86:['Snow showers','🌨️','🌨️'],
+    95:['Thunderstorm','⛈️','⛈️'],96:['Thunderstorm, hail','⛈️','⛈️'],99:['Thunderstorm, hail','⛈️','⛈️']};
+  function aqiInfo(v){if(v==null||!isFinite(v))return null;v=Math.round(v);
+    return v<=50?['Good','#1a8f4a']:v<=100?['Moderate','#b8860b']:v<=150?['Poor*','#e07b00']:v<=200?['Unhealthy','#d6342c']:v<=300?['Very poor','#8e2b7a']:['Hazardous','#6b1a1a']}
+  function fmtTime(d){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+  function r(n){return n==null||!isFinite(n)?'--':String(Math.round(n))}
+
+  function paint(d){
+    if(!d)return;
+    var w=WMO[d.code]||['Weather','⛅','☁️'];
+    $('wxIc').textContent=d.day?w[1]:w[2];
+    $('wxT').textContent=r(d.t);$('wxC').textContent=w[0];
+    $('wxFeel').textContent='Feels like '+r(d.feel)+'°C';
+    $('wxH').textContent=r(d.h)+'%';$('wxW').textContent=r(d.w)+' km/h';
+    $('wxR').textContent=d.rain==null?'--':r(d.rain)+'%';
+    $('wxHL').textContent=r(d.hi)+'° / '+r(d.lo)+'°';
+    var a=$('wxA'),ai=aqiInfo(d.aqi);a.textContent='';
+    if(ai){var sp=document.createElement('span');sp.className='wx-aqi';sp.style.background=ai[1];sp.textContent=Math.round(d.aqi)+' · '+ai[0];a.appendChild(sp)}else a.textContent='--';
+    $('wxPlace').textContent=st.name;
+  }
+  function status(kind,txt){var row=$('wxSyncRow');row.className='wx-sync '+kind;$('wxSync').textContent=txt}
+  function restartBar(){var b=$('wxBar');b.classList.remove('run');void b.offsetWidth;b.classList.add('run')}
+
+  function getJson(url,ms){
+    var ac=window.AbortController?new AbortController():null,t=setTimeout(function(){ac&&ac.abort()},ms||10000);
+    return fetch(url,{cache:'no-store',signal:ac?ac.signal:undefined}).then(function(res){clearTimeout(t);if(!res.ok)throw new Error('HTTP '+res.status);return res.json()},function(e){clearTimeout(t);throw e});
+  }
+  var inflight=false,lastOk=0,timer=0;
+  function sync(manual){
+    if(!st.on||inflight)return;
+    inflight=true;var rb=$('wxRef');if(manual)rb.classList.add('spin');
+    status('busy','Syncing…');
+    var q='latitude='+st.lat+'&longitude='+st.lon;
+    var fc=getJson('https://api.open-meteo.com/v1/forecast?'+q+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1');
+    var aq=getJson('https://air-quality-api.open-meteo.com/v1/air-quality?'+q+'&current=us_aqi',8000).catch(function(){return null});
+    Promise.all([fc,aq]).then(function(x){
+      var f=x[0],c=f.current||{},dl=f.daily||{};
+      var d={lat:st.lat,lon:st.lon,t:c.temperature_2m,feel:c.apparent_temperature,h:c.relative_humidity_2m,w:c.wind_speed_10m,code:c.weather_code,day:c.is_day!==0,
+        hi:dl.temperature_2m_max&&dl.temperature_2m_max[0],lo:dl.temperature_2m_min&&dl.temperature_2m_min[0],rain:dl.precipitation_probability_max&&dl.precipitation_probability_max[0],
+        aqi:x[1]&&x[1].current?x[1].current.us_aqi:null,at:Date.now()};
+      paint(d);lastOk=d.at;try{localStorage.setItem(DKEY,JSON.stringify(d))}catch(e){}
+      status('ok','Synced '+fmtTime(new Date(d.at))+' · auto every 1 min');restartBar();
+      var ic=$('wxIc');ic.classList.add('pop');setTimeout(function(){ic.classList.remove('pop')},500);
+    }).catch(function(){
+      status('err',lastOk?'Offline · last synced '+fmtTime(new Date(lastOk))+' · retrying':'Can’t reach weather service · retrying');restartBar();
+    }).then(function(){inflight=false;rb.classList.remove('spin')});
+  }
+  function schedule(){clearInterval(timer);if(st.on)timer=setInterval(function(){if(!document.hidden)sync(false)},SYNC)}
+  document.addEventListener('visibilitychange',function(){if(!document.hidden&&st.on&&Date.now()-lastOk>=SYNC)sync(false)});
+  window.addEventListener('online',function(){sync(false)});
+
+  function apply(){card.hidden=!st.on;showBtn.hidden=st.on;if(!st.on)closePop();schedule();if(st.on)sync(false)}
+  $('wxHide').addEventListener('click',function(){st.on=false;save();apply()});
+  showBtn.addEventListener('click',function(){st.on=true;save();apply()});
+  $('wxRef').addEventListener('click',function(){sync(true)});
+
+  /* city picker */
+  var pop=$('wxPop'),loc=$('wxLoc');
+  function closePop(){pop.hidden=true;loc.setAttribute('aria-expanded','false')}
+  function openPop(){pop.hidden=false;loc.setAttribute('aria-expanded','true');$('wxMsg').textContent='';setTimeout(function(){$('wxQ').focus()},30)}
+  loc.addEventListener('click',function(e){e.stopPropagation();pop.hidden?openPop():closePop()});
+  document.addEventListener('click',function(e){if(!pop.hidden&&!pop.contains(e.target)&&e.target!==loc)closePop()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!pop.hidden){closePop();loc.focus()}});
+  function choose(lat,lon,name){st.lat=lat;st.lon=lon;st.name=name;save();lastOk=0;closePop();$('wxRes').textContent='';$('wxPlace').textContent=name;sync(true)}
+  $('wxForm').addEventListener('submit',function(e){
+    e.preventDefault();var q=$('wxQ').value.trim(),res=$('wxRes'),msg=$('wxMsg');if(q.length<2){msg.textContent='Type at least 2 letters.';return}
+    res.textContent='';msg.textContent='Searching…';
+    getJson('https://geocoding-api.open-meteo.com/v1/search?count=6&language=en&format=json&name='+encodeURIComponent(q),8000).then(function(j){
+      var L=(j&&j.results)||[];msg.textContent=L.length?'':'No city found. Try another spelling.';
+      L.forEach(function(c){var li=document.createElement('li'),b=document.createElement('button'),n=document.createElement('span'),sm=document.createElement('small');
+        b.type='button';n.textContent=c.name;sm.textContent=[c.admin1,c.country].filter(Boolean).join(', ');b.appendChild(n);b.appendChild(sm);
+        b.addEventListener('click',function(){choose(c.latitude,c.longitude,c.name)});li.appendChild(b);res.appendChild(li)});
+    }).catch(function(){msg.textContent='Search failed. Check your connection.'});
+  });
+  $('wxGeo').addEventListener('click',function(){
+    var msg=$('wxMsg');if(!navigator.geolocation){msg.textContent='Location is not available in this browser.';return}
+    msg.textContent='Finding your location…';
+    navigator.geolocation.getCurrentPosition(function(p){choose(p.coords.latitude,p.coords.longitude,'My location')},function(){msg.textContent='Location permission was not granted.'},{timeout:10000,maximumAge:600000});
+  });
+
+  /* show last known data instantly, then sync */
+  try{var cd=JSON.parse(localStorage.getItem(DKEY)||'null');if(cd&&cd.lat===st.lat&&cd.lon===st.lon){paint(cd);lastOk=cd.at;status('busy','Last synced '+fmtTime(new Date(cd.at)))}}catch(e){}
+  $('wxPlace').textContent=st.name;
+  apply();
+})();
+</script>
+<script id="sscEmeraldGoldJs">
+(function(){
+  var K='ssc-login-look-v1',lock=document.getElementById('sscLock'),card=document.getElementById('sscCard');
+  if(!lock||!card)return;
+  function get(){try{return localStorage.getItem(K)}catch(e){return null}}
+  function put(v){try{localStorage.setItem(K,v)}catch(e){}}
+  var dust=document.createElement('div');dust.className='em-dust';dust.setAttribute('aria-hidden','true');
+  for(var i=0;i<44;i++){var p=document.createElement('i'),s=2+Math.random()*5;
+    p.style.cssText='left:'+(Math.random()*100).toFixed(1)+'%;width:'+s.toFixed(1)+'px;height:'+s.toFixed(1)+'px;animation-duration:'+(9+Math.random()*12).toFixed(1)+'s;animation-delay:-'+(Math.random()*18).toFixed(1)+'s;--dx:'+((Math.random()*80-40)|0)+'px';
+    dust.appendChild(p)}
+  lock.insertBefore(dust,lock.firstChild);
+  var lt=document.createElement('div');lt.className='em-light';lt.setAttribute('aria-hidden','true');lt.innerHTML='<div class="orb"></div><div class="beam"></div><div class="spot"></div><div class="vig"></div><div class="bloom"></div>';lock.insertBefore(lt,dust.nextSibling);
+  var br=document.createElement('div');br.className='em-bigring';br.setAttribute('aria-hidden','true');br.innerHTML='<div class="glow"></div><div class="tilt"><div class="spin"><i></i><i></i><i></i><i></i></div></div>';lock.insertBefore(br,lt.nextSibling);
+  var vl=document.createElement('div');vl.className='em-veil';vl.setAttribute('aria-hidden','true');lock.appendChild(vl);
+  /* while the sign-in is being checked, the room warms up with a golden glow */
+  new MutationObserver(function(){lock.classList.toggle('em-launch',!!card.querySelector('.ssc-go.is-loading'))}).observe(card,{subtree:true,attributes:true,attributeFilter:['class'],childList:true});
+  var sw=document.createElement('div');sw.className='em-switch';sw.setAttribute('role','group');sw.setAttribute('aria-label','Login look');
+  sw.innerHTML='<button type="button" data-look="classic">Classic</button><button type="button" data-look="emerald">Emerald &amp; Gold</button>';
+  lock.appendChild(sw);
+  function apply(v){lock.classList.toggle('emerald',v==='emerald');[].forEach.call(sw.querySelectorAll('button'),function(b){b.setAttribute('aria-pressed',String(b.dataset.look===v))})}
+  sw.addEventListener('click',function(e){var b=e.target.closest('[data-look]');if(!b)return;apply(b.dataset.look);put(b.dataset.look)});
+  apply(get()==='emerald'?'emerald':'classic');
+  /* the sign-in form is re-drawn on every mode change, so wrap the logo again each time */
+  function wrap(){var img=card.querySelector('.ssc-lux-side > .ssc-logo');if(!img)return;var d=document.createElement('div');d.className='em-stage';img.parentNode.insertBefore(d,img);
+    var ring=document.createElement('div');ring.className='em-ring';ring.setAttribute('aria-hidden','true');ring.innerHTML='<span class="r1"></span><span class="r2"></span><span class="r3"></span>';d.appendChild(ring);
+    d.appendChild(img);
+    var orb=document.createElement('div');orb.className='em-orbit';orb.setAttribute('aria-hidden','true');
+    for(var k=0;k<18;k++){var q=document.createElement('i'),z=3+Math.random()*5;q.style.cssText='left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*100).toFixed(1)+'%;width:'+z.toFixed(1)+'px;height:'+z.toFixed(1)+'px;animation-duration:'+(3.5+Math.random()*4).toFixed(1)+'s;animation-delay:-'+(Math.random()*7).toFixed(1)+'s;--fx:'+((Math.random()*24-12)|0)+'px';orb.appendChild(q)}
+    d.appendChild(orb)}
+  wrap();new MutationObserver(wrap).observe(card,{childList:true});
+  /* gentle tilt that follows the pointer */
+  var raf=0;
+  var idleT=0;
+  function untilt(){lock.classList.remove('em-tilt')}
+  lock.addEventListener('pointermove',function(e){if(!lock.classList.contains('emerald'))return;
+    if(e.pointerType==='mouse'){lock.classList.add('em-tilt');clearTimeout(idleT);idleT=setTimeout(untilt,1600)}
+    if(raf)return;raf=requestAnimationFrame(function(){raf=0;
+      lock.style.setProperty('--mx',((e.clientX/innerWidth-.5)*2).toFixed(2));lock.style.setProperty('--my',((e.clientY/innerHeight-.5)*2).toFixed(2));
+      lock.style.setProperty('--px',e.clientX+'px');lock.style.setProperty('--py',e.clientY+'px')})},{passive:true});
+  lock.addEventListener('pointerleave',untilt);
+
+  /* ===== 3D environment: floating emerald & gold gems over a receding golden floor ===== */
+  (function(){
+    var cv=document.createElement('canvas');cv.className='em-env';cv.setAttribute('aria-hidden','true');lock.insertBefore(cv,lock.firstChild);
+    var cx=cv.getContext('2d');if(!cx)return;
+    var W=0,H=0,DPR=1,F=800,small=false,still=false;
+    try{still=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+    function size(){DPR=Math.min(window.devicePixelRatio||1,1.5);W=innerWidth;H=innerHeight;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);F=Math.max(W,H)*.85;small=W<760}
+    size();addEventListener('resize',size);
+    var V=[[1,0,0],[-1,0,0],[0,1.5,0],[0,-1.5,0],[0,0,1],[0,0,-1]],
+        FA=[[0,2,4],[4,2,1],[1,2,5],[5,2,0],[4,3,0],[1,3,4],[5,3,1],[0,3,5]];
+    var gems=[];
+    function spawn(g,fresh){g.x=(Math.random()*2-1)*7;g.z=3.2+Math.random()*11;g.y=fresh?(Math.random()*2-1)*4.2:-4.4;g.s=.32+Math.random()*.55;g.gold=Math.random()<.45;
+      g.ry=Math.random()*6.28;g.rx=Math.random()*6.28;g.vy=.10+Math.random()*.20;g.wy=(Math.random()*.8+.25)*(Math.random()<.5?-1:1);g.wx=(Math.random()*.5+.1)*(Math.random()<.5?-1:1);g.ph=Math.random()*6.28;return g}
+    for(var i=0;i<(small?9:17);i++)gems.push(spawn({},true));
+    var mx=0,my=0,tx=0,ty=0,last=0,t0=performance.now();
+    addEventListener('pointermove',function(e){tx=(e.clientX/innerWidth-.5)*2;ty=(e.clientY/innerHeight-.5)*2},{passive:true});
+    var L=[-.35,.65,-.68];
+    function drawFloor(t,camx,camy){
+      var hy=H*(.56)-camy*20,gh=1.9; /* camera height above floor */
+      var off=(t*.35)%1,i,z,y,a,x1,x2;
+      cx.lineWidth=1;
+      for(i=0;i<34;i++){z=1.4+i-off;if(z<1.4)continue;y=hy+gh*F/z;if(y>H+4)continue;a=Math.max(0,.55*(1-z/30))*(i<2?(i+1)/3:1);
+        cx.strokeStyle='rgba(224,184,98,'+a.toFixed(3)+')';cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+      for(i=-22;i<=22;i++){var wx=i*1.25;a=.34;
+        var g=cx.createLinearGradient(0,hy,0,H);g.addColorStop(0,'rgba(224,184,98,0)');g.addColorStop(.35,'rgba(224,184,98,.30)');g.addColorStop(1,'rgba(246,220,154,.42)');cx.strokeStyle=g;
+        x1=W/2+(wx-camx)*F/32;x2=W/2+(wx-camx)*F/1.4;cx.beginPath();cx.moveTo(x1,hy+gh*F/32);cx.lineTo(x2,hy+gh*F/1.4);cx.stroke()}
+      var hg=cx.createLinearGradient(0,hy-60,0,hy+80);hg.addColorStop(0,'rgba(246,220,154,0)');hg.addColorStop(.5,'rgba(246,220,154,.20)');hg.addColorStop(1,'rgba(246,220,154,0)');cx.fillStyle=hg;cx.fillRect(0,hy-60,W,140)}
+    function drawGem(g,t,camx,camy){
+      var cs=Math.cos(g.ry),sn=Math.sin(g.ry),cx2=Math.cos(g.rx),sx2=Math.sin(g.rx),gx=g.x-camx,gy=g.y+Math.sin(t*.6+g.ph)*.25-camy*.5,gz=g.z;
+      var P=[],R=[],k,v,x,y,z,x1,z1,y1,z2;
+      for(k=0;k<6;k++){v=V[k];x=v[0]*g.s;y=v[1]*g.s;z=v[2]*g.s;
+        x1=x*cs+z*sn;z1=-x*sn+z*cs;y1=y*cx2-z1*sx2;z2=y*sx2+z1*cx2;
+        R.push([x1+gx,y1+gy,z2+gz]);P.push([W/2+(x1+gx)*F/(z2+gz),H*.5-(y1+gy)*F/(z2+gz)])}
+      var fog=Math.max(.12,1-(gz-2.5)/15),faces=[],f,a,b,c,ux,uy,uz,vx,vy,vz,nx,ny,nz,nl,d,br,cz;
+      for(f=0;f<8;f++){a=R[FA[f][0]];b=R[FA[f][1]];c=R[FA[f][2]];
+        ux=b[0]-a[0];uy=b[1]-a[1];uz=b[2]-a[2];vx=c[0]-a[0];vy=c[1]-a[1];vz=c[2]-a[2];
+        nx=uy*vz-uz*vy;ny=uz*vx-ux*vz;nz=ux*vy-uy*vx;nl=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;nx/=nl;ny/=nl;nz/=nl;
+        cz=(a[2]+b[2]+c[2])/3;
+        if(nx*a[0]+ny*a[1]+nz*a[2]>0){nx=-nx;ny=-ny;nz=-nz} /* outward normal toward viewer */
+        if(nx*a[0]+ny*a[1]+nz*a[2]>=0)continue;
+        d=nx*L[0]+ny*L[1]+nz*L[2];br=Math.max(0,Math.min(1,.28+.72*(d*.5+.5)));
+        faces.push([cz,f,br])}
+      faces.sort(function(p,q){return q[0]-p[0]});
+      for(k=0;k<faces.length;k++){f=faces[k][1];br=faces[k][2];var pa=P[FA[f][0]],pb=P[FA[f][1]],pc=P[FA[f][2]],r,gg,bb;
+        if(g.gold){r=110+br*145;gg=78+br*140;bb=18+br*80}else{r=6+br*40;gg=62+br*165;bb=44+br*105}
+        cx.fillStyle='rgba('+(r|0)+','+(gg|0)+','+(bb|0)+','+(.92*fog).toFixed(3)+')';
+        cx.strokeStyle='rgba(255,240,190,'+(.34*fog).toFixed(3)+')';cx.lineWidth=1;
+        cx.beginPath();cx.moveTo(pa[0],pa[1]);cx.lineTo(pb[0],pb[1]);cx.lineTo(pc[0],pc[1]);cx.closePath();cx.fill();cx.stroke()}
+      /* soft glint */
+      var gl=.5+.5*Math.sin(t*1.7+g.ph*2);if(gl>.8&&fog>.35){var sp=P[2],q=g.s*F/gz*.5;var rg=cx.createRadialGradient(sp[0],sp[1],0,sp[0],sp[1],q);rg.addColorStop(0,'rgba(255,250,220,'+((gl-.8)*4*fog).toFixed(2)+')');rg.addColorStop(1,'rgba(255,250,220,0)');cx.fillStyle=rg;cx.fillRect(sp[0]-q,sp[1]-q,q*2,q*2)}
+    }
+    function frame(now){
+      requestAnimationFrame(frame);
+      if(!lock.classList.contains('emerald')||lock.hidden||document.hidden)return;
+      var dt=Math.min(.05,(now-(last||now))/1000);last=now;var t=(now-t0)/1000;
+      mx+=(tx-mx)*.04;my+=(ty-my)*.04;
+      var camx=mx*.9,camy=my*.5;
+      cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);
+      drawFloor(still?0:t,camx,camy);
+      gems.sort(function(a,b){return b.z-a.z});
+      for(var i=0;i<gems.length;i++){var g=gems[i];if(!still){g.ry+=g.wy*dt;g.rx+=g.wx*dt;g.y+=g.vy*dt;if(g.y>4.6)spawn(g,false)}drawGem(g,still?0:t,camx,camy)}
+      if(still){return}
+    }
+    requestAnimationFrame(frame);
+  })();
+})();
+</script>

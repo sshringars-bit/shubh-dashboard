@@ -1592,9 +1592,10 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
   }
   window.__fbFlushAll=function(){if(timer){clearTimeout(timer)}return flush()};
   function note(k,v){if(!hydrated)return;pend[k]=v;if(timer)clearTimeout(timer);timer=setTimeout(flush,1500)}
-  function freeSpace(){try{var d=[];for(var i=0;i<LS.length;i++){var x=LS.key(i);if(x&&x.indexOf('bk:')===0)d.push(x)}d.forEach(function(x){LS.removeItem(x)});return d.length}catch(e){return 0}}
+  function freeSpace(){try{var d=[];for(var i=0;i<LS.length;i++){var x=LS.key(i);if(x&&(x.indexOf('bk:')===0||/^ssc-(wx|wx-data|fest-online|loginlog)-?/.test(x)))d.push(x)}d.forEach(function(x){LS.removeItem(x)});return d.length}catch(e){return 0}}
+  var fullShown=false;
   function fullMsg(){
-    if(document.getElementById('fbFull')||!document.body)return;
+    if(fullShown||document.getElementById('fbFull')||!document.body)return;fullShown=true;
     var d=document.createElement('div');d.id='fbFull';
     d.style.cssText='position:fixed;left:12px;right:12px;top:12px;z-index:99999;background:#b42318;color:#fff;border-radius:12px;padding:12px 14px;font:600 .9rem system-ui,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between';
     d.innerHTML='<span>This browser is out of storage space. Your data is being saved online instead — please keep this page open for a minute before refreshing.</span><button type="button" style="border:0;border-radius:8px;padding:8px 14px;background:#fff;color:#b42318;font-weight:700;cursor:pointer">OK</button>';
@@ -1684,6 +1685,11 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
     document.addEventListener('visibilitychange',function(){if(!document.hidden)beat()});
     window.addEventListener('pagehide',function(){try{fs.collection('kv').doc('presence__'+DEV).delete()}catch(e){}});
   }
+  function stash(k,v){
+    try{var r=indexedDB.open('ssc-conflict-backup',1);
+      r.onupgradeneeded=function(){r.result.createObjectStore('kv')};
+      r.onsuccess=function(){try{r.result.transaction('kv','readwrite').objectStore('kv').put(v,k+'@'+new Date().toISOString())}catch(e){}}}catch(e){}
+  }
   function hydrate(){
     return fs.collection('kv').get().then(function(snap){
       var cloud=assemble(snap),keys={},apply={},pushes=[],conflicts=[];
@@ -1702,8 +1708,9 @@ window.addEventListener("load",function(){setTimeout(function(){window.__loadXls
         }else if(!emptyL)pushes.push(k);
       });
       if(conflicts.length){
-        var useCloud=confirm('Some saved data on this browser is different from the online copy.\n\nOK = use the ONLINE copy (recommended if you already use the dashboard on another device).\nCancel = replace the online copy with the data on THIS browser.');
-        conflicts.forEach(function(k){if(useCloud)apply[k]=cloud[k];else pushes.push(k)});
+        /* No pop-up: the online copy wins automatically, and this browser's differing copy is first kept in a
+           safety store (IndexedDB 'ssc-conflict-backup') so nothing is ever lost. */
+        conflicts.forEach(function(k){var lv=null;try{lv=LS.getItem(k)}catch(e){}if(!isEmpty(lv))stash(k,lv);apply[k]=cloud[k]});
       }
       hydrated=true;
       var ks=Object.keys(apply),ps=[];
@@ -5132,7 +5139,11 @@ function kvPut(key,val){
   return idb().then(function(d){return new Promise(function(res,rej){
     var tx=d.transaction('kv','readwrite');tx.objectStore('kv').put(str,key);
     tx.oncomplete=function(){res(true)};tx.onerror=tx.onabort=function(){rej(tx.error)};
-  })}).then(function(){try{localStorage.setItem(key,str)}catch(e){}return true},function(){
+  })}).then(function(){
+    /* IndexedDB holds the real copy. Only mirror SMALL values into localStorage (its ~5MB quota is what fills up);
+       a large stale mirror is removed so it stops eating the quota. */
+    try{if(str.length<=100000)localStorage.setItem(key,str);else localStorage.removeItem(key)}catch(e){}
+    return true},function(){
     try{localStorage.setItem(key,str);return true}catch(e){return false}
   });
 }
@@ -5145,6 +5156,21 @@ function kvGet(key){
     try{return v?(JSON.parse(v)||[]):[]}catch(e){return []}
   });
 }
+/* One-time/at-start clean-up: drop big localStorage mirrors (products, orders, sales, customers, tracker backups)
+   ONLY when IndexedDB confirms it holds the same key, so no data can be lost. Frees the quota for everything else. */
+function sscTrimLocal(){
+  try{
+    var ks=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k)continue;
+      var big=false;try{big=(localStorage.getItem(k)||'').length>100000}catch(e){}
+      if(big&&(k.indexOf('bk:')===0||k===LOCAL_KEY||k===PKEY||k===SKEY||k===CKEY))ks.push(k)}
+    ks.forEach(function(k){
+      idb().then(function(d){var rq=d.transaction('kv').objectStore('kv').get(k);
+        rq.onsuccess=function(){if(typeof rq.result==='string'&&rq.result.length>0){try{localStorage.removeItem(k)}catch(e){}}}
+      }).catch(function(){});
+    });
+  }catch(e){}
+}
+setTimeout(sscTrimLocal,2500);
 function warnMem(ok){if(!ok)toast('This browser would not keep your data. Use the published dashboard link to save it for good.')}
 function persistLocal(){return kvPut(LOCAL_KEY,state.orders).then(warnMem)}
 function loadLocal(){

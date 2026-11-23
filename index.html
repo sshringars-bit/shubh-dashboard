@@ -17415,7 +17415,7 @@ function render(m,msg,ok){
     '<form class="ssc-form" novalidate>'+pwField('sscP','New password (min 8, letters &amp; numbers)','new-password')+pwField('sscP2','Confirm new password','new-password')+(pending.qa?'':qaFields(false))+
     '<p class="ssc-err" id="sscE" role="alert"></p><button class="btn primary ssc-go" type="submit">Save &amp; continue</button></form>';
   }
-  card.className='ssc-card';var luxSide='<aside class="ssc-lux-side"><div class="ssc-lamp-scene" aria-hidden="true"><div class="ssc-lamp-glow"></div><div class="ssc-lamp-shade"></div><div class="ssc-lamp-joint"></div><div class="ssc-lamp-arm"></div><div class="ssc-lamp-lower"></div><div class="ssc-lamp-base"></div><div class="ssc-lamp-pull"></div><div class="ssc-lamp-caption">Pull string to turn on</div></div><div class="ssc-lux-name">'+esc(BRAND)+'</div><p class="ssc-lux-tag">A brighter way to manage your business.</p><p class="ssc-lux-mods">Orders &middot; Stock &middot; Invoices &middot; Finance</p></aside>';var luxFoot='<p class="ssc-lux-foot"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg>Your workspace is protected.</p>';card.innerHTML=luxSide+'<div class="ssc-lux-main">'+h+luxFoot+'</div>';
+  card.className='ssc-card';var luxSide='<aside class="ssc-lux-side"><div class="ssc-lamp-scene" aria-hidden="true"><div class="ssc-lamp-glow"></div><div class="ssc-lamp-shade"></div><div class="ssc-lamp-joint"></div><div class="ssc-lamp-arm"></div><div class="ssc-lamp-lower"></div><div class="ssc-lamp-base"></div><div class="ssc-lamp-pull" role="button" tabindex="0" aria-label="Switch lamp on" aria-pressed="false"></div><div class="ssc-lamp-caption">Pull string to turn on</div></div><div class="ssc-lux-name">'+esc(BRAND)+'</div><p class="ssc-lux-tag">A brighter way to manage your business.</p><p class="ssc-lux-mods">Orders &middot; Stock &middot; Invoices &middot; Finance</p></aside>';var luxFoot='<p class="ssc-lux-foot"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-2.9 8.4-7 10-4.1-1.6-7-5.4-7-10V6l7-3z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg>Your workspace is protected.</p>';card.innerHTML=luxSide+'<div class="ssc-lux-main">'+h+luxFoot+'</div>';
   if(msg)setErr(msg,ok);
   var f=card.querySelector('input:not([readonly]):not([value=""])');var first=card.querySelector('#sscU,#sscN,#sscA,#sscP');
   var target=(m==='signin'&&$('#sscU').value)?$('#sscP'):first;setTimeout(function(){try{target&&target.focus()}catch(e){}},60);
@@ -19664,3 +19664,124 @@ html:root:root:root[data-theme] body.ssc-shell .headline p{color:#6b8478!importa
   html:root:root:root[data-theme] body.ssc-shell .headline{background:rgba(243,246,244,.86)!important;border-bottom:1px solid rgba(15,42,30,.06)!important;border-radius:28px 28px 0 0;padding-top:20px!important;padding-bottom:16px!important}
 }
 </style>
+
+<style id="sscLampCinematicUpgrade">
+/* Video-inspired lamp scene: interactive pull cord, warm light spill and a slow colour wash. */
+#sscLock{--lamp-glow:rgba(255,226,164,.58);--lamp-spill:rgba(255,221,153,.22);background:#050b11!important;isolation:isolate}
+#sscLock::before{background:radial-gradient(58vmax 48vmax at 22% 45%,rgba(40,76,88,.22),transparent 68%),linear-gradient(145deg,#050b11,#0a141d 58%,#050a10)!important;opacity:1!important}
+#sscLock::after{display:none!important}
+#sscCard{position:relative;z-index:2;overflow:hidden!important;width:min(980px,100%)!important;min-height:540px!important;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)!important;border-radius:22px!important;background:linear-gradient(135deg,rgba(8,14,21,.94),rgba(7,13,20,.97))!important;border:1px solid rgba(210,230,238,.22)!important;box-shadow:0 36px 110px rgba(0,0,0,.68),0 0 70px rgba(255,211,132,.055)!important}
+#sscCard .ssc-lux-side{min-height:540px!important;justify-content:center!important;gap:8px!important;padding:26px 24px!important;background:radial-gradient(ellipse at 52% 45%,rgba(255,224,160,.045),transparent 55%),linear-gradient(160deg,#0b1720,#071018 76%)!important;border-right:1px solid rgba(210,230,238,.12)!important}
+#sscCard .ssc-lux-side::after{display:none!important}
+#sscCard .ssc-lux-side::before{inset:16px!important;border:1px solid rgba(210,230,238,.10)!important;border-radius:16px!important}
+#sscCard .ssc-lamp-scene{width:330px!important;height:390px!important;max-width:100%;margin:0 auto!important;transform:none!important;filter:drop-shadow(0 22px 24px rgba(0,0,0,.55))}
+#sscCard .ssc-lamp-scene::before{content:"";position:absolute;z-index:0;left:26px;top:80px;width:270px;height:280px;clip-path:polygon(34% 0,66% 0,100% 100%,0 100%);background:linear-gradient(180deg,rgba(255,230,177,.17),rgba(255,225,165,.07) 48%,transparent);filter:blur(14px);opacity:.06;transform-origin:50% 0;transition:opacity .9s ease}
+#sscCard .ssc-lamp-scene::after{content:"";position:absolute;z-index:0;left:10px;right:10px;bottom:20px;height:58px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,220,160,.12),transparent 72%);filter:blur(10px);opacity:.2;transition:opacity .8s ease}
+#sscCard .ssc-lamp-glow{z-index:1;left:35px!important;top:10px!important;width:260px!important;height:250px!important;background:radial-gradient(ellipse,var(--lamp-glow),rgba(255,223,165,.12) 34%,transparent 72%)!important;filter:blur(22px)!important;opacity:.08;animation:sscLampBreath 3.4s ease-in-out infinite alternate,sscLampColorWash 13s linear infinite!important;transition:opacity .8s ease}
+#sscCard .ssc-lamp-shade{z-index:3;left:104px!important;top:48px!important;width:116px!important;height:76px!important;transform:rotate(13deg);transform-origin:52% 12%;background:linear-gradient(145deg,#87939a 0%,#35434b 36%,#101820 80%)!important;box-shadow:inset 8px 7px 12px rgba(255,255,255,.13),inset -8px -10px 14px rgba(0,0,0,.72),0 8px 20px rgba(0,0,0,.32)!important;transition:filter .5s ease}
+#sscCard .ssc-lamp-shade::before{content:"";position:absolute;left:45px;bottom:-17px;width:24px;height:20px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 35%,#fff7d9,#ffd985 40%,#b77b32 75%,transparent 78%);opacity:.15;filter:blur(1px);transition:opacity .5s,filter .5s}
+#sscCard .ssc-lamp-shade::after{height:5px!important;box-shadow:0 0 7px rgba(255,215,145,.24)!important}
+#sscCard .ssc-lamp-joint{z-index:4;left:142px!important;top:117px!important}
+#sscCard .ssc-lamp-arm{z-index:2;left:145px!important;top:126px!important;height:122px!important}
+#sscCard .ssc-lamp-lower{z-index:2;left:120px!important;top:230px!important;height:55px!important}
+#sscCard .ssc-lamp-base{z-index:2;left:73px!important;top:278px!important;width:112px!important}
+#sscCard .ssc-lamp-pull{z-index:5;left:205px!important;top:117px!important;height:62px!important;width:3px!important;cursor:grab;touch-action:none;transform:rotate(-9deg) translateY(var(--cord-pull,0px))!important;transition:transform .22s ease;pointer-events:auto}
+#sscCard .ssc-lamp-pull:active{cursor:grabbing}
+#sscCard .ssc-lamp-pull::after{width:12px!important;height:12px!important;left:-5px!important;box-shadow:0 0 0 3px rgba(255,224,165,.08),0 0 13px rgba(255,224,165,.24)!important}
+#sscCard .ssc-lamp-caption{z-index:6;left:188px!important;top:184px!important;background:rgba(3,8,12,.68)!important;border:1px solid rgba(255,255,255,.1);color:#b8c7cd!important;font:600 9px/1.3 Inter,system-ui,sans-serif!important;letter-spacing:.02em;padding:5px 8px!important;transition:opacity .4s}
+#sscCard .ssc-lux-name{z-index:2;padding-top:0!important;margin:0!important;color:#eef4f5!important;font-size:.92rem!important;letter-spacing:.18em!important;text-shadow:0 0 20px rgba(255,226,164,.08)}
+#sscCard .ssc-lux-mods{z-index:2;color:#82939b!important;margin:0!important}
+#sscCard .ssc-lux-main{position:relative;z-index:2;padding:46px 42px 34px!important;justify-content:center;background:linear-gradient(145deg,rgba(16,26,36,.88),rgba(7,13,20,.97))!important;opacity:.96;transition:opacity .8s ease,filter .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)!important}
+#sscCard .ssc-title{font-size:2rem!important;color:#f5f7f8!important}
+#sscCard .ssc-eyebrow{color:#c8d7dc!important}
+#sscCard .ssc-go{background:linear-gradient(100deg,#f3c879,#d89c42)!important;color:#1a160e!important;box-shadow:0 8px 28px rgba(231,177,91,.22)!important}
+#sscCard .ssc-go:hover{box-shadow:0 12px 34px rgba(231,177,91,.34)!important}
+#sscCard .ssc-seg button[aria-selected="true"]{background:#e8b965!important;color:#17130d!important;box-shadow:0 0 22px rgba(231,177,91,.18)!important}
+#sscCard .ssc-in:focus{border-color:#e8b965!important;box-shadow:0 0 0 3px rgba(232,185,101,.13)!important}
+#sscLock.lamp-lit{--lamp-glow:rgba(255,229,181,.82);--lamp-spill:rgba(255,220,158,.27)}
+#sscLock.lamp-lit #sscCard .ssc-lamp-glow{opacity:1}
+#sscLock.lamp-lit #sscCard .ssc-lamp-scene::before{opacity:1}
+#sscLock.lamp-lit #sscCard .ssc-lamp-scene::after{opacity:.8}
+#sscLock.lamp-lit #sscCard .ssc-lamp-shade::before{opacity:1;filter:blur(2px) drop-shadow(0 0 12px rgba(255,223,160,.95))}
+#sscLock.lamp-lit #sscCard .ssc-lamp-caption{opacity:.65}
+#sscLock.lamp-lit #sscCard .ssc-lux-main{opacity:1;filter:none;transform:translateX(0)}
+#sscLock:not(.lamp-lit) #sscCard .ssc-lux-main{opacity:.82;filter:saturate(.75)}
+#sscLock.lamp-pulling #sscCard .ssc-lamp-shade{animation:sscLampNod .48s cubic-bezier(.2,.8,.2,1)}
+#sscLock.lamp-pulling #sscCard .ssc-lamp-pull{transition:none}
+#sscLock.lamp-lit #sscCard .ssc-lamp-pull::after{box-shadow:0 0 0 3px rgba(255,224,165,.12),0 0 16px rgba(255,224,165,.8)!important}
+#sscLock.lamp-lit #sscCard .ssc-lamp-glow{animation:sscLampBreath 3.4s ease-in-out infinite alternate,sscLampColorWash 13s linear infinite!important}
+@keyframes sscLampBreath{from{transform:scale(.92);opacity:.76}to{transform:scale(1.08);opacity:1}}
+@keyframes sscLampColorWash{0%,18%{filter:blur(22px) hue-rotate(0deg)}28%{filter:blur(22px) hue-rotate(85deg)}48%{filter:blur(22px) hue-rotate(155deg)}68%{filter:blur(22px) hue-rotate(235deg)}84%{filter:blur(22px) hue-rotate(305deg)}100%{filter:blur(22px) hue-rotate(360deg)}}
+@keyframes sscLampNod{0%,100%{transform:rotate(13deg)}35%{transform:rotate(19deg)}70%{transform:rotate(8deg)}}
+@media(max-width:760px){
+ #sscCard{width:min(490px,100%)!important;min-height:0!important;max-height:calc(100dvh - 24px)!important;grid-template-columns:1fr!important;overflow:auto!important}
+ #sscCard .ssc-lux-side{min-height:210px!important;padding:8px 16px 12px!important;gap:3px!important;border-right:0!important;border-bottom:1px solid rgba(210,230,238,.12)!important}
+ #sscCard .ssc-lamp-scene{width:210px!important;height:178px!important;transform:scale(.57)!important;transform-origin:top center!important;margin-bottom:-70px!important}
+ #sscCard .ssc-lamp-glow{left:35px!important;top:10px!important}
+ #sscCard .ssc-lamp-shade{left:104px!important;top:48px!important}
+ #sscCard .ssc-lamp-joint{left:142px!important;top:117px!important}
+ #sscCard .ssc-lamp-arm{left:145px!important;top:126px!important;height:122px!important}
+ #sscCard .ssc-lamp-lower{left:120px!important;top:230px!important;height:55px!important}
+ #sscCard .ssc-lamp-base{left:73px!important;top:278px!important}
+ #sscCard .ssc-lamp-pull{left:205px!important;top:117px!important;height:62px!important}
+ #sscCard .ssc-lamp-caption{left:188px!important;top:184px!important}
+ #sscCard .ssc-lux-name{font-size:.8rem!important}
+ #sscCard .ssc-lux-mods{font-size:.5rem!important}
+ #sscCard .ssc-lux-main{padding:24px 22px 22px!important}
+ #sscCard .ssc-title{font-size:1.55rem!important}
+}
+@media(prefers-reduced-motion:reduce){#sscCard .ssc-lamp-glow{animation:none!important}#sscLock.lamp-pulling #sscCard .ssc-lamp-shade{animation:none!important}#sscCard .ssc-lux-main{transition:none!important}}
+</style>
+
+<script id="sscLampInteractionUpgrade">
+(function(){
+  var lock=document.getElementById('sscLock'),card=document.getElementById('sscCard');
+  if(!lock||!card)return;
+  var lit=false,bootTimer=0,down=null;
+  function setLamp(on){
+    lit=!!on;lock.classList.toggle('lamp-lit',lit);
+    var cap=card.querySelector('.ssc-lamp-caption');
+    if(cap)cap.textContent=lit?'Pull to switch off':'Pull string to turn on';
+    var cord=card.querySelector('.ssc-lamp-pull');
+    if(cord){cord.setAttribute('aria-pressed',String(lit));cord.setAttribute('aria-label',lit?'Switch lamp off':'Switch lamp on')}
+  }
+  function boot(){clearTimeout(bootTimer);setLamp(false);bootTimer=setTimeout(function(){if(!lock.hidden)setLamp(true)},850)}
+  function pullStart(e){
+    var cord=e.target.closest('.ssc-lamp-pull');if(!cord)return;
+    if(e.button!==undefined&&e.button!==0)return;
+    down={id:e.pointerId,y:e.clientY,cord:cord,moved:false};
+    lock.classList.add('lamp-pulling');
+    try{cord.setPointerCapture(e.pointerId)}catch(x){}
+    e.preventDefault();
+  }
+  function pullMove(e){
+    if(!down||e.pointerId!==down.id)return;
+    var dy=Math.max(0,Math.min(58,e.clientY-down.y));
+    if(dy>3)down.moved=true;
+    down.cord.style.setProperty('--cord-pull',dy+'px');
+  }
+  function pullEnd(e){
+    if(!down||e.pointerId!==down.id)return;
+    var d=down;down=null;lock.classList.remove('lamp-pulling');
+    d.cord.style.setProperty('--cord-pull','0px');
+    if(d.moved||e.type==='pointerup')setLamp(!lit);
+  }
+  card.addEventListener('pointerdown',pullStart);
+  card.addEventListener('pointermove',pullMove);
+  card.addEventListener('pointerup',pullEnd);
+  card.addEventListener('pointercancel',pullEnd);
+  card.addEventListener('keydown',function(e){
+    var c=e.target.closest('.ssc-lamp-pull');if(!c)return;
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();setLamp(!lit)}
+  });
+  /* Every auth view re-renders the lamp DOM; restore the control affordance and lamp state. */
+  var mo=new MutationObserver(function(){
+    var cord=card.querySelector('.ssc-lamp-pull');
+    if(cord){cord.setAttribute('role','button');cord.setAttribute('tabindex','0');cord.setAttribute('aria-label',lit?'Switch lamp off':'Switch lamp on');cord.setAttribute('aria-pressed',String(lit))}
+  });
+  mo.observe(card,{childList:true,subtree:true});
+  boot();
+  document.addEventListener('visibilitychange',function(){if(!document.hidden&&lock&&!lock.hidden&&!lit)boot()});
+})();
+</script>
+

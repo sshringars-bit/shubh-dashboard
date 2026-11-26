@@ -19755,3 +19755,284 @@ html:root:root:root[data-theme] body.ssc-shell .headline p{color:#6b8478!importa
 })();
 </script>
 
+
+<style id="sscMotionButtons">
+/* Step 1 motion: buttons and card hover effects (CSS only, no logic changed) */
+.btn,button.btn,.stu-sec,.pill,.chip,.tabs button,[role="tab"]{
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease,background-color .18s ease,border-color .18s ease,filter .18s ease}
+.btn:not(:disabled):hover,.stu-sec:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(12,60,45,.16);filter:brightness(1.03)}
+.btn:not(:disabled):active,.stu-sec:active{transform:translateY(0) scale(.96);box-shadow:0 2px 6px rgba(12,60,45,.18);transition-duration:.08s}
+.btn.primary:not(:disabled):hover{box-shadow:0 10px 22px rgba(12,60,45,.28),0 0 0 3px rgba(201,162,74,.22)}
+.btn:focus-visible,.stu-sec:focus-visible{outline:2px solid #c9a24a;outline-offset:2px}
+.chan-card,.mpay-stat,.rm-tile,.tile,.rt-card,.pf-card,.fcc-card,#view-invoice .inv-saved-row{
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease,border-color .22s ease}
+.chan-card:hover,.mpay-stat:hover,.rm-tile:hover,.tile:hover,.rt-card:hover,.pf-card:hover,.fcc-card:hover,#view-invoice .inv-saved-row:hover{
+  transform:translateY(-3px);box-shadow:0 14px 30px rgba(12,60,45,.14)}
+@media(prefers-reduced-motion:reduce){
+  .btn,.stu-sec,.chan-card,.mpay-stat,.rm-tile,.tile,.rt-card,.pf-card,.fcc-card{transition:none!important}
+  .btn:hover,.stu-sec:hover,.chan-card:hover,.mpay-stat:hover,.rm-tile:hover,.tile:hover,.rt-card:hover,.pf-card:hover,.fcc-card:hover{transform:none!important}}
+</style>
+
+<style id="sscMotionTabs">
+/* Step 2 motion: smooth fade + slide when a tab opens (CSS only) */
+@keyframes sscTabIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.view:not([hidden]){animation:sscTabIn .38s cubic-bezier(.2,.8,.2,1) backwards}
+@media(prefers-reduced-motion:reduce){.view:not([hidden]){animation:none!important}}
+</style>
+
+<style id="sscMotionCards">
+/* Step 3 motion: dashboard sections and KPI cards rise in one by one */
+@keyframes sscRise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+#view-orders>*{animation:sscRise .55s cubic-bezier(.2,.8,.2,1) backwards}
+#view-orders>*:nth-child(1){animation-delay:.04s}#view-orders>*:nth-child(2){animation-delay:.10s}
+#view-orders>*:nth-child(3){animation-delay:.16s}#view-orders>*:nth-child(4){animation-delay:.22s}
+#view-orders>*:nth-child(5){animation-delay:.28s}#view-orders>*:nth-child(6){animation-delay:.34s}
+#view-orders>*:nth-child(7){animation-delay:.40s}#view-orders>*:nth-child(n+8){animation-delay:.46s}
+@media(prefers-reduced-motion:reduce){#view-orders>*{animation:none!important}}
+</style>
+<script>
+/* Step 3 motion: KPI cards rise one by one and their numbers count up (once each time the Dashboard tab opens). Display only: values are restored exactly at the end. */
+(function(){
+  var reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+  var armed=true,timer=null;
+  function parse(t){var m=/^(\D*?)(\d[\d,]*(?:\.\d+)?)(\D*)$/.exec(String(t).trim());if(!m)return null;
+    var raw=m[2],dec=(raw.split('.')[1]||'').length,val=parseFloat(raw.replace(/,/g,''));if(isNaN(val))return null;
+    return {pre:m[1],suf:m[3],val:val,dec:dec,comma:raw.indexOf(',')>-1,orig:String(t)}}
+  function fmt(p,v){var s=p.comma?v.toLocaleString('en-IN',{minimumFractionDigits:p.dec,maximumFractionDigits:p.dec}):v.toFixed(p.dec);return p.pre+s+p.suf}
+  function run(){
+    var row=document.getElementById('kpiRow');if(!row)return;
+    var vals=[].slice.call(row.querySelectorAll('.kpi-val')),items=[];
+    vals.forEach(function(el){if(el.children.length)return;var p=parse(el.textContent);if(p)items.push({el:el,p:p})});
+    if(!items.length||!items.some(function(x){return x.p.val>0}))return;
+    armed=false;
+    [].forEach.call(row.querySelectorAll('.kpi'),function(c,i){c.style.animation='sscRise .55s cubic-bezier(.2,.8,.2,1) '+(i*90)+'ms backwards'});
+    if(reduce)return;
+    var t0=performance.now(),dur=1100;
+    items.forEach(function(x){x.el.textContent=fmt(x.p,0)});
+    (function tick(now){
+      var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+      items.forEach(function(x){if(x.el.isConnected)x.el.textContent=k>=1?x.p.orig:fmt(x.p,x.p.val*e)});
+      if(k<1)requestAnimationFrame(tick)})(t0);
+  }
+  function soon(d){clearTimeout(timer);timer=setTimeout(function(){if(armed)run()},d||150)}
+  function setup(){
+    var row=document.getElementById('kpiRow'),view=document.getElementById('view-orders');
+    if(!row||!view)return;
+    new MutationObserver(function(){soon(150)}).observe(row,{childList:true});
+    new MutationObserver(function(){if(!view.hidden){armed=true;soon(450)}}).observe(view,{attributes:true,attributeFilter:['hidden']});
+    soon(600);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
+</script>
+
+<style id="sscLoginThemes">
+/* Login step 1: colour themes (visual only; sign-in logic untouched). Default "Neon Lime" keeps the current look. */
+#sscLock[data-theme=gold]{--t1:#f1d27a;--t2:#c9962f;--tr:232,190,92;--bg0:#0b0a06;--bg1:#17130a}
+#sscLock[data-theme=purple]{--t1:#d2b8ff;--t2:#8b5cf6;--tr:167,139,250;--bg0:#0b0816;--bg1:#171029}
+#sscLock[data-theme=blue]{--t1:#9be0ff;--t2:#38a8f5;--tr:56,189,248;--bg0:#050f19;--bg1:#0a1b2b}
+#sscLock[data-theme=rose]{--t1:#ffb3c1;--t2:#f0587a;--tr:251,113,133;--bg0:#14080d;--bg1:#241018}
+#sscLock[data-theme=gold],#sscLock[data-theme=purple],#sscLock[data-theme=blue],#sscLock[data-theme=rose]{background:var(--bg0)!important}
+#sscLock[data-theme=gold]::before,#sscLock[data-theme=purple]::before,#sscLock[data-theme=blue]::before,#sscLock[data-theme=rose]::before{background:radial-gradient(ellipse at 14% 48%,rgba(var(--tr),.22),transparent 52%),radial-gradient(ellipse at 83% 15%,rgba(var(--tr),.11),transparent 48%),linear-gradient(135deg,var(--bg0) 0%,var(--bg1) 52%,var(--bg0) 100%)!important}
+#sscLock[data-theme=gold] #sscCard,#sscLock[data-theme=purple] #sscCard,#sscLock[data-theme=blue] #sscCard,#sscLock[data-theme=rose] #sscCard{box-shadow:0 28px 100px rgba(0,0,0,.65),0 0 80px rgba(var(--tr),.13)!important}
+#sscLock[data-theme=gold] #sscCard::before,#sscLock[data-theme=purple] #sscCard::before,#sscLock[data-theme=blue] #sscCard::before,#sscLock[data-theme=rose] #sscCard::before{background:linear-gradient(90deg,transparent,var(--t1),var(--t2),var(--t1),transparent)!important}
+#sscLock[data-theme=gold] #sscCard::after,#sscLock[data-theme=purple] #sscCard::after,#sscLock[data-theme=blue] #sscCard::after,#sscLock[data-theme=rose] #sscCard::after{color:var(--t1)!important;text-shadow:0 0 9px rgba(var(--tr),.9)!important}
+#sscLock[data-theme=gold] #sscCard .ssc-lux-side,#sscLock[data-theme=purple] #sscCard .ssc-lux-side,#sscLock[data-theme=blue] #sscCard .ssc-lux-side,#sscLock[data-theme=rose] #sscCard .ssc-lux-side{background:radial-gradient(ellipse at 50% 56%,rgba(var(--tr),.16),transparent 52%),linear-gradient(160deg,var(--bg1),var(--bg0) 82%)!important}
+#sscLock[data-theme=gold] #sscCard .ssc-lux-main,#sscLock[data-theme=purple] #sscCard .ssc-lux-main,#sscLock[data-theme=blue] #sscCard .ssc-lux-main,#sscLock[data-theme=rose] #sscCard .ssc-lux-main{background:linear-gradient(145deg,var(--bg1),var(--bg0))!important}
+#sscLock[data-theme=gold] .ssc-eyebrow,#sscLock[data-theme=purple] .ssc-eyebrow,#sscLock[data-theme=blue] .ssc-eyebrow,#sscLock[data-theme=rose] .ssc-eyebrow,
+#sscLock[data-theme=gold] .ssc-pw button,#sscLock[data-theme=purple] .ssc-pw button,#sscLock[data-theme=blue] .ssc-pw button,#sscLock[data-theme=rose] .ssc-pw button,
+#sscLock[data-theme=gold] .ssc-err.ok,#sscLock[data-theme=purple] .ssc-err.ok,#sscLock[data-theme=blue] .ssc-err.ok,#sscLock[data-theme=rose] .ssc-err.ok{color:var(--t1)!important}
+#sscLock[data-theme=gold] .ssc-seg button[aria-selected="true"],#sscLock[data-theme=purple] .ssc-seg button[aria-selected="true"],#sscLock[data-theme=blue] .ssc-seg button[aria-selected="true"],#sscLock[data-theme=rose] .ssc-seg button[aria-selected="true"]{background:rgba(var(--tr),.16)!important;color:var(--t1)!important;box-shadow:inset 0 0 0 1px rgba(var(--tr),.5)!important}
+#sscLock[data-theme=gold] .ssc-in:focus,#sscLock[data-theme=purple] .ssc-in:focus,#sscLock[data-theme=blue] .ssc-in:focus,#sscLock[data-theme=rose] .ssc-in:focus{border-color:var(--t1)!important;box-shadow:0 0 0 3px rgba(var(--tr),.16)!important}
+#sscLock[data-theme=gold] .ssc-go,#sscLock[data-theme=purple] .ssc-go,#sscLock[data-theme=blue] .ssc-go,#sscLock[data-theme=rose] .ssc-go{background:linear-gradient(100deg,var(--t1),var(--t2))!important;box-shadow:0 8px 26px rgba(var(--tr),.24)!important}
+#sscLock[data-theme=gold] .ssc-lamp-glow,#sscLock[data-theme=purple] .ssc-lamp-glow,#sscLock[data-theme=blue] .ssc-lamp-glow,#sscLock[data-theme=rose] .ssc-lamp-glow{background:radial-gradient(ellipse,rgba(var(--tr),.30),rgba(var(--tr),.09) 38%,transparent 72%)!important}
+#sscLock[data-theme=gold] .ssc-lamp-pull::after,#sscLock[data-theme=purple] .ssc-lamp-pull::after,#sscLock[data-theme=blue] .ssc-lamp-pull::after,#sscLock[data-theme=rose] .ssc-lamp-pull::after{box-shadow:0 0 12px rgba(var(--tr),.7)!important}
+/* theme picker bar */
+.ssc-themes{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:10px;padding:7px 14px;border-radius:999px;background:rgba(8,14,20,.72);border:1px solid rgba(255,255,255,.14);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 8px 26px rgba(0,0,0,.45)}
+.ssc-themes span{font:700 .62rem/1 system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(230,240,240,.6)}
+.ssc-themes button{width:24px;height:24px;padding:0;border-radius:50%;border:2px solid transparent;cursor:pointer;background:var(--sw);box-shadow:0 0 0 1px rgba(255,255,255,.25);transition:transform .18s ease,box-shadow .18s ease}
+.ssc-themes button:hover{transform:scale(1.18)}
+.ssc-themes button[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 14px var(--sg);transform:scale(1.1)}
+.ssc-themes button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(min-width:1200px){.ssc-themes{left:auto;right:18px;top:50%;bottom:auto;transform:translateY(-50%);flex-direction:column;padding:14px 8px;border-radius:999px}.ssc-themes span{display:none}}
+@media(max-width:700px){.ssc-themes{bottom:8px;gap:8px;padding:6px 10px}.ssc-themes span{display:none}}
+@media(prefers-reduced-motion:reduce){.ssc-themes button{transition:none}}
+</style>
+<script>
+/* Login step 1: colour theme picker. The choice is remembered on this device. */
+(function(){
+  var KEY='ssc-login-theme-v1';
+  var T=[['lime','Neon Lime','linear-gradient(135deg,#a7ef68,#58d7ad)','#a7ef68'],
+         ['gold','Emerald &amp; Gold','linear-gradient(135deg,#f1d27a,#c9962f)','#f1d27a'],
+         ['purple','Royal Purple','linear-gradient(135deg,#d2b8ff,#8b5cf6)','#a78bfa'],
+         ['blue','Ocean Blue','linear-gradient(135deg,#9be0ff,#38a8f5)','#38bdf8'],
+         ['rose','Sunset Rose','linear-gradient(135deg,#ffb3c1,#f0587a)','#fb7185']];
+  function get(){var v='lime';try{v=localStorage.getItem(KEY)||'lime'}catch(e){}return T.some(function(t){return t[0]===v})?v:'lime'}
+  function setup(){
+    var lock=document.getElementById('sscLock');if(!lock||lock.querySelector('.ssc-themes'))return;
+    var cur=get();lock.setAttribute('data-theme',cur);
+    var bar=document.createElement('div');bar.className='ssc-themes';bar.setAttribute('role','group');bar.setAttribute('aria-label','Login colour theme');
+    bar.innerHTML='<span>Theme</span>'+T.map(function(t){return '<button type="button" data-th="'+t[0]+'" title="'+t[1]+'" aria-label="'+t[1].replace('&amp;','and')+' theme" aria-pressed="'+(t[0]===cur)+'" style="--sw:'+t[2]+';--sg:'+t[3]+'"></button>'}).join('');
+    bar.addEventListener('click',function(e){var b=e.target.closest('button[data-th]');if(!b)return;var v=b.getAttribute('data-th');lock.setAttribute('data-theme',v);try{localStorage.setItem(KEY,v)}catch(x){}
+      [].forEach.call(bar.querySelectorAll('button'),function(q){q.setAttribute('aria-pressed',q===b?'true':'false')})});
+    lock.appendChild(bar);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
+</script>
+
+<style id="sscLoginMotion">
+/* Login step 2: animation (visual only). Colours follow the chosen theme. */
+@keyframes sscCardIn{from{opacity:0;transform:translateY(26px) scale(.975)}to{opacity:1;transform:none}}
+#sscLock:not([hidden]) #sscCard{animation:sscCardIn .85s cubic-bezier(.2,.8,.2,1) backwards}
+.ssc-fx{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.ssc-fx canvas{position:absolute;inset:0;width:100%;height:100%}
+.ssc-blob{position:absolute;width:46vmax;height:46vmax;border-radius:50%;filter:blur(70px);opacity:.55;
+  background:radial-gradient(circle,rgba(var(--tr,167,239,104),.34),transparent 68%)}
+.ssc-blob.b1{left:-12vmax;top:-10vmax;animation:sscDrift1 22s ease-in-out infinite alternate}
+.ssc-blob.b2{right:-14vmax;bottom:-16vmax;animation:sscDrift2 27s ease-in-out infinite alternate;opacity:.42}
+@keyframes sscDrift1{from{transform:translate(0,0) scale(1)}to{transform:translate(18vmax,12vmax) scale(1.2)}}
+@keyframes sscDrift2{from{transform:translate(0,0) scale(1.1)}to{transform:translate(-16vmax,-10vmax) scale(.9)}}
+@keyframes sscIdleSweep{0%{left:-60%}38%,100%{left:140%}}
+#sscCard .ssc-go:not(:hover):not(.is-loading):not(:disabled)::after{animation:sscIdleSweep 4.5s ease-in-out 1.2s infinite}
+@media(prefers-reduced-motion:reduce){#sscLock #sscCard{animation:none!important}.ssc-blob{animation:none!important}#sscCard .ssc-go::after{animation:none!important}}
+</style>
+<script>
+/* Login step 2: floating glowing particles behind the sign-in card. Runs only while the login screen is visible. */
+(function(){
+  var reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+  function setup(){
+    var lock=document.getElementById('sscLock');if(!lock||lock.querySelector('.ssc-fx'))return;
+    var fx=document.createElement('div');fx.className='ssc-fx';fx.setAttribute('aria-hidden','true');
+    fx.innerHTML='<i class="ssc-blob b1"></i><i class="ssc-blob b2"></i>'+(reduce?'':'<canvas></canvas>');
+    lock.insertBefore(fx,lock.firstChild);
+    if(reduce)return;
+    var cv=fx.querySelector('canvas'),cx=cv.getContext('2d'),W=0,H=0,dpr=Math.min(2,window.devicePixelRatio||1),P=[],rgb='167,239,104',fr=0;
+    function size(){W=window.innerWidth;H=window.innerHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0)}
+    function mk(init){return {x:Math.random()*W,y:init?Math.random()*H:H+10,r:.8+Math.random()*2.2,v:.15+Math.random()*.45,dx:(Math.random()-.5)*.25,ph:Math.random()*6.28,sp:.01+Math.random()*.02}}
+    function init(){size();var n=Math.max(18,Math.min(60,Math.round(W*H/32000)));P=[];for(var i=0;i<n;i++)P.push(mk(true))}
+    function color(){try{var v=getComputedStyle(lock).getPropertyValue('--tr').trim();rgb=v||'167,239,104'}catch(e){}}
+    function frame(){
+      requestAnimationFrame(frame);
+      if(lock.hidden||document.hidden||lock.offsetParent===null&&getComputedStyle(lock).position!=='fixed')return;
+      if(!(fr++%45))color();
+      cx.clearRect(0,0,W,H);
+      for(var i=0;i<P.length;i++){var p=P[i];p.y-=p.v;p.x+=p.dx+Math.sin(p.ph)*.12;p.ph+=p.sp;
+        if(p.y<-10||p.x<-10||p.x>W+10){P[i]=mk(false);continue}
+        var a=.25+.55*Math.abs(Math.sin(p.ph*1.7)),g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*5);
+        g.addColorStop(0,'rgba('+rgb+','+a+')');g.addColorStop(.35,'rgba('+rgb+','+(a*.35)+')');g.addColorStop(1,'rgba('+rgb+',0)');
+        cx.fillStyle=g;cx.beginPath();cx.arc(p.x,p.y,p.r*5,0,6.2832);cx.fill()}
+    }
+    init();color();window.addEventListener('resize',init);lock.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.ssc-themes'))setTimeout(color,0)});requestAnimationFrame(frame);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
+</script>
+
+<style id="sscLoginFeatures">
+/* Login step 3: caps-lock warning, shake on a wrong password, time-of-day greeting (visual helpers only) */
+.ssc-caps{display:none;margin-top:6px;font-size:.74rem;font-weight:700;letter-spacing:.02em;color:#ffcf6e}
+.ssc-caps.on{display:block;animation:sscCapsIn .25s ease}
+@keyframes sscCapsIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes sscShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-9px)}30%{transform:translateX(8px)}45%{transform:translateX(-6px)}60%{transform:translateX(5px)}75%{transform:translateX(-3px)}90%{transform:translateX(2px)}}
+#sscCard .ssc-form.ssc-shake{animation:sscShake .5s cubic-bezier(.36,.07,.19,.97) both}
+#sscCard .ssc-form.ssc-shake .ssc-in[type=password],#sscCard .ssc-form.ssc-shake #sscP{border-color:#ff8a8a!important;box-shadow:0 0 0 3px rgba(255,120,120,.18)!important}
+@media(prefers-reduced-motion:reduce){#sscCard .ssc-form.ssc-shake{animation:none}}
+</style>
+<script>
+/* Login step 3: small helpers on the sign-in card. Authentication code is not touched. */
+(function(){
+  function greet(){var h=new Date().getHours();return h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':h<21?'Good evening':'Good night'}
+  var lastErr='';
+  function setup(){
+    var card=document.getElementById('sscCard');if(!card)return;
+    /* 1. greeting: only replaces the plain "Welcome back" heading */
+    function doGreet(){var t=card.querySelector('.ssc-title');if(t&&t.textContent.trim()==='Welcome back')t.textContent=greet()+' — welcome back'}
+    /* 2. shake when a new error message appears */
+    function doErr(){var e=card.querySelector('#sscE'),txt=e&&!e.classList.contains('ok')?e.textContent.trim():'';
+      if(!txt){lastErr='';return}
+      if(txt===lastErr)return;lastErr=txt;
+      var f=card.querySelector('.ssc-form');if(!f)return;f.classList.remove('ssc-shake');void f.offsetWidth;f.classList.add('ssc-shake');
+      setTimeout(function(){f.classList.remove('ssc-shake')},600)}
+    var busy=false;
+    new MutationObserver(function(){if(busy)return;busy=true;try{doGreet();doErr()}catch(x){}busy=false}).observe(card,{childList:true,subtree:true,characterData:true});
+    doGreet();
+    /* 3. caps lock warning under the password box */
+    function caps(e){
+      var t=e.target;if(!t||t.tagName!=='INPUT'||t.type!=='password'&&!(t.type==='text'&&t.closest&&t.closest('.ssc-pw')))return;
+      var on=false;try{on=!!(e.getModifierState&&e.getModifierState('CapsLock'))}catch(x){}
+      var host=t.closest('label')||t.parentNode,w=host.querySelector('.ssc-caps');
+      if(!w){w=document.createElement('small');w.className='ssc-caps';w.textContent='⇪ Caps Lock is on';host.appendChild(w)}
+      w.classList.toggle('on',on)}
+    card.addEventListener('keydown',caps);card.addEventListener('keyup',caps);
+    card.addEventListener('focusout',function(e){var w=e.target&&e.target.closest&&e.target.closest('label');w=w&&w.querySelector('.ssc-caps');if(w)w.classList.remove('on')});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
+</script>
+
+<style id="sscLampPageLight">
+/* Login step 4: the lamp lights (or darkens) the whole login page. Driven by the lamp's existing on/off state. */
+.ssc-fx::before,.ssc-fx::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2}
+.ssc-fx::before{opacity:0;transition:opacity 1.1s ease;
+  background:
+   radial-gradient(ellipse 46% 62% at var(--lx,32%) var(--ly,38%),rgba(255,230,180,.20),rgba(255,214,150,.09) 38%,transparent 72%),
+   radial-gradient(ellipse 90% 90% at var(--lx,32%) var(--ly,38%),rgba(var(--tr,167,239,104),.13),transparent 70%)}
+.ssc-fx::after{background:rgba(2,5,9,.58);opacity:1;transition:opacity 1.1s ease}
+#sscLock.lamp-lit .ssc-fx::before{opacity:1}
+#sscLock.lamp-lit .ssc-fx::after{opacity:0}
+#sscLock.lamp-lit .ssc-blob{opacity:.7}
+#sscLock:not(.lamp-lit) .ssc-blob{opacity:.25}
+.ssc-blob{transition:opacity 1.1s ease}
+#sscLock #sscCard{transition:box-shadow 1.1s ease}
+#sscLock.lamp-lit #sscCard{box-shadow:0 28px 100px rgba(0,0,0,.6),0 0 130px rgba(255,214,150,.13),0 0 60px rgba(var(--tr,167,239,104),.10)!important}
+.ssc-fx.flash::before{animation:sscFlashOn .8s ease-out}
+@keyframes sscFlashOn{0%{opacity:0}18%{opacity:1.6;filter:brightness(1.8)}100%{opacity:1;filter:none}}
+@media(prefers-reduced-motion:reduce){.ssc-fx::before,.ssc-fx::after,.ssc-blob,#sscLock #sscCard{transition:none}.ssc-fx.flash::before{animation:none}}
+</style>
+<script>
+/* Login step 4: tell the page where the lamp is, and flash when it switches on. Display only. */
+(function(){
+  function setup(){
+    var lock=document.getElementById('sscLock'),fx=lock&&lock.querySelector('.ssc-fx');if(!lock||!fx)return;
+    function pos(){var s=lock.querySelector('.ssc-lamp-shade');if(!s)return;var r=s.getBoundingClientRect();if(!r.width)return;
+      lock.style.setProperty('--lx',Math.round(r.left+r.width/2)+'px');lock.style.setProperty('--ly',Math.round(r.top+r.height/2)+'px')}
+    var was=lock.classList.contains('lamp-lit');
+    new MutationObserver(function(){var on=lock.classList.contains('lamp-lit');
+      if(on!==was){was=on;pos();if(on){fx.classList.remove('flash');void fx.offsetWidth;fx.classList.add('flash');setTimeout(function(){fx.classList.remove('flash')},900)}}}).observe(lock,{attributes:true,attributeFilter:['class']});
+    window.addEventListener('resize',pos);
+    new MutationObserver(pos).observe(document.getElementById('sscCard'),{childList:true,subtree:true});
+    pos();setTimeout(pos,600);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(setup,0)});else setTimeout(setup,0);
+})();
+</script>
+
+<style id="sscLoginClock">
+/* Login step 5: small live clock and date on the left panel */
+#sscCard .ssc-lux-side .ssc-clock{position:absolute;top:36px;left:0;right:0;z-index:3;text-align:center;pointer-events:none;user-select:none}
+.ssc-clock .t{font:700 1.55rem/1 Inter,system-ui,sans-serif;letter-spacing:.04em;color:#f1f6f6;font-variant-numeric:tabular-nums;text-shadow:0 0 18px rgba(var(--tr,167,239,104),.35)}
+.ssc-clock .t small{font-size:.62rem;font-weight:800;letter-spacing:.14em;margin-left:6px;color:var(--t1,#a7ef68);vertical-align:.45em}
+.ssc-clock .t i{font-style:normal;color:var(--t1,#a7ef68);margin:0 1px;animation:sscBlink 1s steps(1) infinite}
+.ssc-clock .d{margin-top:7px;font:600 .68rem/1.2 Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:rgba(226,238,238,.62)}
+@keyframes sscBlink{50%{opacity:.25}}
+@media(max-width:700px){#sscCard .ssc-lux-side .ssc-clock{display:none}}
+@media(prefers-reduced-motion:reduce){.ssc-clock .t i{animation:none}}
+</style>
+<script>
+/* Login step 5: live clock and date (device time). Shown only while the login screen is visible. */
+(function(){
+  var DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function p(n){return n<10?'0'+n:''+n}
+  function setup(){
+    var lock=document.getElementById('sscLock'),card=document.getElementById('sscCard');if(!lock||!card)return;
+    function ensure(){var side=card.querySelector('.ssc-lux-side');if(!side)return null;var c=side.querySelector('.ssc-clock');
+      if(!c){c=document.createElement('div');c.className='ssc-clock';c.setAttribute('role','timer');c.setAttribute('aria-label','Current time');side.insertBefore(c,side.firstChild)}return c}
+    function tick(){if(lock.hidden)return;var c=ensure();if(!c)return;var n=new Date(),h=n.getHours(),ap=h>=12?'PM':'AM',h12=h%12||12;
+      c.innerHTML='<div class="t">'+p(h12)+'<i>:</i>'+p(n.getMinutes())+'<i>:</i>'+p(n.getSeconds())+'<small>'+ap+'</small></div><div class="d">'+DAYS[n.getDay()]+', '+n.getDate()+' '+MON[n.getMonth()]+' '+n.getFullYear()+'</div>'}
+    tick();setInterval(tick,1000);
+    new MutationObserver(function(){if(!card.querySelector('.ssc-clock'))tick()}).observe(card,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
+</script>

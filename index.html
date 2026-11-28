@@ -19820,22 +19820,70 @@ html:root:root:root[data-theme] body.ssc-shell .headline p{color:#6b8478!importa
 @media(prefers-reduced-motion:reduce){#sscCard .ssc-lamp-glow{animation:none!important}#sscLock.lamp-pulling #sscCard .ssc-lamp-shade{animation:none!important}#sscCard .ssc-lux-main{transition:none!important}}
 </style>
 
+<style id="sscLampCordFix">
+/* Cord stretches (height grows) instead of the whole piece sliding, so it stays attached to the lamp and never gets cut. */
+#sscLock #sscCard .ssc-lamp-pull{top:104px!important;height:calc(75px + var(--cord-pull,0px))!important;transform:rotate(-9deg)!important;transform-origin:top center!important;transition:height .42s cubic-bezier(.34,1.7,.5,1)!important;z-index:2!important;overflow:visible!important}
+#sscLock.lamp-pulling #sscCard .ssc-lamp-pull{transition:none!important}
+#sscLock #sscCard .ssc-lamp-pull::before{content:"";position:absolute;left:-15px;right:-15px;top:6px;bottom:-22px;background:transparent}
+#sscLock #sscCard .ssc-lamp-pull::after{z-index:1}
+</style>
 <script id="sscLampInteractionUpgrade">
 (function(){
   var lock=document.getElementById('sscLock'),card=document.getElementById('sscCard');
   if(!lock||!card)return;
   var lit=false,bootTimer=0,down=null;
-  function setLamp(on){
+  var AC=null,NB=null;
+  function audio(){
+    try{
+      if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C()}
+      if(AC.state==='suspended')AC.resume();
+      return AC;
+    }catch(x){return null}
+  }
+  function noiseBuf(a){
+    if(NB)return NB;
+    var n=Math.floor(a.sampleRate*.05),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);
+    for(var i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+    return NB=b;
+  }
+  /* Pull-chain lamp switch: a sharp "click" plus a softer "clack", then a warm bulb tone on, a short fade off. */
+  function playSwitch(on){
+    var a=audio();if(!a||a.state!=='running')return;
+    var t=a.currentTime,out=a.createGain();out.gain.value=.9;out.connect(a.destination);
+    function click(at,freq,vol){
+      var src=a.createBufferSource();src.buffer=noiseBuf(a);
+      var f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=freq;f.Q.value=1.4;
+      var g=a.createGain();g.gain.setValueAtTime(vol,at);g.gain.exponentialRampToValueAtTime(.001,at+.05);
+      src.connect(f);f.connect(g);g.connect(out);src.start(at);
+      var o=a.createOscillator(),og=a.createGain();o.type='square';o.frequency.setValueAtTime(freq/3,at);o.frequency.exponentialRampToValueAtTime(freq/6,at+.03);
+      og.gain.setValueAtTime(vol*.12,at);og.gain.exponentialRampToValueAtTime(.001,at+.035);o.connect(og);og.connect(out);o.start(at);o.stop(at+.05);
+    }
+    click(t,3200,.9);click(t+.05,1800,.6);
+    var o2=a.createOscillator(),g2=a.createGain(),lp=a.createBiquadFilter();
+    lp.type='lowpass';lp.frequency.value=900;o2.type='sawtooth';
+    if(on){
+      o2.frequency.setValueAtTime(110,t+.06);o2.frequency.linearRampToValueAtTime(120,t+.5);
+      g2.gain.setValueAtTime(0,t+.06);g2.gain.linearRampToValueAtTime(.05,t+.14);g2.gain.exponentialRampToValueAtTime(.001,t+.6);
+    }else{
+      o2.frequency.setValueAtTime(130,t+.06);o2.frequency.exponentialRampToValueAtTime(60,t+.3);
+      g2.gain.setValueAtTime(.04,t+.06);g2.gain.exponentialRampToValueAtTime(.001,t+.32);
+    }
+    o2.connect(lp);lp.connect(g2);g2.connect(out);o2.start(t+.06);o2.stop(t+.65);
+  }
+  function setLamp(on,quiet){
+    var was=lit;
     lit=!!on;lock.classList.toggle('lamp-lit',lit);
+    if(!quiet&&was!==lit)playSwitch(lit);
     var cap=card.querySelector('.ssc-lamp-caption');
     if(cap)cap.textContent=lit?'Pull to switch off':'Pull string to turn on';
     var cord=card.querySelector('.ssc-lamp-pull');
     if(cord){cord.setAttribute('aria-pressed',String(lit));cord.setAttribute('aria-label',lit?'Switch lamp off':'Switch lamp on')}
   }
-  function boot(){clearTimeout(bootTimer);setLamp(false);bootTimer=setTimeout(function(){if(!lock.hidden)setLamp(true)},850)}
+  function boot(){clearTimeout(bootTimer);setLamp(false,true);bootTimer=setTimeout(function(){if(!lock.hidden)setLamp(true,true)},850)}
   function pullStart(e){
     var cord=e.target.closest('.ssc-lamp-pull');if(!cord)return;
     if(e.button!==undefined&&e.button!==0)return;
+    audio();
     down={id:e.pointerId,y:e.clientY,cord:cord,moved:false};
     lock.classList.add('lamp-pulling');
     try{cord.setPointerCapture(e.pointerId)}catch(x){}

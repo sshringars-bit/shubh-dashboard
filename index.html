@@ -4336,6 +4336,25 @@ function renderWorthCard(){
     tile('Cash flow',(flow<0?'<span class="neg">'+mn(flow)+'</span>':mn(flow)),'received '+mn(a.rev)+' − expenses '+mn(a.ex))+'</div>'+
     '<p class="today-note">Stock is valued at your product cost (original + paste + karigar + packing), not selling price.'+(miss?' '+miss+' product'+(miss>1?'s have':' has')+' no cost entered and '+(miss>1?'are':'is')+' left out.':'')+(noAvg?' Some channels have no paid orders yet, so their pending amount is not estimated.':'')+'</p>';
 }
+function kpiTipInit(el){
+  if(el._kt)return;el._kt=1;
+  function hide(){el.querySelectorAll('.kpi-tip.on').forEach(function(t){t.classList.remove('on')});el.querySelectorAll('.kpi-hv').forEach(function(h){h.setAttribute('cx',-20);h.setAttribute('cy',-20)})}
+  function show(e){
+    var sv=e.target.closest&&e.target.closest('.kpi-sp'),card=sv&&sv.closest('.kpi');
+    if(!card){hide();return}
+    var pts=(card.dataset.pts||'').split(';').map(function(q){return q.split(',').map(Number)}),fv=(card.dataset.fv||'').split('|'),lb=(card.dataset.lb||'').split('|');
+    if(!pts.length||pts[0].length<2)return;
+    var r=sv.getBoundingClientRect(),vb=sv.viewBox.baseVal,sc=Math.min(r.width/vb.width,r.height/vb.height),ox=r.left+(r.width-vb.width*sc)/2,x=(e.clientX-ox)/sc,bi=0,bd=1e9;
+    pts.forEach(function(q,i){var d=Math.abs(q[0]-x);if(d<bd){bd=d;bi=i}});
+    hide();var h=sv.querySelector('.kpi-hv'),t=card.querySelector('.kpi-tip');
+    h.setAttribute('cx',pts[bi][0]);h.setAttribute('cy',pts[bi][1]);
+    t.innerHTML='<span>'+lb[bi]+'</span><b>'+fv[bi]+'</b>';t.classList.add('on');
+    var cr=card.getBoundingClientRect(),px=ox+pts[bi][0]*sc-cr.left;t.style.left=Math.max(8,Math.min(cr.width-8,px))+'px';
+  }
+  el.addEventListener('pointermove',show);el.addEventListener('pointerdown',show);
+  el.addEventListener('pointerleave',hide);
+  document.addEventListener('pointerdown',function(e){if(!el.contains(e.target))hide()});
+}
 function renderKpiRow(){
   var el=document.getElementById('kpiRow');if(!el||!window._dashSpan||!window._dbSel)return;
   var S=window._dbSel,sp=window._dashSpan,cut=new Date(Date.now()-120*864e5),tmp={},avg={},recs=trkRecords(),ex=[],sf=[];
@@ -4351,7 +4370,7 @@ function renderKpiRow(){
     ex.forEach(function(r){var x=String(r.date||'').slice(0,10);if(x>=f&&x<=t)e+=(+r.amount)||0});
     sf.forEach(function(r){var x=String(r.date||'').slice(0,10);if(x>=f&&x<=t)s2+=(+r.amount)||0});
     return {o:o,rr:o?rt*100/o:0,rev:rev,net:pro-e-s2,ex:e,pend:pe}}
-  var c=agg(sp.from,sp.to),hasPrev=!!sp.prevFrom,pv=hasPrev?agg(sp.prevFrom,sp.prevTo):null,ser=dbSeries(S).map(function(x){return agg(x.from,x.to)});
+  var c=agg(sp.from,sp.to),hasPrev=!!sp.prevFrom,pv=hasPrev?agg(sp.prevFrom,sp.prevTo):null,ser=dbSeries(S).map(function(x){return agg(x.from,x.to)}),lbs=dbSeries(S).map(function(x){var p=x.from.split('-'),m=S.mode;if(m==='month'||m==='all')return DB_MN[+p[1]-1].slice(0,3)+" '"+p[0].slice(2);if(m==='quarter')return 'Q'+(Math.floor((+p[1]-1)/3)+1)+" '"+p[0].slice(2);if(m==='fy')return 'FY'+p[0].slice(2);if(m==='year')return p[0];return dbFmt(x.from).slice(0,-5)}),_kp=[];
   function mn(v){v=Math.round(v);return (v<0?'\u2212 ':'')+money(Math.abs(v))}
   function pc(v){return (Math.round(v*10)/10)+'%'}
   var D=[
@@ -4363,10 +4382,11 @@ function renderKpiRow(){
    ['Return Rate','rr',pc,false,'#c43c7c','rgba(196,60,124,.13)','<path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/>']];
   function spark(vals,col,id){var W=240,H=46,P=10,n=vals.length,mx=Math.max.apply(null,vals),mi=Math.min.apply(null,vals),rg=mx-mi,flat=!rg,
       pts=vals.map(function(v,i){return [Math.round((P+i*(W-2*P)/Math.max(1,n-1))*10)/10,flat?H/2:Math.round((H-P-(v-mi)*(H-2*P)/rg)*10)/10]}),
-      ln=pts.map(function(q){return q.join(',')}).join(' '),l=pts[n-1],g='kpg'+id;
+      ln=pts.map(function(q){return q.join(',')}).join(' '),l=pts[n-1],g='kpg'+id,mk='',ia=vals.indexOf(mx),ib=vals.indexOf(mi);_kp=pts;
+    if(!flat){if(ia!==n-1)mk+='<ellipse class="kpi-mm" cx="'+pts[ia][0]+'" cy="'+pts[ia][1]+'" rx="3" ry="3" fill="#fff" stroke="'+col+'" stroke-width="1.6"/>';if(ib!==n-1&&ib!==ia)mk+='<ellipse class="kpi-mm" cx="'+pts[ib][0]+'" cy="'+pts[ib][1]+'" rx="3" ry="3" fill="#fff" stroke="'+col+'" stroke-opacity=".55" stroke-width="1.6"/>'}
     return '<svg class="kpi-sp'+(flat?' flat':'')+'" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><defs><linearGradient id="'+g+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+col+'" stop-opacity=".30"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'+
       '<polygon points="'+P+','+H+' '+ln+' '+(W-P)+','+H+'" fill="url(#'+g+')"/><polyline points="'+ln+'" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'+
-      '<circle cx="'+l[0]+'" cy="'+l[1]+'" r="6" fill="'+col+'" opacity=".18"/><circle cx="'+l[0]+'" cy="'+l[1]+'" r="3.2" fill="'+col+'" stroke="#fff" stroke-width="1.6"/></svg>'}
+      '<circle cx="'+l[0]+'" cy="'+l[1]+'" r="6" fill="'+col+'" opacity=".18"/><circle cx="'+l[0]+'" cy="'+l[1]+'" r="3.2" fill="'+col+'" stroke="#fff" stroke-width="1.6"/>'+mk+'<ellipse class="kpi-hv" cx="-20" cy="-20" rx="4.6" ry="4.6" fill="'+col+'" stroke="#fff" stroke-width="2"/></svg>'}
   function chip(key,cur,prev,good){
     if(!hasPrev)return '<span class="kpi-chip fl">\u25AC no comparison</span>';
     if(key==='rr'){var d=Math.round((cur-prev)*10)/10;if(!d)return '<span class="kpi-chip fl">\u25AC 0 pts</span>';var ok=good?d>0:d<0;return '<span class="kpi-chip '+(ok?'up':'dn')+'">'+(d>0?'\u25B2 ':'\u25BC ')+Math.abs(d)+' pts</span>'}
@@ -4376,8 +4396,110 @@ function renderKpiRow(){
     var up=ch>0,ok=good?up:!up;return '<span class="kpi-chip '+(ok?'up':'dn')+'">'+(up?'\u25B2 ':'\u25BC ')+Math.abs(ch)+'%</span>'}
   el.innerHTML='<div class="kpi-cap"><b>Key numbers</b><span>'+sp.label+(sp.prevLabel?' vs '+sp.prevLabel:'')+'</span></div>'+D.map(function(d,ix){
     var cv=c[d[1]]||0,pvv=pv?(pv[d[1]]||0):0,vals=ser.map(function(x){return x[d[1]]||0});
-    return '<article class="kpi" style="--k:'+d[4]+';--kb:'+d[5]+'"><div class="kpi-top"><span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d[6]+'</svg></span><span class="kpi-lb">'+d[0]+'</span></div><div class="kpi-val">'+d[2](cv)+'</div><div class="kpi-cmp">'+chip(d[1],cv,pvv,d[3])+(hasPrev?'<span class="kpi-pv">vs '+d[2](pvv)+' \u00b7 '+sp.prevShort+'</span>':'')+'</div>'+spark(vals,d[4],ix)+'</article>'}).join('');
+    var sv=spark(vals,d[4],ix),fv=vals.map(function(v){return d[2](v)});
+    return '<article class="kpi" data-pts="'+_kp.map(function(q){return q.join(',')}).join(';')+'" data-fv="'+fv.join('|')+'" data-lb="'+lbs.join('|')+'" style="--k:'+d[4]+';--kb:'+d[5]+'"><div class="kpi-top"><span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d[6]+'</svg></span><span class="kpi-lb">'+d[0]+'</span></div><div class="kpi-val">'+d[2](cv)+'</div><div class="kpi-cmp">'+chip(d[1],cv,pvv,d[3])+(hasPrev?'<span class="kpi-pv">vs '+d[2](pvv)+' \u00b7 '+sp.prevShort+'</span>':'')+'</div>'+sv+'<div class="kpi-lbls" aria-hidden="true">'+lbs.map(function(t,i){return '<span style="left:'+(4.17+i*91.66/Math.max(1,lbs.length-1)).toFixed(2)+'%">'+t+'</span>'}).join('')+'</div><div class="kpi-tip" role="status"></div></article>'}).join('');
+  kpiTipInit(el);
 }
+var CT_M3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function ctInr(v){var a=Math.abs(Math.round(v)),s=a>=1e5?(a/1e5).toFixed(a>=1e6?0:1)+'L':a>=1e3?(a/1e3).toFixed(a>=1e4?0:1)+'k':String(a);return (v<0?'\u2212':'')+'\u20b9'+s.replace('.0','')}
+function ctInrFull(v){return (v<0?'\u2212 ':'')+'\u20b9'+Math.abs(Math.round(v)).toLocaleString('en-IN')}
+/* ---------- Sales by channel: 12-month trend lines, one line per marketplace ---------- */
+var CT={mt:'sales',hide:{}},CT_CH=['Meesho','Amazon','Myntra','Flipkart','Manual'],CT_NM={Meesho:'Meesho',Amazon:'Amazon',Myntra:'Myntra',Flipkart:'Flipkart',Manual:'Website & Offline'},CT_CL={Meesho:'#9c27b0',Amazon:'#f59e0b',Myntra:'#ec4899',Flipkart:'#2874f0',Manual:'#14805e'},CT_ML={sales:'Gross sales',orders:'Orders',profit:'Net profit'},ctSig='';
+try{CT.mt=localStorage.getItem('ssc-ct-metric')||'sales';CT.hide=JSON.parse(localStorage.getItem('ssc-ct-hide')||'{}')||{}}catch(e){}
+if(!CT_ML[CT.mt])CT.mt='sales';
+function ctSave(){try{localStorage.setItem('ssc-ct-metric',CT.mt);localStorage.setItem('ssc-ct-hide',JSON.stringify(CT.hide))}catch(e){}}
+function ctCss(){
+  if(document.getElementById('ctCss'))return;var st=document.createElement('style');st.id='ctCss';
+  st.textContent='#chanTrendCard .ct-hd{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}'+
+  '#chanTrendCard .ct-seg{display:inline-flex;background:rgba(18,52,42,.07);border-radius:99px;padding:3px;gap:2px}'+
+  '#chanTrendCard .ct-seg button{border:0;background:transparent;font:inherit;font-size:.78rem;font-weight:700;padding:5px 13px;border-radius:99px;color:#4b6a5f;cursor:pointer}'+
+  '#chanTrendCard .ct-seg button.on{background:#fff;color:#12342a;box-shadow:0 1px 4px rgba(0,0,0,.14)}'+
+  '#chanTrendCard .ct-chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}'+
+  '#chanTrendCard .ct-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid #e1e9e4;background:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-size:.78rem;font-weight:700;color:#1f2a37;cursor:pointer}'+
+  '#chanTrendCard .ct-chip i{width:10px;height:10px;border-radius:50%;background:var(--c)}#chanTrendCard .ct-chip small{font-weight:600;color:#6b7280;font-size:.74rem}'+
+  '#chanTrendCard .ct-chip.off{opacity:.45}#chanTrendCard .ct-chip.off b{text-decoration:line-through}'+
+  '#chanTrendCard .ct-chart{position:relative}#chanTrendCard .ct-svg{display:block;width:100%;height:auto;touch-action:pan-y;cursor:crosshair}'+
+  '#chanTrendCard .ct-gl{stroke:#e6ede9;stroke-width:1}#chanTrendCard .ct-zl{stroke:#9db3a9;stroke-width:1.2}#chanTrendCard .ct-ax{fill:#6b867b;font-size:11px}#chanTrendCard .ct-ax.cur{fill:#12342a;font-weight:800}'+
+  '#chanTrendCard .ct-gd{stroke:#9db3a9;stroke-width:1;stroke-dasharray:3 4;opacity:0}#chanTrendCard .ct-hd2{opacity:0;pointer-events:none}'+
+  '#chanTrendCard .ct-tip{position:absolute;top:6px;left:0;opacity:0;pointer-events:none;background:#1f2a37;color:#fff;border-radius:10px;padding:8px 11px;font-size:12px;min-width:150px;box-shadow:0 8px 20px rgba(0,0,0,.25);z-index:5;transform:translateX(12px);transition:opacity .1s}'+
+  '#chanTrendCard .ct-tip.on{opacity:1}#chanTrendCard .ct-tip.flip{transform:translateX(calc(-100% - 12px))}'+
+  '#chanTrendCard .ct-tip h5{margin:0 0 5px;font-size:11px;opacity:.75;font-weight:700}#chanTrendCard .ct-tip div{display:flex;align-items:center;justify-content:space-between;gap:12px;line-height:1.55}'+
+  '#chanTrendCard .ct-tip div span{display:inline-flex;align-items:center;gap:6px}#chanTrendCard .ct-tip i{width:8px;height:8px;border-radius:50%;display:inline-block}#chanTrendCard .ct-tip b{font-variant-numeric:tabular-nums}'+
+  '#chanTrendCard .ct-note{margin:6px 0 0;font-size:.82rem;color:#4b6a5f}#chanTrendCard .ct-empty{padding:34px 8px;text-align:center;color:#6b867b;font-size:.9rem}'+
+  'html.ssc-priv #chanTrendCard .ct-chip small,html.ssc-priv #chanTrendCard .ct-tip b,html.ssc-priv #chanTrendCard .ct-note b{filter:blur(6px)}'+
+  'html[data-theme*="dark"] #chanTrendCard .ct-seg button.on{background:rgba(255,255,255,.14);color:#fff}html[data-theme*="dark"] #chanTrendCard .ct-seg button{color:var(--ink-3)}'+
+  'html[data-theme*="dark"] #chanTrendCard .ct-chip{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);color:#fff}html[data-theme*="dark"] #chanTrendCard .ct-ax{fill:var(--ink-3)}html[data-theme*="dark"] #chanTrendCard .ct-ax.cur{fill:#fff}html[data-theme*="dark"] #chanTrendCard .ct-gl{stroke:rgba(255,255,255,.1)}html[data-theme*="dark"] #chanTrendCard .ct-note{color:var(--ink-3)}'+
+  '@media(max-width:700px){#chanTrendCard .ct-ax{font-size:13px}#chanTrendCard .ct-tip{min-width:0;font-size:11px;padding:6px 8px;top:2px}#chanTrendCard .ct-tip div{gap:8px;line-height:1.4}#chanTrendCard .ct-tip div span{white-space:nowrap}#chanTrendCard .ct-tip h5{font-size:10px}}';
+  document.head.appendChild(st);
+}
+function ctData(){
+  var recs=trkRecords(),months=[],now=new Date(),idx={},S={},seen={},z=function(){return [0,0,0,0,0,0,0,0,0,0,0,0]};
+  for(var i=11;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1),m=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');idx[m]=months.length;months.push(m)}
+  CT_CH.forEach(function(c){S[c]={sales:z(),orders:z(),profit:z()}});
+  recs.forEach(function(r,i){var s=S[r.mp],j=idx[r.ym];if(!s||j===undefined||r.other)return;
+    if(r.st==='ok')s.sales[j]+=(+r.recv)||0;
+    var fv=(r.fin===undefined)?((+r.recv||0)-(+r.cost||0)):r.fin;if(fv!=null&&!isNaN(fv))s.profit[j]+=+fv;
+    var k=r.mp+'|'+(r.id||('#'+i));if(!seen[k]){seen[k]=1;if(r.st!=='cancel')s.orders[j]++}});
+  CT_CH.forEach(function(c){['sales','profit'].forEach(function(k){S[c][k]=S[c][k].map(function(v){return Math.round(v*100)/100})})});
+  return {months:months,S:S};
+}
+function ctNice(v){if(v<=0)return 1;var p=Math.pow(10,Math.floor(Math.log10(v))),n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
+function ctFmt(v){return CT.mt==='orders'?String(Math.round(v)):ctInrFull(v)}
+function ctAct(e){
+  var b=e.target.closest&&e.target.closest('[data-ctm],[data-ctc]');if(!b)return;
+  if(b.dataset.ctm){CT.mt=b.dataset.ctm}
+  else{var c=b.dataset.ctc,vis=CT_CH.filter(function(k){return !CT.hide[k]});if(!CT.hide[c]&&vis.length<=1)return;if(CT.hide[c])delete CT.hide[c];else CT.hide[c]=1}
+  ctSave();ctSig='';renderChanTrend();
+}
+function ctHide(){var c=document.getElementById('chanTrendCard');if(!c)return;var t=c.querySelector('.ct-tip');if(t)t.classList.remove('on');c.querySelectorAll('.ct-gd,.ct-hd2').forEach(function(x){x.style.opacity=0})}
+function ctHover(e){
+  var card=document.getElementById('chanTrendCard'),sv=e.target.closest&&e.target.closest('.ct-svg'),D=card&&card._ct;
+  if(!sv||!D){ctHide();return}
+  var r=sv.getBoundingClientRect(),vb=sv.viewBox.baseVal,sc=Math.min(r.width/vb.width,r.height/vb.height),ox=r.left+(r.width-vb.width*sc)/2,x=(e.clientX-ox)/sc,
+      i=Math.max(0,Math.min(11,Math.round((x-D.L)/D.step))),px=D.L+i*D.step,g=sv.querySelector('.ct-gd');
+  g.setAttribute('x1',px);g.setAttribute('x2',px);g.style.opacity=1;
+  var rows=[];sv.querySelectorAll('.ct-hd2').forEach(function(h){var c=h.dataset.c,v=D.S[c][CT.mt][i];h.setAttribute('cx',px);h.setAttribute('cy',D.y(v));h.style.opacity=1;rows.push([c,v])});
+  rows.sort(function(a,b){return b[1]-a[1]});
+  var t=card.querySelector('.ct-tip'),mm=D.months[i],ch=card.querySelector('.ct-chart'),cr=ch.getBoundingClientRect(),left=ox+px*sc-cr.left;
+  t.innerHTML='<h5>'+CT_M3[+mm.slice(5)-1]+' '+mm.slice(0,4)+(i===11?' (so far)':'')+' · '+CT_ML[CT.mt]+'</h5>'+rows.map(function(q){return '<div><span><i style="background:'+CT_CL[q[0]]+'"></i>'+CT_NM[q[0]]+'</span><b>'+ctFmt(q[1])+'</b></div>'}).join('');
+  t.style.left=left+'px';t.classList.toggle('flip',left>cr.width*.55);t.classList.add('on');
+}
+function renderChanTrend(){
+  var mg=document.getElementById('metricGrid');if(!mg||typeof trkRecords!=='function')return;
+  var card=document.getElementById('chanTrendCard');
+  if(!card){card=document.createElement('section');card.id='chanTrendCard';card.className='glass trend ct-card';card.setAttribute('aria-label','Sales by channel, last 12 months');mg.parentNode.insertBefore(card,mg);
+    card.addEventListener('click',ctAct);card.addEventListener('pointermove',ctHover);card.addEventListener('pointerdown',ctHover);card.addEventListener('pointerleave',ctHide);ctCss()}
+  var tc=document.getElementById('trendCard');if(tc&&tc.nextElementSibling!==card)tc.after(card);
+  var wide=window.innerWidth>700,D=ctData(),sig=JSON.stringify([D.S,CT.mt,CT.hide,wide]);if(sig===ctSig&&card.firstChild)return;ctSig=sig;
+  var vis=CT_CH.filter(function(k){return !CT.hide[k]}),W=wide?1000:520,H=wide?270:300,L=wide?54:50,R=16,T=16,B=30,iw=W-L-R,ih=H-T-B,step=iw/11,mx=0,mn=0;
+  vis.forEach(function(c){D.S[c][CT.mt].forEach(function(v){if(v>mx)mx=v;if(v<mn)mn=v})});
+  var tot={};CT_CH.forEach(function(c){tot[c]=D.S[c][CT.mt].reduce(function(a,v){return a+v},0)});
+  var has=vis.some(function(c){return D.S[c][CT.mt].some(function(v){return v!==0})});
+  mx=ctNice(mx||1);mn=mn<0?-ctNice(-mn):0;var span=mx-mn;
+  function y(v){return T+(mx-v)/span*ih}
+  var h='';
+  if(!has)h='<div class="ct-empty">No '+CT_ML[CT.mt].toLowerCase()+' in the last 12 months for the selected channels yet.</div>';
+  else{
+    h='<div class="ct-chart"><svg class="ct-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+CT_ML[CT.mt]+' by channel, last 12 months">';
+    for(var g=0;g<=4;g++){var gv=mn+span*g/4,gy=y(gv);h+='<line class="ct-gl" x1="'+L+'" x2="'+(W-R)+'" y1="'+gy+'" y2="'+gy+'"/><text class="ct-ax" x="'+(L-7)+'" y="'+(gy+4)+'" text-anchor="end">'+(CT.mt==='orders'?String(Math.round(gv)):ctInr(gv))+'</text>'}
+    if(mn<0)h+='<line class="ct-zl" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(0)+'" y2="'+y(0)+'"/>';
+    D.months.forEach(function(m,i){h+='<text class="ct-ax'+(i===11?' cur':'')+'" x="'+(L+i*step)+'" y="'+(H-8)+'" text-anchor="middle">'+CT_M3[+m.slice(5)-1]+(i===11?'*':'')+'</text>'});
+    h+='<line class="ct-gd" x1="0" x2="0" y1="'+T+'" y2="'+(T+ih)+'"/>';
+    vis.forEach(function(c){var v=D.S[c][CT.mt],col=CT_CL[c],pts=v.map(function(q,i){return (L+i*step).toFixed(1)+','+y(q).toFixed(1)}).join(' '),lp=pts.split(' ')[11].split(',');
+      h+='<polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
+      v.forEach(function(q,i){h+='<circle cx="'+(L+i*step).toFixed(1)+'" cy="'+y(q).toFixed(1)+'" r="2.6" fill="#fff" stroke="'+col+'" stroke-width="1.6"/>'});
+      h+='<circle cx="'+lp[0]+'" cy="'+lp[1]+'" r="4.4" fill="'+col+'" stroke="#fff" stroke-width="1.6"/>'});
+    vis.forEach(function(c){h+='<circle class="ct-hd2" data-c="'+c+'" cx="0" cy="0" r="5.2" fill="'+CT_CL[c]+'" stroke="#fff" stroke-width="2"/>'});
+    h+='</svg><div class="ct-tip" role="status"></div></div>';
+  }
+  var top=vis.slice().sort(function(a,b){return tot[b]-tot[a]})[0],all=vis.reduce(function(a,c){return a+Math.max(0,tot[c])},0),
+      note=has&&top&&tot[top]>0?'<p class="ct-note">Top channel in the last 12 months: <b>'+CT_NM[top]+'</b> · '+ctFmt(tot[top])+(all>0&&vis.length>1?' ('+Math.round(Math.max(0,tot[top])*100/all)+'% of the shown channels)':'')+'</p>':'';
+  card.innerHTML='<div class="ct-hd"><div><h3>Channels over 12 months</h3><p>One line per channel. Hover or tap the chart to compare a month. Tap a channel name to show or hide it.</p></div>'+
+    '<div class="ct-seg" role="group" aria-label="Measure">'+['sales','orders','profit'].map(function(k){return '<button type="button" data-ctm="'+k+'" class="'+(CT.mt===k?'on':'')+'" aria-pressed="'+(CT.mt===k)+'">'+CT_ML[k]+'</button>'}).join('')+'</div></div>'+
+    '<div class="ct-chips">'+CT_CH.map(function(c){return '<button type="button" class="ct-chip'+(CT.hide[c]?' off':'')+'" data-ctc="'+c+'" style="--c:'+CT_CL[c]+'" aria-pressed="'+(!CT.hide[c])+'"><i></i><b>'+CT_NM[c]+'</b><small>'+ctFmt(tot[c])+'</small></button>'}).join('')+'</div>'+h+note+'<p class="ct-note" style="opacity:.75">* current month, still running</p>';
+  card._ct={months:D.months,S:D.S,L:L,step:step,y:y};
+}
+
 function renderMomCard(){
   var card=document.getElementById('momCard');if(!card)return;
   var yc=document.getElementById('yoyCard');if(yc&&card.nextElementSibling!==yc)yc.before(card);
@@ -5002,9 +5124,47 @@ function monthlyReportPdf(btn){
   }).catch(function(){toast('Could not create the report. Check your internet connection and try again.')}).then(function(){if(host)host.remove();if(btn){btn.disabled=false;btn.innerHTML=old}});
 }
 window.sscMonthlyReport=monthlyReportPdf;
+
+/* ---------- Order status: tap a slice / channel bar to list those orders ---------- */
+var SD_ST={S:['Settled','#169b62'],P:['Awaiting payment','#f5a524'],R:['Returned','#7a5af8'],T:['RTO','#e5484d'],C:['Cancelled','#98a2b3']},SD_NM={Meesho:'Meesho',Amazon:'Amazon',Myntra:'Myntra',Flipkart:'Flipkart',Manual:'Website & Offline'};
+function sdInit(card){
+  if(card._sdb)return;card._sdb=1;
+  if(!document.getElementById('sdCss')){var st=document.createElement('style');st.id='sdCss';
+    st.textContent='#statusCard .sd-hit{cursor:pointer;outline:none}#statusCard .stat-leg>.sd-hit:hover,#statusCard .stat-leg>.sd-hit:focus-visible{background:rgba(128,138,155,.14);border-radius:8px}#statusCard svg circle.sd-hit:hover,#statusCard svg circle.sd-hit:focus-visible{opacity:.78}#statusCard .stat-bar span.sd-hit:hover,#statusCard .stat-bar span.sd-hit:focus-visible{filter:brightness(1.12)}#statusCard .nm.sd-hit:hover{text-decoration:underline}'+
+    '#sdOv .sd-box{background:var(--sheet,#fff);color:var(--ink,#111);border-radius:16px;max-width:820px;width:100%;max-height:85vh;overflow:auto;padding:18px}#sdOv .sd-hd{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}#sdOv .sd-hd h3{margin:0;flex:1;min-width:180px;font-size:1.05rem}#sdOv .sd-hd h3 small{display:block;font-weight:500;font-size:.78rem;opacity:.7;margin-top:2px}#sdOv .sd-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px}#sdOv table{width:100%;border-collapse:collapse;font-size:.84rem}#sdOv th,#sdOv td{padding:7px 8px;text-align:left;border-bottom:1px solid rgba(128,138,155,.22);white-space:nowrap}#sdOv td.r,#sdOv th.r{text-align:right}#sdOv .sd-w{overflow-x:auto}html.ssc-priv #sdOv td.r{filter:blur(6px)}';
+    document.head.appendChild(st)}
+  function go(e){var b=e.target.closest&&e.target.closest('.sd-hit');if(!b||!card.contains(b))return;
+    if(e.type==='keydown'){if(e.key!=='Enter'&&e.key!==' ')return;e.preventDefault()}
+    sdOpen(b.getAttribute('data-sd')||'',b.getAttribute('data-sc')||'')}
+  card.addEventListener('click',go);card.addEventListener('keydown',go);
+}
+function sdRows(k,ch){
+  var y=state.dYear,m=state.dMonth,seen={},out=[];
+  trkRecords().forEach(function(r,i){
+    if(r.other||!SD_NM[r.mp])return;if(y!=='all'&&r.ym.slice(0,4)!==y)return;if(m!=='all'&&r.ym.slice(5,7)!==m)return;if(dRangeOut(r))return;
+    var key=r.mp+'|'+(r.id||('#'+i));if(seen[key])return;
+    var c=r.st==='cancel'?'C':r.st==='return'?'R':r.st==='rto'?'T':r.st==='ok'?(r.settled?'S':'P'):null;if(!c)return;seen[key]=1;
+    if(k&&c!==k)return;if(ch&&r.mp!==ch)return;
+    var d=null;try{d=r.date?pDateAny(r.date):null}catch(e){}
+    out.push({mp:r.mp,id:r.id||'',sku:r.sku||'',date:r.date||r.ym,t:d?+d:0,ym:r.ym,c:c,amt:+r.recv||0});
+  });
+  out.sort(function(a,b){return (b.t||0)-(a.t||0)||(b.ym>a.ym?1:b.ym<a.ym?-1:0)});
+  return out;
+}
+function sdOpen(k,ch){
+  var rows=sdRows(k,ch),card=document.getElementById('statusCard'),per=card&&card._per||'',ov=document.getElementById('sdOv');
+  if(!ov){ov=document.createElement('div');ov.id='sdOv';ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px';document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){if(e.target===ov||e.target.id==='sdX')ov.hidden=true;
+      if(e.target.id==='sdCsv'){var q=function(v){return '"'+String(v).replace(/"/g,'""')+'"'},r=ov._rows,csv='﻿Channel,Order ID,SKU,Order date,Status,Amount received\n'+r.map(function(x){return [SD_NM[x.mp],x.id,x.sku,x.date,SD_ST[x.c][0],x.amt].map(q).join(',')}).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='orders-'+(ov._k||'all')+(ov._ch?'-'+ov._ch:'')+'.csv';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!ov.hidden)ov.hidden=true})}
+  ov._rows=rows;ov._k=k;ov._ch=ch;ov.hidden=false;
+  var title=(k?'<span class="sd-dot" style="background:'+SD_ST[k][1]+'"></span>'+SD_ST[k][0]:'All statuses')+' orders'+(ch?' · '+esc(SD_NM[ch]):' · all channels');
+  ov.innerHTML='<div class="sd-box" role="dialog" aria-label="Orders list"><div class="sd-hd"><h3>'+title+' ('+rows.length+')<small>'+esc(per)+'</small></h3>'+(rows.length?'<button type="button" class="btn small" id="sdCsv">Download CSV</button>':'')+'<button type="button" class="btn small" id="sdX">Close</button></div>'+
+    (rows.length?'<div class="sd-w"><table><thead><tr><th>Channel</th><th>Order ID</th><th>SKU</th><th>Date</th>'+(k?'':'<th>Status</th>')+'<th class="r">Amount</th></tr></thead><tbody>'+rows.slice(0,200).map(function(r){return '<tr><td>'+esc(SD_NM[r.mp])+'</td><td>'+esc(r.id||'-')+'</td><td>'+esc(r.sku||'-')+'</td><td>'+esc(r.date)+'</td>'+(k?'':'<td><span class="sd-dot" style="background:'+SD_ST[r.c][1]+'"></span>'+SD_ST[r.c][0]+'</td>')+'<td class="r">'+money(r.amt)+'</td></tr>'}).join('')+'</tbody></table></div>'+(rows.length>200?'<p class="today-note">Showing the latest 200 of '+rows.length+'. Download the CSV for all.</p>':''):'<p>No orders here for this period.</p>')+'</div>';
+}
 function renderStatusCard(){
   var card=document.getElementById('statusCard');if(!card)return;
-  var y=state.dYear,m=state.dMonth,pl=periodLabels(),all=trkRecords(),per=pl.single?pl.year:pl.month;
+  var y=state.dYear,m=state.dMonth,pl=periodLabels(),all=trkRecords(),per=pl.single?pl.year:pl.month;card._per=per;sdInit(card);
   var NM={Meesho:'Meesho',Amazon:'Amazon',Myntra:'Myntra',Flipkart:'Flipkart',Manual:'Website & Offline'},CL={Meesho:'#9c27b0',Amazon:'#f59e0b',Myntra:'#ec4899',Flipkart:'#2874f0',Manual:'#14805e'};
   var ST=[{k:'S',n:'Settled',c:'#169b62'},{k:'P',n:'Awaiting payment',c:'#f5a524'},{k:'R',n:'Returned',c:'#7a5af8'},{k:'T',n:'RTO',c:'#e5484d'},{k:'C',n:'Cancelled',c:'#98a2b3'}];
   var order=['Meesho','Amazon','Myntra','Flipkart','Manual'],by={},tot={S:0,P:0,R:0,T:0,C:0},seen={};
@@ -5019,10 +5179,10 @@ function renderStatusCard(){
   var head='<div class="chan-head"><div><h3>Order status</h3><p>How your orders ended up · '+esc(per)+'</p></div></div>';
   if(!N){card.innerHTML=head+'<div class="chan-empty">No orders for this period yet.</div>';return}
   var R=70,C=2*Math.PI*R,off=0,arcs='';
-  ST.forEach(function(x){var v=tot[x.k];if(!v)return;var len=v/N*C,gap=Math.min(3,len*0.4);arcs+='<circle cx="85" cy="85" r="'+R+'" fill="none" stroke="'+x.c+'" stroke-width="20" stroke-dasharray="'+Math.max(len-gap,0.5).toFixed(2)+' '+(C-Math.max(len-gap,0.5)).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 85 85)"><title>'+x.n+': '+v+'</title></circle>';off+=len});
+  ST.forEach(function(x){var v=tot[x.k];if(!v)return;var len=v/N*C,gap=Math.min(3,len*0.4);arcs+='<circle cx="85" cy="85" r="'+R+'" fill="none" stroke="'+x.c+'" stroke-width="20" stroke-dasharray="'+Math.max(len-gap,0.5).toFixed(2)+' '+(C-Math.max(len-gap,0.5)).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 85 85)" class="sd-hit" data-sd="'+x.k+'" tabindex="0" role="button" aria-label="Show '+x.n+' orders"><title>'+x.n+': '+v+' \u2013 tap to see the orders</title></circle>';off+=len});
   var donut='<svg viewBox="0 0 170 170" role="img" aria-label="Order status split"><circle cx="85" cy="85" r="'+R+'" fill="none" stroke="rgba(128,138,155,.18)" stroke-width="20"/>'+arcs+'<text class="ctr-n" x="85" y="88" text-anchor="middle">'+N+'</text><text class="ctr-l" x="85" y="106" text-anchor="middle">orders</text></svg>';
-  var leg='<div class="stat-leg">'+ST.map(function(x){var v=tot[x.k];return '<div><i style="background:'+x.c+'"></i>'+x.n+'<b>'+v+'</b><small>'+(Math.round(v*1000/N)/10)+'%</small></div>'}).join('')+'</div>';
-  var rows=order.filter(function(k){return by[k].n>0}).map(function(k){var a=by[k];return '<div class="stat-row"><span class="nm"><i style="background:'+CL[k]+'"></i>'+esc(NM[k])+'</span><span class="stat-bar" title="'+esc(NM[k])+'">'+ST.map(function(x){return a[x.k]?'<span style="width:'+(a[x.k]*100/a.n)+'%;background:'+x.c+'" title="'+x.n+': '+a[x.k]+'"></span>':''}).join('')+'</span><span class="ct">'+a.n+'</span></div>'}).join('');
+  var leg='<div class="stat-leg">'+ST.map(function(x){var v=tot[x.k];return '<div'+(v?' class="sd-hit" data-sd="'+x.k+'" tabindex="0" role="button"':'')+'><i style="background:'+x.c+'"></i>'+x.n+'<b>'+v+'</b><small>'+(Math.round(v*1000/N)/10)+'%</small></div>'}).join('')+'</div>';
+  var rows=order.filter(function(k){return by[k].n>0}).map(function(k){var a=by[k];return '<div class="stat-row"><span class="nm sd-hit" data-sc="'+k+'" tabindex="0" role="button"><i style="background:'+CL[k]+'"></i>'+esc(NM[k])+'</span><span class="stat-bar" title="'+esc(NM[k])+'">'+ST.map(function(x){return a[x.k]?'<span class="sd-hit" data-sd="'+x.k+'" data-sc="'+k+'" style="width:'+(a[x.k]*100/a.n)+'%;background:'+x.c+'" title="'+x.n+': '+a[x.k]+' \u2013 tap to see the orders"></span>':''}).join('')+'</span><span class="ct">'+a.n+'</span></div>'}).join('');
   card.innerHTML=head+'<div class="stat-body"><div class="stat-donut">'+donut+leg+'</div><div class="stat-ch"><h4>Status by channel</h4>'+rows+'</div></div>';
 }
 function renderChannelCard(){
@@ -5101,6 +5261,7 @@ function rbdInner(){
     metricCard('Total Order RTO',d.rto.month,d.rto.year,d.rto.monthMP,d.rto.yearMP,false,'↪')
   ].join('');
   try{renderChannelCard()}catch(e){}
+  try{renderChanTrend()}catch(e){}
   try{renderStatusCard()}catch(e){}
   try{renderProductCard()}catch(e){}
   try{renderAttentionCard()}catch(e){}
@@ -20304,6 +20465,18 @@ html:not([data-theme*="dark"]) #kpiRow .kpi{background:radial-gradient(130% 100%
 #kpiRow .kpi-val{font-family:var(--ff-num,inherit);font-size:1.75rem;font-weight:800;margin-top:2px}
 #kpiRow .kpi-sp{display:block;width:calc(100% + 16px);margin:2px -8px 0;height:auto;max-height:54px;overflow:visible}
 #kpiRow .kpi-sp.flat polyline{stroke-dasharray:2 5;opacity:.55}
+#kpiRow .kpi-sp{touch-action:pan-y;cursor:crosshair}
+#kpiRow .kpi-sp .kpi-hv{pointer-events:none}
+#kpiRow .kpi-lbls{position:relative;height:13px;margin:1px -8px 0;pointer-events:none}
+#kpiRow .kpi-lbls span{position:absolute;top:0;transform:translateX(-50%);font-size:9.5px;font-weight:600;color:#9aa1a9;white-space:nowrap;letter-spacing:.01em}
+#kpiRow .kpi-lbls span:last-child{color:var(--k);font-weight:800}
+#kpiRow .kpi-tip{position:absolute;bottom:calc(100% - 52px);transform:translate(-50%,0);opacity:0;pointer-events:none;background:#1f2a37;color:#fff;border-radius:9px;padding:5px 9px;font-size:11px;line-height:1.25;text-align:center;white-space:nowrap;box-shadow:0 6px 16px rgba(0,0,0,.22);transition:opacity .12s;z-index:5}
+#kpiRow .kpi-tip.on{opacity:1}
+#kpiRow .kpi-tip span{display:block;opacity:.75;font-size:10px}
+#kpiRow .kpi-tip b{font-size:12.5px;font-variant-numeric:tabular-nums}
+html.ssc-priv #kpiRow .kpi-tip b{filter:blur(6px)}
+html[data-theme*="dark"] #kpiRow .kpi-lbls span{color:var(--ink-3)}
+html[data-theme*="dark"] #kpiRow .kpi-sp .kpi-mm{fill:var(--glass,#10201a)}
 #kpiRow .kpi-sp.flat polygon,#kpiRow .kpi-sp.flat circle:first-of-type{opacity:0}
 html[data-theme*="dark"] #kpiRow .kpi{background:radial-gradient(130% 100% at 100% 0%,color-mix(in srgb,var(--k) 16%,transparent),transparent 55%),var(--glass)}
 html[data-theme*="dark"] #kpiRow .kpi-sp circle:last-of-type{stroke:var(--glass,#10201a)}

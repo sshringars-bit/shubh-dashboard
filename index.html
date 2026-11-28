@@ -20337,37 +20337,28 @@ html:root:root:root[data-theme] body.ssc-shell .headline p{color:#6b8478!importa
 <style id="sscLoginLogo">
 /* Login left panel: balanced layout. Smaller, higher lamp, softer beam, smaller integrated logo, faint ambient motes. */
 @media(min-width:761px){
-#sscLock #sscCard .ssc-lux-side .ssc-lamp-scene{transform:translateY(-6px) scale(.88)!important;transform-origin:50% 0!important;margin-bottom:-98px!important}
+#sscLock #sscCard .ssc-lux-side .ssc-lamp-scene{transform:scale(1.12)!important;transform-origin:50% 0!important;margin-top:6px!important;margin-bottom:-38px!important}
 }
 /* softer light: beam, floor light and bulb glow */
 #sscLock.lamp-lit #sscCard .ssc-lamp-scene::before{opacity:.5}
 #sscLock.lamp-lit #sscCard .ssc-lamp-scene::after{opacity:.4}
 #sscLock.lamp-lit #sscCard .ssc-lamp-glow{opacity:.6;animation:sscLampBreathSoft 3.4s ease-in-out infinite alternate,sscLampColorWash 13s linear infinite!important}
 @keyframes sscLampBreathSoft{from{transform:scale(.94);opacity:.4}to{transform:scale(1.06);opacity:.62}}
-/* logo: floating frosted-glass brand panel. Dim glass when lamp is off; lit gold glow that pulses gently when on. Logo image itself is untouched when lit. */
-#sscLock #sscCard .ssc-lux-side .ssc-lux-logo{position:relative;z-index:2;width:min(226px,66%);margin:0 auto 6px;padding:12px 16px 10px;border-radius:20px;overflow:hidden;isolation:isolate;
- background:linear-gradient(150deg,rgba(255,246,228,.10),rgba(255,236,205,.05));
- border:1px solid rgba(255,226,170,.22);
- -webkit-backdrop-filter:blur(14px) saturate(1.25);backdrop-filter:blur(14px) saturate(1.25);
- box-shadow:0 14px 30px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.14);
- transition:background .9s ease,border-color .9s ease,box-shadow .9s ease}
-#sscLock #sscCard .ssc-lux-side .ssc-lux-logo::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.08) 32%,transparent 55%);opacity:.25;transition:opacity .9s ease}
+/* logo: just the logo, no panel. Dim when the lamp is off; warm gold glow that pulses gently when the lamp is on. */
+#sscLock #sscCard .ssc-lux-side .ssc-lux-logo{position:relative;z-index:2;width:min(230px,66%);margin:0 auto 8px;padding:0;background:none;border:0;border-radius:0;box-shadow:none;overflow:visible;-webkit-backdrop-filter:none;backdrop-filter:none}
+#sscLock #sscCard .ssc-lux-side .ssc-lux-logo::before{display:none}
 #sscLock #sscCard .ssc-lux-side .ssc-lux-logo img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;filter:brightness(.5) saturate(.7);transition:filter .9s ease}
 #sscLock #sscCard .ssc-lux-side .ssc-lux-name{display:none!important}
-#sscLock.lamp-lit #sscCard .ssc-lux-side .ssc-lux-logo{background:linear-gradient(150deg,rgba(255,249,236,.80),rgba(247,232,204,.64));border-color:rgba(255,232,180,.65);
- box-shadow:0 14px 30px rgba(0,0,0,.34),0 0 24px 2px rgba(255,214,150,.34),0 0 60px 10px rgba(255,200,120,.16),inset 0 1px 0 rgba(255,255,255,.7);
- animation:sscLogoPulse 3.8s ease-in-out infinite alternate}
-#sscLock.lamp-lit #sscCard .ssc-lux-side .ssc-lux-logo::before{opacity:.8}
-#sscLock.lamp-lit #sscCard .ssc-lux-side .ssc-lux-logo img{filter:none}
-@keyframes sscLogoPulse{from{box-shadow:0 14px 30px rgba(0,0,0,.34),0 0 18px 1px rgba(255,214,150,.24),0 0 46px 6px rgba(255,200,120,.10),inset 0 1px 0 rgba(255,255,255,.7)}to{box-shadow:0 14px 30px rgba(0,0,0,.34),0 0 30px 4px rgba(255,214,150,.46),0 0 76px 14px rgba(255,200,120,.22),inset 0 1px 0 rgba(255,255,255,.7)}}
-@media(max-width:760px){#sscLock #sscCard .ssc-lux-side .ssc-lux-logo{width:140px;padding:7px 9px 6px;border-radius:14px;margin:0 auto}}
+#sscLock.lamp-lit #sscCard .ssc-lux-side .ssc-lux-logo img{filter:brightness(1.28) saturate(1.1) drop-shadow(0 0 2px rgba(255,238,196,.95)) drop-shadow(0 0 9px rgba(244,204,124,.80)) drop-shadow(0 0 22px rgba(232,182,92,.52));animation:sscLogoGold 3.8s ease-in-out infinite alternate}
+@keyframes sscLogoGold{from{filter:brightness(1.22) saturate(1.1) drop-shadow(0 0 2px rgba(255,238,196,.85)) drop-shadow(0 0 7px rgba(244,204,124,.62)) drop-shadow(0 0 16px rgba(232,182,92,.36))}to{filter:brightness(1.34) saturate(1.1) drop-shadow(0 0 3px rgba(255,240,200,1)) drop-shadow(0 0 12px rgba(244,204,124,.95)) drop-shadow(0 0 30px rgba(232,182,92,.66))}}
+@media(max-width:760px){#sscLock #sscCard .ssc-lux-side .ssc-lux-logo{width:140px;margin:0 auto}}
 /* ambient motes: a few tiny dust specks drifting slowly behind the lamp */
 #sscCard .ssc-lux-side .ssc-motes{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;opacity:.35;transition:opacity 1.2s ease}
 #sscLock.lamp-lit #sscCard .ssc-lux-side .ssc-motes{opacity:1}
 .ssc-motes i{position:absolute;display:block;border-radius:50%;background:rgba(255,230,180,.9);box-shadow:0 0 6px rgba(255,220,160,.7);opacity:0;animation:sscMote var(--d,14s) ease-in-out var(--l,0s) infinite}
 @keyframes sscMote{0%{opacity:0;transform:translate(0,0)}20%{opacity:.5}75%{opacity:.35}100%{opacity:0;transform:translate(var(--x,10px),-70px)}}
 @media(max-width:760px){.ssc-motes{display:none}}
-@media(prefers-reduced-motion:reduce){#sscLock.lamp-lit #sscCard .ssc-lux-side .ssc-lux-logo{animation:none}.ssc-motes i{animation:none;opacity:.25}}
+@media(prefers-reduced-motion:reduce){#sscLock.lamp-lit #sscCard .ssc-lux-side .ssc-lux-logo img{animation:none}.ssc-motes i{animation:none;opacity:.25}}
 </style>
 <script>
 /* Login: build the faint ambient motes once inside the left panel (re-added if the card is rebuilt). */
@@ -20418,6 +20409,9 @@ html:root:root:root[data-theme] body.ssc-shell .headline p{color:#6b8478!importa
 #sscLock[data-theme=rose] #sscCard #sscU:focus,#sscLock[data-theme=rose] #sscCard #sscN:focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffb3c1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7'/%3E%3C/svg%3E")!important}
 #sscLock[data-theme=rose] #sscCard .ssc-pw .ssc-in:focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffb3c1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='10' rx='2.5'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3Ccircle cx='12' cy='16' r='1' fill='%23ffb3c1' stroke='none'/%3E%3C/svg%3E")!important}
 @media(prefers-reduced-motion:reduce){#sscLock #sscCard .ssc-in{transition:none!important}}
+/* icons: one icon only, at the left edge (the base theme resets background size/repeat, so set them again here) */
+#sscLock #sscCard #sscU,#sscLock #sscCard #sscN,#sscLock #sscCard .ssc-pw .ssc-in{background-repeat:no-repeat!important;background-position:16px 50%!important;background-size:18px 18px!important;padding-left:46px!important}
+#sscLock #sscCard .ssc-pw .ssc-in{padding-right:72px!important}
 </style>
 <style id="sscLoginButton">
 /* Login: premium Sign in button. Cyan to electric-blue gradient, glow only on hover, smooth hover, press feedback, "Signing in..." state. */
@@ -20449,19 +20443,17 @@ html body #sscLock#sscLock#sscLock:not(.emerald) #sscCard button.ssc-go.btn.prim
 #sscLock #sscCard .ssc-lux-foot svg{stroke:#e6cf9f!important}
 </style>
 <style id="sscLoginClock">
-/* Login: live clock + date at the top of the left brand panel; live weather at the top-right of the sign-in panel */
-#sscCard .ssc-lux-side .ssc-clock{position:absolute;top:34px;left:0;right:0;z-index:3;text-align:center;pointer-events:none;user-select:none}
-.ssc-clock .t{font:700 1.5rem/1 Inter,system-ui,sans-serif;letter-spacing:.04em;color:#f1f6f6;font-variant-numeric:tabular-nums;text-shadow:0 0 18px rgba(var(--tr,56,189,248),.30)}
-.ssc-clock .t small{font-size:.6rem;font-weight:800;letter-spacing:.14em;margin-left:6px;color:#8fd3ff;vertical-align:.45em}
+/* Login: small live time, date and weather at the bottom-right of the sign-in panel (right end of the footer row) */
+#sscCard .ssc-lux-foot .ssc-clock{margin-left:auto;text-align:right;line-height:1.3;letter-spacing:.03em;text-transform:none;white-space:nowrap;pointer-events:none;user-select:none;flex:none}
+.ssc-clock .t{font:700 .74rem/1.25 Inter,system-ui,sans-serif;color:#e6eef0;font-variant-numeric:tabular-nums}
+.ssc-clock .t small{font-size:.5rem;font-weight:800;letter-spacing:.12em;margin-left:4px;color:#8fd3ff;vertical-align:.1em}
 .ssc-clock .t i{font-style:normal;color:#8fd3ff;margin:0 1px;animation:sscBlink 1s steps(1) infinite}
-.ssc-clock .d{margin-top:7px;font:600 .66rem/1.2 Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:rgba(226,238,238,.62)}
-#sscCard .ssc-lux-main{position:relative}
-#sscCard .ssc-lux-main .ssc-wx{position:absolute;top:20px;right:24px;z-index:3;max-width:60%;text-align:right;pointer-events:none;user-select:none;font:600 .72rem/1.3 Inter,system-ui,sans-serif;color:#d8e6ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ssc-wx:empty{display:none}
-.ssc-wx em{font-style:normal;color:rgba(226,238,238,.55);font-weight:500}
+.ssc-clock .d{font:600 .54rem/1.3 Inter,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:rgba(226,238,238,.55)}
+.ssc-clock .w{font:600 .6rem/1.3 Inter,system-ui,sans-serif;color:#cfdde1;text-transform:none;letter-spacing:.02em}
+.ssc-clock .w:empty{display:none}
+.ssc-clock .w em{font-style:normal;color:rgba(226,238,238,.5);font-weight:500}
 @keyframes sscBlink{50%{opacity:.25}}
-@media(min-width:761px){#sscLock #sscCard .ssc-lux-side{padding-top:96px!important}}
-@media(max-width:760px){#sscCard .ssc-lux-side .ssc-clock,#sscCard .ssc-lux-main .ssc-wx{display:none}}
+@media(max-width:560px){#sscCard .ssc-lux-foot .ssc-clock{display:none}}
 @media(prefers-reduced-motion:reduce){.ssc-clock .t i{animation:none}}
 </style>
 <script>
@@ -20476,16 +20468,14 @@ html body #sscLock#sscLock#sscLock:not(.emerald) #sscCard button.ssc-go.btn.prim
     try{var v=JSON.parse(localStorage.getItem('ssc-wx-v1')||'null');if(v&&isFinite(v.lat)&&isFinite(v.lon)&&Math.abs(v.lat)<=90&&Math.abs(v.lon)<=180){o.lat=+v.lat;o.lon=+v.lon;o.name=String(v.name||o.name).slice(0,40)}}catch(e){}return o}
   function setup(){
     var lock=document.getElementById('sscLock'),card=document.getElementById('sscCard');if(!lock||!card)return;
-    function ensure(){var side=card.querySelector('.ssc-lux-side'),main=card.querySelector('.ssc-lux-main');if(!side||!main)return null;
-      var c=side.querySelector('.ssc-clock');
-      if(!c){c=document.createElement('div');c.className='ssc-clock';c.setAttribute('role','timer');c.setAttribute('aria-label','Current time');c.innerHTML='<div class="t"></div><div class="d"></div>';side.insertBefore(c,side.firstChild)}
-      var w=main.querySelector('.ssc-wx');
-      if(!w){w=document.createElement('div');w.className='ssc-wx';w.setAttribute('aria-label','Current weather');main.insertBefore(w,main.firstChild)}
-      return {c:c,w:w}}
-    function tick(){if(lock.hidden)return;var e=ensure();if(!e)return;var n=new Date(),h=n.getHours(),ap=h>=12?'PM':'AM',h12=h%12||12;
-      e.c.querySelector('.t').innerHTML=p(h12)+'<i>:</i>'+p(n.getMinutes())+'<i>:</i>'+p(n.getSeconds())+'<small>'+ap+'</small>';
-      e.c.querySelector('.d').textContent=DAYS[n.getDay()]+', '+n.getDate()+' '+MON[n.getMonth()]+' '+n.getFullYear();
-      if(e.w.getAttribute('data-h')!==wxHtml){e.w.innerHTML=wxHtml;e.w.setAttribute('data-h',wxHtml)}}
+    function ensure(){var foot=card.querySelector('.ssc-lux-foot');if(!foot)return null;
+      var c=foot.querySelector('.ssc-clock');
+      if(!c){c=document.createElement('div');c.className='ssc-clock';c.setAttribute('role','timer');c.setAttribute('aria-label','Current time, date and weather');c.innerHTML='<div class="t"></div><div class="d"></div><div class="w"></div>';foot.appendChild(c)}
+      return c}
+    function tick(){if(lock.hidden)return;var c=ensure();if(!c)return;var n=new Date(),h=n.getHours(),ap=h>=12?'PM':'AM',h12=h%12||12;
+      c.querySelector('.t').innerHTML=p(h12)+'<i>:</i>'+p(n.getMinutes())+'<i>:</i>'+p(n.getSeconds())+'<small>'+ap+'</small>';
+      c.querySelector('.d').textContent=DAYS[n.getDay()].slice(0,3)+', '+n.getDate()+' '+MON[n.getMonth()].slice(0,3)+' '+n.getFullYear();
+      var w=c.querySelector('.w');if(w.getAttribute('data-h')!==wxHtml){w.innerHTML=wxHtml;w.setAttribute('data-h',wxHtml)}}
     function weather(){if(lock.hidden||!window.fetch)return;var L=loc(),ac=window.AbortController?new AbortController():null,t=setTimeout(function(){ac&&ac.abort()},8000);
       fetch('https://api.open-meteo.com/v1/forecast?latitude='+L.lat+'&longitude='+L.lon+'&current=temperature_2m,weather_code,is_day',{cache:'no-store',signal:ac?ac.signal:undefined})
         .then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()})
@@ -20493,7 +20483,7 @@ html body #sscLock#sscLock#sscLock:not(.emerald) #sscCard button.ssc-go.btn.prim
           wxHtml=(c.is_day?w[1]:w[2])+' '+Math.round(c.temperature_2m)+'°C · '+esc(w[0])+' <em>· '+esc(L.name)+'</em>';tick()})
         .catch(function(){clearTimeout(t)})}
     tick();setInterval(tick,1000);weather();wxTimer=setInterval(weather,600000);
-    new MutationObserver(function(){if(!card.querySelector('.ssc-clock')||!card.querySelector('.ssc-wx'))tick()}).observe(card,{childList:true,subtree:true});
+    new MutationObserver(function(){if(!card.querySelector('.ssc-clock'))tick()}).observe(card,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
 })();

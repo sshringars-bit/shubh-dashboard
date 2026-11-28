@@ -8343,8 +8343,10 @@ function sheetFix(){
    f('table.hs th','padding:3px 5px!important;background:#eef6f2!important;color:#111!important;border:1px solid #cfd3d8!important;font-size:11px!important;font-weight:700!important;letter-spacing:normal!important;text-transform:none!important;white-space:normal!important')+
    f('table.hs td','padding:3px 5px!important;border:1px solid #cfd3d8!important;font-size:11px!important')+
    f('.sk','font-size:10.5px;color:#666;margin-top:2px')+
+   f('.t-head','height:auto!important;min-height:0!important')+
+   f('.brand','flex:0 0 auto!important;width:auto!important;min-width:0!important;height:auto!important;min-height:0!important')+
    f('.title b','white-space:nowrap')}
- function sheetCss(){return sheetBase()+sheetFix()+sheetPro()+sheetPrem()+sheetStamp()+'.inv-sheet .pd{display:flex;align-items:center;gap:8px}.inv-sheet .pimg{width:44px;height:44px;object-fit:contain;border:1px solid #e3e6ea;border-radius:4px;background:#fff;flex:none}'}
+ function sheetCss(){return sheetDigits()+sheetBase()+sheetFix()+sheetPro()+sheetPrem()+sheetStamp()+'.inv-sheet .pd{display:flex;align-items:center;gap:8px}.inv-sheet .pimg{width:44px;height:44px;object-fit:contain;border:1px solid #e3e6ea;border-radius:4px;background:#fff;flex:none}'}
  function sheetPro(){
    var R=['.inv-sheet.inv-sheet.inv-sheet','#invPreview .inv-sheet.inv-sheet.inv-sheet','#invPdfHost .inv-sheet.inv-sheet.inv-sheet'];
    function f(sel,d){return R.map(function(r){return r+(sel?' '+sel:'')}).join(',')+'{'+d+'}'}
@@ -8373,14 +8375,18 @@ function sheetFix(){
     f('.small','color:#5b6773;line-height:1.55')+
     f('.sign .line','border-bottom:1px solid #9aa4ae;margin-bottom:5px')+
     f('.cap','border-top:0;color:#7b8794;margin-top:16px')}
+function sheetDigits(){
+  /* Georgia draws 0-9 as old-style figures (some sit low, some rise). This font-face takes only the digits
+     from a serif that has even, lining figures, and leaves every letter in Georgia. */
+  return "@font-face{font-family:'SSCDigits';unicode-range:U+0030-0039;src:local('Times New Roman'),local('TimesNewRomanPSMT'),local('Times'),local('Liberation Serif'),local('Noto Serif'),local('DejaVu Serif');}"}
 function sheetPrem(){
    var R=['.inv-sheet.inv-sheet.inv-sheet.prem','#invPreview .inv-sheet.inv-sheet.inv-sheet.prem','#invPdfHost .inv-sheet.inv-sheet.inv-sheet.prem'];
    function f(sel,d){return R.map(function(r){return r+(sel?' '+sel:'')}).join(',')+'{'+d+'}'}
-   var G='#b08d57',M='#6b1d2a',L='#eadfc8',C='#fffaf0';
-   return f('','background:#fffdf8;color:#3a2e2a;font-family:Georgia,"Times New Roman",serif;border:1px solid #d9c49b;border-top:1px solid #d9c49b;border-radius:2px;padding:42px 46px;box-shadow:inset 0 0 0 7px #fffdf8,inset 0 0 0 8px #c9a96a')+
+   var G='#b08d57',M='#6b1d2a',L='#eadfc8',C='#fffaf0',DG='\'SSCDigits\',Georgia,"Times New Roman",serif';
+   return f('','background:#fffdf8;color:#3a2e2a;font-family:'+DG+';font-variant-numeric:lining-nums;border:1px solid #d9c49b;border-top:1px solid #d9c49b;border-radius:2px;padding:42px 46px;box-shadow:inset 0 0 0 7px #fffdf8,inset 0 0 0 8px #c9a96a')+
     f('.t-head','flex-direction:column;align-items:center;text-align:center;gap:6px;border-bottom:0;padding-bottom:0;margin-bottom:0')+
     f('.brand','flex-direction:column;gap:8px;align-items:center')+
-    f('.brand h1','font-family:Georgia,"Times New Roman",serif!important;font-size:27px!important;font-weight:400!important;letter-spacing:.14em!important;color:'+M+'!important;text-transform:uppercase!important')+
+    f('.brand h1','font-family:'+DG+'!important;font-variant-numeric:lining-nums;font-size:27px!important;font-weight:400!important;letter-spacing:.14em!important;color:'+M+'!important;text-transform:uppercase!important')+
     f('.tag','font-style:italic;color:#8a7a6a;font-size:12px;letter-spacing:.06em')+
     f('.title','text-align:center;margin-top:8px')+
     f('.title b','font-size:13px;font-weight:400;letter-spacing:.42em;color:'+G+';white-space:normal')+

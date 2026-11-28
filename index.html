@@ -4098,9 +4098,15 @@ function renderHealthCard(){
   var head='<div class="chan-head"><div><h3>Business health</h3><p>How your business did in the last 30 days, compared with the 30 before</p></div></div>';
   if(d.tot===null){card.innerHTML=head+'<div class="chan-empty">Not enough recent orders to score yet.</div>';return}
   var lab=d.tot>=75?'Healthy':d.tot>=55?'Okay, keep watching':'Needs attention',c=col(d.tot),R=54,L=2*Math.PI*R,half=L/2;
-  var gauge='<svg viewBox="0 0 140 80" class="hl-g" role="img" aria-label="Health score '+d.tot+' out of 100"><path d="M16 74 A54 54 0 0 1 124 74" fill="none" stroke="rgba(128,128,128,.25)" stroke-width="12" stroke-linecap="round"/><path d="M16 74 A54 54 0 0 1 124 74" fill="none" stroke="'+c+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(half*d.tot/100)+' '+L+'"/><text x="70" y="62" text-anchor="middle" font-size="30" font-weight="800" fill="currentColor">'+d.tot+'</text><text x="70" y="77" text-anchor="middle" font-size="9" fill="currentColor" opacity=".7">out of 100</text></svg>';
+  var th=Math.PI*(1-d.tot/100),gx=Math.round((80+62*Math.cos(th))*10)/10,gy=Math.round((86-62*Math.sin(th))*10)/10,ARC='M18 86 A62 62 0 0 1 142 86';
+  var gauge='<svg viewBox="0 0 160 104" class="hl-g" role="img" aria-label="Health score '+d.tot+' out of 100"><defs><linearGradient id="hlGrad" gradientUnits="userSpaceOnUse" x1="18" y1="0" x2="142" y2="0"><stop offset="0" stop-color="#d6453d"/><stop offset=".5" stop-color="#e8a317"/><stop offset="1" stop-color="#2e9d63"/></linearGradient></defs>'+
+    '<path d="'+ARC+'" pathLength="100" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="13" stroke-linecap="round"/>'+
+    '<path class="hl-fill" d="'+ARC+'" pathLength="100" fill="none" stroke="url(#hlGrad)" stroke-width="13" stroke-linecap="round" stroke-dasharray="'+Math.max(0.01,d.tot)+' 100"/>'+
+    '<g class="hl-dot"><circle cx="'+gx+'" cy="'+gy+'" r="9" fill="'+c+'" opacity=".2"/><circle cx="'+gx+'" cy="'+gy+'" r="5.5" fill="#fff" stroke="'+c+'" stroke-width="3"/></g>'+
+    '<text x="80" y="74" text-anchor="middle" class="hl-n" font-size="36" font-weight="800" fill="currentColor">'+d.tot+'</text><text x="80" y="91" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".6">out of 100</text>'+
+    '<text x="18" y="102" text-anchor="middle" font-size="8" fill="currentColor" opacity=".5">0</text><text x="142" y="102" text-anchor="middle" font-size="8" fill="currentColor" opacity=".5">100</text></svg>';
   var rows=d.C.map(function(x){return '<div class="hl-r"><div class="hl-t"><b>'+esc(x.k)+'</b><span>'+esc(x.v)+'</span></div><div class="hl-b"><i style="width:'+x.s+'%;background:'+col(x.s)+'"></i></div><small>'+esc(x.t)+'</small></div>'}).join('');
-  card.innerHTML=head+'<div class="hl-wrap"><div class="hl-s">'+gauge+'<b style="color:'+c+'">'+lab+'</b></div><div class="hl-l">'+rows+'</div></div><p class="today-note">Score combines sales growth, profit margin, returns, stock and costs. It only counts what you have entered, so keep stock and expenses up to date. Profit counts orders that are settled or returned.</p>'}
+  card.innerHTML=head+'<div class="hl-wrap"><div class="hl-s">'+gauge+'<b class="hl-lab" style="color:'+c+';background:'+c+'1f">'+lab+'</b></div><div class="hl-l">'+rows+'</div></div><p class="today-note">Score combines sales growth, profit margin, returns, stock and costs. It only counts what you have entered, so keep stock and expenses up to date. Profit counts orders that are settled or returned.</p>'}
 function renderDaysCard(){
   var card=document.getElementById('daysCard');if(!card)return;
   var cc=document.getElementById('chanCard');if(cc&&card.previousElementSibling!==cc)cc.after(card);
@@ -4109,7 +4115,7 @@ function renderDaysCard(){
   var head='<div class="chan-head"><div><h3>Best selling days</h3><p>When your orders come in · '+esc(per)+'</p></div></div>';
   if(!tot){card.innerHTML=head+'<div class="chan-empty">No dated orders for this period yet.</div>';return}
   var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],FN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],ord=[1,2,3,4,5,6,0],mx=Math.max.apply(null,wd),best=wd.indexOf(mx),mn=Math.min.apply(null,ord.map(function(i){return wd[i]})),slow=ord.filter(function(i){return wd[i]===mn})[0];
-  var bars=ord.map(function(i){return '<div class="days-bar'+(i===best?' top':'')+'"><b>'+wd[i]+'</b><i style="height:'+Math.max(2,Math.round(wd[i]*80/(mx||1)))+'px"></i><small>'+DN[i]+'</small></div>'}).join('');
+  var bars=ord.map(function(i){return '<div class="days-bar'+(i===best?' top':'')+'" title="'+FN[i]+': '+wd[i]+' order'+(wd[i]===1?'':'s')+'"><b>'+wd[i]+'</b><i style="height:'+Math.max(2,Math.round(wd[i]*100/(mx||1)))+'px"></i><small>'+DN[i]+'</small></div>'}).join('');
   var td=Object.keys(byDate).sort(function(a,b){return byDate[b]-byDate[a]||b.localeCompare(a)}).slice(0,3).map(function(k){var d=pDateAny(k);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' ('+byDate[k]+')'}).join(' · ');
   card.innerHTML=head+'<div class="days-bars">'+bars+'</div><p class="days-note">Best day: <b>'+FN[best]+'</b> ('+Math.round(wd[best]*100/tot)+'% of orders) · Quietest: <b>'+FN[slow]+'</b>. Busiest dates: <b>'+td+'</b>.</p>';
 }
@@ -4355,8 +4361,12 @@ function renderKpiRow(){
    ['Total Expenses','ex',mn,false,'#e0742a','rgba(224,116,42,.14)','<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>'],
    ['Pending Payments','pend',mn,false,'#7a4fd0','rgba(122,79,208,.13)','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
    ['Return Rate','rr',pc,false,'#c43c7c','rgba(196,60,124,.13)','<path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/>']];
-  function spark(vals,col){var W=96,H=30,mx=Math.max.apply(null,vals),mi=Math.min.apply(null,vals),rg=mx-mi,pts=vals.map(function(v,i){return [Math.round(i*W/(vals.length-1)*10)/10,rg?Math.round((H-3-(v-mi)*(H-6)/rg)*10)/10:H/2]}),ln=pts.map(function(q){return q.join(',')}).join(' '),l=pts[pts.length-1];
-    return '<svg class="kpi-sp" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><polygon points="0,'+H+' '+ln+' '+W+','+H+'" fill="'+col+'" opacity=".1"/><polyline points="'+ln+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+l[0]+'" cy="'+l[1]+'" r="2.8" fill="'+col+'"/></svg>'}
+  function spark(vals,col,id){var W=240,H=46,P=10,n=vals.length,mx=Math.max.apply(null,vals),mi=Math.min.apply(null,vals),rg=mx-mi,flat=!rg,
+      pts=vals.map(function(v,i){return [Math.round((P+i*(W-2*P)/Math.max(1,n-1))*10)/10,flat?H/2:Math.round((H-P-(v-mi)*(H-2*P)/rg)*10)/10]}),
+      ln=pts.map(function(q){return q.join(',')}).join(' '),l=pts[n-1],g='kpg'+id;
+    return '<svg class="kpi-sp'+(flat?' flat':'')+'" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><defs><linearGradient id="'+g+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+col+'" stop-opacity=".30"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'+
+      '<polygon points="'+P+','+H+' '+ln+' '+(W-P)+','+H+'" fill="url(#'+g+')"/><polyline points="'+ln+'" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<circle cx="'+l[0]+'" cy="'+l[1]+'" r="6" fill="'+col+'" opacity=".18"/><circle cx="'+l[0]+'" cy="'+l[1]+'" r="3.2" fill="'+col+'" stroke="#fff" stroke-width="1.6"/></svg>'}
   function chip(key,cur,prev,good){
     if(!hasPrev)return '<span class="kpi-chip fl">\u25AC no comparison</span>';
     if(key==='rr'){var d=Math.round((cur-prev)*10)/10;if(!d)return '<span class="kpi-chip fl">\u25AC 0 pts</span>';var ok=good?d>0:d<0;return '<span class="kpi-chip '+(ok?'up':'dn')+'">'+(d>0?'\u25B2 ':'\u25BC ')+Math.abs(d)+' pts</span>'}
@@ -4364,9 +4374,9 @@ function renderKpiRow(){
     if(!prev)return '<span class="kpi-chip fl">\u25B2 new</span>';
     var ch=Math.round((cur-prev)*100/Math.abs(prev));if(!ch)return '<span class="kpi-chip fl">\u25AC 0%</span>';
     var up=ch>0,ok=good?up:!up;return '<span class="kpi-chip '+(ok?'up':'dn')+'">'+(up?'\u25B2 ':'\u25BC ')+Math.abs(ch)+'%</span>'}
-  el.innerHTML='<div class="kpi-cap"><b>Key numbers</b><span>'+sp.label+(sp.prevLabel?' vs '+sp.prevLabel:'')+'</span></div>'+D.map(function(d){
+  el.innerHTML='<div class="kpi-cap"><b>Key numbers</b><span>'+sp.label+(sp.prevLabel?' vs '+sp.prevLabel:'')+'</span></div>'+D.map(function(d,ix){
     var cv=c[d[1]]||0,pvv=pv?(pv[d[1]]||0):0,vals=ser.map(function(x){return x[d[1]]||0});
-    return '<article class="kpi" style="--k:'+d[4]+';--kb:'+d[5]+'"><div class="kpi-top"><span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d[6]+'</svg></span><span class="kpi-lb">'+d[0]+'</span></div><div class="kpi-val">'+d[2](cv)+'</div><div class="kpi-cmp">'+chip(d[1],cv,pvv,d[3])+(hasPrev?'<span class="kpi-pv">vs '+d[2](pvv)+' \u00b7 '+sp.prevShort+'</span>':'')+'</div>'+spark(vals,d[4])+'</article>'}).join('');
+    return '<article class="kpi" style="--k:'+d[4]+';--kb:'+d[5]+'"><div class="kpi-top"><span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d[6]+'</svg></span><span class="kpi-lb">'+d[0]+'</span></div><div class="kpi-val">'+d[2](cv)+'</div><div class="kpi-cmp">'+chip(d[1],cv,pvv,d[3])+(hasPrev?'<span class="kpi-pv">vs '+d[2](pvv)+' \u00b7 '+sp.prevShort+'</span>':'')+'</div>'+spark(vals,d[4],ix)+'</article>'}).join('');
 }
 function renderMomCard(){
   var card=document.getElementById('momCard');if(!card)return;
@@ -20137,3 +20147,569 @@ html:root:root:root[data-theme] body.ssc-shell .headline p{color:#6b8478!importa
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
 })();
 </script>
+
+<style id="a11yMobileCss">
+.tbl-scroll{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+ background:linear-gradient(to right,#fff 30%,rgba(255,255,255,0)) left center/24px 100% no-repeat local,
+ linear-gradient(to left,#fff 30%,rgba(255,255,255,0)) right center/24px 100% no-repeat local,
+ radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.18),rgba(0,0,0,0)) left center/10px 100% no-repeat scroll,
+ radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.18),rgba(0,0,0,0)) right center/10px 100% no-repeat scroll}
+.tbl-scroll:focus-visible{outline:2px solid #1a73e8;outline-offset:2px}
+.tbl-scroll>table{min-width:100%}
+@media (max-width:720px){
+ .tbl-scroll>table th,.tbl-scroll>table td{white-space:nowrap}
+ button,[role="button"],a.btn,.btn{min-height:36px}
+}
+</style>
+
+<script id="a11yMobileJs">
+(function(){
+  'use strict';
+  var SYM=[
+    [/^[✕✖×xX✗✘]$/,'Close'],[/^[+＋✚]$/,'Add'],[/^[−\-–—]$/,'Subtract'],
+    [/^[✎✏✐]️?$/,'Edit'],[/^🗑️?$/,'Delete'],[/^[↻⟳↺🔄]️?$/,'Refresh'],
+    [/^[☰≡]$/,'Menu'],[/^[⋮⋯…·•••]+$/,'More actions'],[/^🖨️?$/,'Print'],
+    [/^📋$/,'Copy'],[/^[⬇↓📥]️?$/,'Download'],[/^[⬆↑📤]️?$/,'Upload'],
+    [/^[›❯▶▸→]$/,'Next'],[/^[‹❮◀◂←]$/,'Previous'],[/^[★☆]$/,'Favourite'],
+    [/^🔍$/,'Search'],[/^⚙️?$/,'Settings'],[/^📷$/,'Take photo'],[/^🔔$/,'Notifications'],
+    [/^[✓✔✅]️?$/,'Confirm'],[/^💬$/,'Chat'],[/^📞$/,'Call'],[/^📎$/,'Attach file']
+  ];
+  var TWORD=/[A-Za-z0-9À-ɏऀ-ॿ]/;
+  function human(s){return String(s||'').replace(/^(btn|bk|od|mf|pf|stk|ssc|sb)[-_]/,'').replace(/[-_]+/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').trim();}
+  function nameFor(b){
+    var t=(b.textContent||'').replace(/\s+/g,' ').trim();
+    var ti=b.getAttribute('title');
+    if(ti&&ti.trim())return ti.trim();
+    var im=b.querySelector('img[alt]');
+    if(im&&im.alt.trim())return im.alt.trim();
+    var cls=(b.className&&b.className.baseVal===undefined?b.className:'')+' '+(b.id||'');
+    for(var i=0;i<SYM.length;i++){if(SYM[i][0].test(t)){
+      if(SYM[i][1]==='Close'&&/del|rm|remove|trash/i.test(cls))return 'Delete';
+      return SYM[i][1];}}
+    var h=human(b.getAttribute('data-act')||b.getAttribute('data-action')||b.getAttribute('data-tk')||b.getAttribute('data-dc')||b.id||'');
+    if(h&&!/^\d+$/.test(h))return h.charAt(0).toUpperCase()+h.slice(1);
+    return '';
+  }
+  function isIconOnly(b){
+    var t=(b.textContent||'').replace(/\s+/g,'');
+    return !TWORD.test(t);
+  }
+  var unnamed=[];
+  function labelButtons(root){
+    var list=root.querySelectorAll('button,[role="button"],input[type="button"],input[type="submit"]');
+    for(var i=0;i<list.length;i++){
+      var b=list[i];
+      if(b.hasAttribute('aria-label')||b.hasAttribute('aria-labelledby'))continue;
+      if(b.tagName==='INPUT'){if(!b.value&&!b.title){b.setAttribute('aria-label',human(b.id)||'Button');}continue;}
+      if(!isIconOnly(b))continue;
+      var n=nameFor(b);
+      if(n){b.setAttribute('aria-label',n);
+        var sv=b.querySelectorAll('svg,i,.ico,.icon');for(var k=0;k<sv.length;k++)sv[k].setAttribute('aria-hidden','true');}
+      else if(unnamed.indexOf(b)<0){unnamed.push(b);}
+    }
+  }
+  function handled(el){
+    for(var p=el.parentElement;p&&p!==document.body&&p!==document.documentElement;p=p.parentElement){
+      if(p.classList&&p.classList.contains('tbl-scroll'))return true;
+      var ox=getComputedStyle(p).overflowX;
+      if(ox==='auto'||ox==='scroll'||ox==='hidden'||ox==='clip')return true;
+    }
+    return false;
+  }
+  function wrapTables(root){
+    var ts=root.querySelectorAll('table');
+    for(var i=0;i<ts.length;i++){
+      var t=ts[i];
+      if(!t.parentNode||t.closest('.tbl-scroll')||handled(t))continue;
+      if(t.closest('[data-print],.print-only'))continue;
+      var w=document.createElement('div');
+      w.className='tbl-scroll';w.tabIndex=0;w.setAttribute('role','region');
+      var cap=t.querySelector('caption');
+      w.setAttribute('aria-label',(cap&&cap.textContent.trim())||t.getAttribute('aria-label')||'Scrollable table');
+      t.parentNode.insertBefore(w,t);w.appendChild(t);
+    }
+  }
+  var timer=0;
+  function run(){timer=0;try{wrapTables(document);labelButtons(document);}catch(e){if(window.console)console.warn('a11yMobile',e);}}
+  function queue(){if(!timer)timer=setTimeout(run,120);}
+  function start(){run();new MutationObserver(queue).observe(document.body,{childList:true,subtree:true});
+    window.__a11yUnnamedButtons=function(){return unnamed.filter(function(b){return document.contains(b)&&!b.hasAttribute('aria-label');});};}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+
+<style id="step2Css">
+/* ===== CRM restyle · Step 2: KPI cards, charts, gauge ===== */
+/* KPI cards */
+html:not([data-theme*="dark"]) #kpiRow .kpi{background:radial-gradient(130% 100% at 100% 0%,var(--kb),rgba(255,255,255,0) 55%),#fff;border-color:rgba(15,61,46,.09);box-shadow:0 1px 2px rgba(15,40,30,.05),0 10px 26px -12px rgba(15,40,30,.18)}
+#kpiRow .kpi::before{height:0;content:none}
+#kpiRow .kpi{gap:6px;padding:16px 16px 10px;border-radius:18px}
+#kpiRow .kpi:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(15,40,30,.06),0 18px 34px -14px rgba(15,40,30,.28)}
+#kpiRow .kpi-ic{width:36px;height:36px;border-radius:12px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--k) 22%,transparent)}
+#kpiRow .kpi-lb{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;font-weight:800}
+#kpiRow .kpi-val{font-family:var(--ff-num,inherit);font-size:1.75rem;font-weight:800;margin-top:2px}
+#kpiRow .kpi-sp{display:block;width:calc(100% + 16px);margin:2px -8px 0;height:auto;max-height:54px;overflow:visible}
+#kpiRow .kpi-sp.flat polyline{stroke-dasharray:2 5;opacity:.55}
+#kpiRow .kpi-sp.flat polygon,#kpiRow .kpi-sp.flat circle:first-of-type{opacity:0}
+html[data-theme*="dark"] #kpiRow .kpi{background:radial-gradient(130% 100% at 100% 0%,color-mix(in srgb,var(--k) 16%,transparent),transparent 55%),var(--glass)}
+html[data-theme*="dark"] #kpiRow .kpi-sp circle:last-of-type{stroke:var(--glass,#10201a)}
+@media(max-width:700px){#kpiRow .kpi{padding:13px 12px 8px}#kpiRow .kpi-val{font-size:1.35rem}#kpiRow .kpi-lb{font-size:.66rem;letter-spacing:.05em}#kpiRow .kpi-ic{width:30px;height:30px}#kpiRow .kpi-sp{max-height:40px}}
+
+/* Business health gauge */
+.hl-wrap{grid-template-columns:230px 1fr;gap:28px}
+.hl-g{max-width:230px;overflow:visible}
+.hl-g .hl-n{font-family:var(--ff-num,inherit)}
+.hl-g .hl-fill{animation:hlGrow 1s cubic-bezier(.2,.8,.2,1) both}
+.hl-g .hl-dot{animation:hlFade .4s .75s both}
+@keyframes hlGrow{from{stroke-dasharray:0.01 100}}
+@keyframes hlFade{from{opacity:0}}
+.hl-s b.hl-lab{display:inline-block;margin-top:6px;padding:5px 14px;border-radius:999px;font-size:.82rem;letter-spacing:.01em}
+.hl-b{height:10px;background:rgba(128,128,128,.16)}
+.hl-b i{background-image:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 60%)!important;animation:hlBar .8s cubic-bezier(.2,.8,.2,1) both}
+@keyframes hlBar{from{width:0}}
+.hl-t b{font-size:.92rem}
+@media(max-width:700px){.hl-wrap{grid-template-columns:1fr;gap:16px}.hl-g{max-width:210px}}
+
+/* Channel performance */
+#chanCard .chan-t tbody tr{transition:background .15s}
+#chanCard .chan-t tbody tr:hover td{background:rgba(15,61,46,.04)}
+html[data-theme*="dark"] #chanCard .chan-t tbody tr:hover td{background:rgba(255,255,255,.04)}
+#chanCard .chan-t th{background:rgba(15,61,46,.035);border-bottom:0;padding:11px 12px}
+#chanCard .chan-t th:first-child{border-radius:10px 0 0 10px}#chanCard .chan-t th:last-child{border-radius:0 10px 10px 0}
+html[data-theme*="dark"] #chanCard .chan-t th{background:rgba(255,255,255,.05)}
+#chanCard .chan-t td small.dl-s{white-space:nowrap}
+#chanCard .chan-t .chan-n i{box-shadow:0 0 0 3px color-mix(in srgb,currentColor 0%,transparent),0 0 0 3px rgba(128,128,128,.14)}
+.chan-bar b{height:10px;background-image:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 65%)!important;box-shadow:0 2px 6px -2px currentColor}
+.chan-best{background:linear-gradient(135deg,#f6e7bd,#ecd28a);color:#5c4510;box-shadow:inset 0 0 0 1px rgba(176,141,74,.4)}
+html[data-theme*="dark"] .chan-best{background:rgba(236,210,138,.16);color:#f0d68a;box-shadow:inset 0 0 0 1px rgba(236,210,138,.3)}
+
+/* Best selling days */
+.days-bars{height:170px;gap:12px;padding:4px 2px 0;background:repeating-linear-gradient(to top,transparent 0 41px,rgba(128,128,128,.14) 41px 42px) bottom/100% calc(100% - 38px) no-repeat}
+.days-bar{cursor:default}
+.days-bar i{max-width:54px;border-radius:9px 9px 3px 3px;opacity:1;background:linear-gradient(180deg,#5fb394,#2f8f70);transition:transform .2s,filter .2s;transform-origin:bottom;animation:dayUp .7s cubic-bezier(.2,.8,.2,1) both}
+.days-bar:hover i{filter:brightness(1.08);transform:scaleY(1.03)}
+.days-bar.top i{background:linear-gradient(180deg,#f0cf7a,#c9942b);box-shadow:0 6px 14px -6px rgba(176,141,74,.8)}
+.days-bar.top b{color:#9a6f12}
+html[data-theme*="dark"] .days-bar.top b{color:#f0d68a}
+.days-bar b{font-family:var(--ff-num,inherit);font-size:.8rem}
+@keyframes dayUp{from{transform:scaleY(.05);opacity:0}}
+
+/* Monthly profit target bar */
+.goal-bar{position:relative;height:16px;background:rgba(15,61,46,.07);border-color:transparent;box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
+.goal-bar i{background:linear-gradient(90deg,#e6b94e,#c98a12)!important;box-shadow:0 0 12px rgba(201,138,18,.45);animation:hlBar .9s cubic-bezier(.2,.8,.2,1) both}
+.goal-bar.over i{background:linear-gradient(90deg,#3fb383,#169b62)!important;box-shadow:0 0 12px rgba(22,155,98,.4)}
+.goal-bar::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(25% - 1px),rgba(255,255,255,.75) calc(25% - 1px) 25%)}
+.goal-top b{font-family:var(--ff-num,inherit);font-size:1.9rem;letter-spacing:-.02em}
+html[data-theme*="dark"] .goal-bar{background:rgba(255,255,255,.08)}
+html[data-theme*="dark"] .goal-bar::after{background:repeating-linear-gradient(90deg,transparent 0 calc(25% - 1px),rgba(0,0,0,.45) calc(25% - 1px) 25%)}
+
+@media(prefers-reduced-motion:reduce){.hl-g .hl-fill,.hl-g .hl-dot,.hl-b i,.days-bar i,.goal-bar i{animation:none!important}#kpiRow .kpi,.days-bar i{transition:none}}
+</style>
+
+<style id="step2bCss">
+/* ===== CRM restyle · Step 2b: Today + Needs attention ===== */
+.today-row{gap:12px}
+.today-t{position:relative;overflow:hidden;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 110% at 100% 0%,var(--tk,rgba(201,138,18,.12)),transparent 60%),var(--field);transition:transform .2s,box-shadow .2s}
+.today-t:hover{transform:translateY(-2px);box-shadow:0 12px 24px -14px rgba(15,40,30,.35)}
+.today-t::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:var(--tc,#c98a12)}
+.today-t:nth-child(1){--tc:#2f6fe0;--tk:rgba(47,111,224,.12)}
+.today-t:nth-child(2){--tc:#7a4fd0;--tk:rgba(122,79,208,.12)}
+.today-t:nth-child(3){--tc:#e0742a;--tk:rgba(224,116,42,.13)}
+.today-t:nth-child(4){--tc:#c43c7c;--tk:rgba(196,60,124,.12)}
+.today-t b{font-family:var(--ff-num,inherit);font-size:1.6rem;letter-spacing:-.02em;font-weight:800}
+@media(max-width:700px){.today-row{grid-template-columns:repeat(2,1fr);gap:10px}.today-t b{font-size:1.35rem}}
+.attn-list{gap:10px}
+.attn-item{position:relative;padding:14px 16px 14px 18px;border-radius:14px;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.attn-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ac,rgba(128,128,128,.35))}
+.attn-item:has(.attn-ic.red){--ac:#d92d20}.attn-item:has(.attn-ic.amber){--ac:#e8a317}.attn-item:has(.attn-ic.ok){--ac:#169b62}
+.attn-item:hover{transform:translateX(2px);box-shadow:0 10px 22px -14px rgba(15,40,30,.35)}
+.attn-ic{width:36px;height:36px;border-radius:12px}
+.attn-go button{transition:background .15s,color .15s,border-color .15s}
+.attn-go button::after{content:" \203A";font-weight:800}
+.attn-go button:hover{background:#0f3d2e;color:#fff;border-color:#0f3d2e}
+html[data-theme*="dark"] .attn-go button:hover{background:#c98a12;border-color:#c98a12}
+@media(prefers-reduced-motion:reduce){.today-t,.attn-item{transition:none}}
+</style>
+
+<style id="step2cCss">
+/* ===== CRM restyle · Step 2c: Money coming in ===== */
+#pendCard .pend-big{padding:18px 20px;border-radius:16px;margin-bottom:14px;align-items:center;background:radial-gradient(120% 140% at 100% 0%,rgba(22,155,98,.16),transparent 60%),linear-gradient(135deg,#eaf7f1,#f4fbf7);border:1px solid rgba(22,155,98,.22)}
+#pendCard .pend-big b{font-family:var(--ff-num,inherit);font-size:2.1rem;letter-spacing:-.025em;color:#0f6b46}
+#pendCard .pend-big span{font-weight:600}
+html[data-theme*="dark"] #pendCard .pend-big{background:radial-gradient(120% 140% at 100% 0%,rgba(52,211,153,.16),transparent 60%),var(--glass);border-color:rgba(52,211,153,.25)}
+html[data-theme*="dark"] #pendCard .pend-big b{color:#34d399}
+#pendCard .pend-t th{background:rgba(15,61,46,.04);border-bottom:0;padding:10px 12px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+#pendCard .pend-t th:first-child{border-radius:10px 0 0 10px}#pendCard .pend-t th:last-child{border-radius:0 10px 10px 0}
+#pendCard .pend-t td{padding:12px;font-variant-numeric:tabular-nums}
+#pendCard .pend-t tbody tr{transition:background .15s}
+#pendCard .pend-t tbody tr:hover td{background:rgba(15,61,46,.04)}
+#pendCard .pend-t td:last-child b,#pendCard .pend-t td:last-child{font-weight:800}
+#pendCard .pend-t.age-t td:last-child:not(:empty){color:#c0392b}
+#pendCard .pend-t tfoot td{border-top:2px solid var(--stroke-2)}
+html[data-theme*="dark"] #pendCard .pend-t th{background:rgba(255,255,255,.05)}
+html[data-theme*="dark"] #pendCard .pend-t tbody tr:hover td{background:rgba(255,255,255,.04)}
+#pendCard .pc-t th{background:rgba(15,61,46,.04)}
+@media(max-width:700px){#pendCard .pend-big b{font-size:1.7rem}#pendCard .pend-big{padding:14px 16px}}
+</style>
+
+<style id="step2c2Css">
+html:not([data-theme*="dark"]) body #pendCard .pend-big b{color:#0f6b46!important}
+html[data-theme*="dark"] body #pendCard .pend-big b{color:#34d399!important}
+#pendCard .age-chase{border-radius:16px;padding:14px 16px;border-left:4px solid #d92d20}
+#pendCard .age-chase b{display:block;margin-bottom:6px}
+#pendCard .age-chase div{padding:5px 0;border-top:1px dashed rgba(217,45,32,.2)}
+#pendCard .age-chase div:first-of-type{border-top:0}
+#pendCard .age-chase em{font-style:normal;font-variant-numeric:tabular-nums}
+</style>
+
+<style id="step2dCss">
+/* ===== CRM restyle · Step 2d: Profit per product ===== */
+#profCard .tablewrap{border:1px solid var(--stroke-2);border-radius:16px;overflow-x:auto}
+#profCard .prof-t th{background:rgba(15,61,46,.04);border-bottom:0;padding:11px 12px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+#profCard .prof-t td{padding:12px;font-variant-numeric:tabular-nums}
+#profCard .prof-t td:first-child{font-weight:700}
+#profCard .prof-t td:nth-child(4){font-weight:800}
+#profCard .prof-t tbody tr{transition:background .15s}
+#profCard .prof-t tbody tr:hover td{background:rgba(15,61,46,.04)}
+#profCard .prof-t tbody tr:first-child td:first-child::before{content:"\2605";color:#c98a12;margin-right:6px}
+#profCard .prof-v{padding:4px 12px;font-size:.74rem;letter-spacing:.02em;box-shadow:0 2px 6px -2px rgba(0,0,0,.35);white-space:nowrap}
+#profCard .prof-sum{display:inline-block;margin:6px 0 12px;padding:8px 14px;border-radius:12px;background:rgba(201,138,18,.1);border:1px solid rgba(201,138,18,.25)}
+html[data-theme*="dark"] #profCard .prof-t th{background:rgba(255,255,255,.05)}
+html[data-theme*="dark"] #profCard .prof-t tbody tr:hover td{background:rgba(255,255,255,.04)}
+</style>
+
+<style id="step2eCss">
+/* ===== CRM restyle · Step 2e: Compared with last month / year ===== */
+.yoy-t th{background:rgba(15,61,46,.04);border-bottom:0;padding:11px 14px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.yoy-t th:first-child{border-radius:10px 0 0 10px}.yoy-t th:last-child{border-radius:0 10px 10px 0}
+.yoy-t td{padding:13px 14px;font-variant-numeric:tabular-nums}
+.yoy-t td:first-child{font-weight:700}
+.yoy-t td:nth-child(2){font-weight:800;font-family:var(--ff-num,inherit)}
+.yoy-t td:nth-child(3){color:var(--ink-3)}
+.yoy-t tbody tr{transition:background .15s}
+.yoy-t tbody tr:hover td{background:rgba(15,61,46,.04)}
+.yoy-c{padding:4px 11px;font-variant-numeric:tabular-nums}
+html[data-theme*="dark"] .yoy-t th{background:rgba(255,255,255,.05)}
+html[data-theme*="dark"] .yoy-t tbody tr:hover td{background:rgba(255,255,255,.04)}
+@media(max-width:700px){.yoy-t th,.yoy-t td{padding:10px 6px}}
+</style>
+
+<style id="step3aCss">
+/* ===== CRM restyle · Step 3a: Product cards ===== */
+#view-products .pcard{border-radius:20px;transition:transform .2s,box-shadow .2s}
+#view-products .pcard:hover{transform:translateY(-3px);box-shadow:0 18px 36px -18px rgba(15,40,30,.35)}
+#view-products .pimg{border-radius:16px;box-shadow:inset 0 0 0 1px rgba(15,61,46,.08)}
+#view-products .phead h4{font-family:var(--ff-head,inherit);font-weight:700;font-size:1.12rem;letter-spacing:-.01em}
+#view-products .sku{font-variant-numeric:tabular-nums;letter-spacing:.03em}
+#view-products .pst{font-weight:700;letter-spacing:.02em}
+#view-products .costs>div{padding:2px 0}
+#view-products .costs dd{font-family:var(--ff-num,inherit)}
+#view-products .costs .total{border-top:1px dashed var(--stroke-2)}
+#view-products .costs .sell{margin-top:4px;padding:8px 12px;border-radius:12px;background:linear-gradient(135deg,rgba(201,138,18,.14),rgba(201,138,18,.05));border:1px solid rgba(201,138,18,.25)}
+#view-products .costs .sell dt{color:var(--ink);font-weight:700}
+#view-products .costs .sell dd{color:#9a6a0c;font-size:1.1rem;font-weight:800}
+html[data-theme*="dark"] #view-products .costs .sell dd{color:#f0d68a}
+#view-products .mk{border-radius:12px;transition:border-color .15s}
+#view-products .mk:not(.empty):hover{border-color:#c98a12}
+#view-products .mk.empty{border-style:dashed;opacity:.6;background:transparent}
+#view-products .pact .btn{transition:background .15s,color .15s}
+#view-products .pact .btn:hover{background:#0f3d2e;color:#fff;border-color:#0f3d2e}
+@media(prefers-reduced-motion:reduce){#view-products .pcard,#view-products .mk{transition:none}}
+</style>
+<style id="step3a2Css">#view-products .phead h4{overflow-wrap:break-word;word-break:normal;hyphens:auto}</style>
+<style id="step3a3Css">@media(max-width:700px){#view-products .phead{flex-wrap:wrap;row-gap:6px}#view-products .phead h4{flex:1 1 100%}#view-products .phead .sku{max-width:none}#view-products .phead .pst{margin-left:auto}}</style>
+
+<style id="step3bCss">
+/* ===== CRM restyle · Step 3b: Products toolbar ===== */
+#view-products .pd-switch{display:inline-flex;gap:0;padding:4px;border-radius:999px;background:rgba(15,61,46,.07);border:1px solid rgba(15,61,46,.08)}
+#view-products .pd-switch .btn{border:0;background:transparent;box-shadow:none;border-radius:999px;padding:8px 18px;font-weight:700}
+#view-products .pd-switch .btn.on{background:#0f4a38;color:#fff;box-shadow:0 4px 12px -4px rgba(15,74,56,.6)}
+#view-products .pd-switch .btn:not(.on):hover{background:rgba(15,61,46,.08)}
+#view-products .ptools h3{font-family:var(--ff-head,inherit);font-weight:800;letter-spacing:-.01em}
+#view-products .ptools input.search{padding-left:42px;border-radius:999px;background:var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b867b' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 15px center/18px}
+#view-products .ptools .field-in{transition:border-color .15s,box-shadow .15s}
+#view-products .ptools .field-in:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#view-products .ptools select.field-in{border-radius:999px;padding-left:16px;font-weight:600}
+#view-products .p-export-actions .btn{border-radius:999px;transition:transform .15s,box-shadow .15s}
+#view-products .p-export-actions .btn:hover{transform:translateY(-1px);box-shadow:0 8px 16px -8px rgba(15,40,30,.4)}
+#view-products .p-export-status:empty{display:none}
+</style>
+<style id="step3b2Css">
+#view-products .pd-switch{display:flex;width:fit-content;max-width:100%}
+#view-products .ptools input.search{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b867b' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:15px center!important;background-size:18px!important}
+</style>
+
+<style id="step3cCss">
+/* ===== CRM restyle · Step 3c: Stock tab ===== */
+#view-stock .stk-tiles{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+#view-stock .stk-tiles .today-t{--tk:rgba(15,110,80,.1)}
+#view-stock .stk-tiles .today-t:nth-child(2){--tk:rgba(229,72,77,.12)}
+#view-stock .stk-tiles .today-t:nth-child(3){--tk:rgba(245,165,36,.15)}
+#view-stock .stk-tiles .today-t:nth-child(4){--tk:rgba(154,160,166,.16)}
+#view-stock .stk-tiles .today-t:nth-child(5){--tk:rgba(47,163,107,.13)}
+#view-stock .stk-tiles .today-t b{font-family:var(--ff-num,inherit);font-weight:800}
+#view-stock .stk-head h2{font-family:var(--ff-head,inherit);font-weight:800;letter-spacing:-.01em}
+#view-stock .stk-pill.on{box-shadow:0 4px 12px -4px rgba(15,74,56,.55)}
+#view-stock .stk-bar input[type=search],#view-stock .stk-bar input.search{padding-left:42px;border-radius:999px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b867b' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:15px center!important;background-size:18px!important}
+#view-stock .stk-bar .field-in:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#view-stock .stk-actions .btn{border-radius:999px;transition:transform .15s,box-shadow .15s}
+#view-stock .stk-actions .btn:hover{transform:translateY(-1px);box-shadow:0 8px 16px -8px rgba(15,40,30,.4)}
+#view-stock .stk-note{padding:10px 14px;border-radius:12px;background:rgba(201,138,18,.07);border:1px solid rgba(201,138,18,.18)}
+</style>
+<style id="step3c2Css">
+#view-stock .stk-bar input[type=search],#view-stock .stk-bar input.search{padding-left:44px!important}
+#view-stock .stk-tiles .today-t{background-image:radial-gradient(120% 110% at 100% 0%,var(--tk),transparent 60%)!important}
+</style>
+<style id="step2fCss">
+/* ===== CRM restyle · Step 2f: Returns, Festival, Price, GST, Smart insights ===== */
+#retCard .ret-t,#priceCard .pc-t,#gstCard .pc-t{border-collapse:separate;border-spacing:0}
+#retCard .ret-t th,#priceCard .pc-t th,#gstCard .pc-t th{background:rgba(15,61,46,.04);border-bottom:0;padding:11px 12px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+#retCard .ret-t td,#priceCard .pc-t td,#gstCard .pc-t td{padding:12px;font-variant-numeric:tabular-nums}
+#retCard .ret-t td:first-child,#priceCard .pc-t td:first-child{font-weight:700}
+#retCard .ret-t tbody tr,#priceCard .pc-t tbody tr,#gstCard .pc-t tbody tr{transition:background .15s}
+#retCard .ret-t tbody tr:hover td,#priceCard .pc-t tbody tr:hover td,#gstCard .pc-t tbody tr:hover td{background:rgba(15,61,46,.04)}
+#priceCard .st-tag{padding:4px 11px;white-space:nowrap}
+#priceCard .pc-sel,#gstCard .gst-tools .field-in{border-radius:999px}
+#priceCard .pc-sel:focus,#gstCard .gst-tools .field-in:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#gstCard .gst-top{padding:12px 14px;border-radius:14px;background:rgba(201,138,18,.08);border:1px solid rgba(201,138,18,.22)}
+#gstCard .gst-tools .btn{border-radius:999px}
+#festCard .fest-month{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;font-weight:800;color:var(--ink-3)}
+#festCard .fest-chip{border-radius:999px;padding:6px 13px;border:1px solid rgba(15,61,46,.12);background:rgba(15,61,46,.04);transition:transform .15s,box-shadow .15s}
+#festCard .fest-chip:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(15,40,30,.4)}
+#festCard .fest-chip.soon{background:rgba(201,138,18,.14);border-color:rgba(201,138,18,.4);font-weight:700}
+#insCard .attn-item,#retCard .attn-item,#priceCard .attn-item,#gstCard .attn-item{border-radius:14px;transition:transform .15s,background .15s}
+#insCard .attn-item:hover{transform:translateX(2px)}
+#insCard .attn-ic{box-shadow:inset 0 0 0 1px rgba(15,61,46,.1)}
+html[data-theme*="dark"] #retCard .ret-t th,html[data-theme*="dark"] #priceCard .pc-t th,html[data-theme*="dark"] #gstCard .pc-t th{background:rgba(255,255,255,.05)}
+html[data-theme*="dark"] #retCard .ret-t tbody tr:hover td,html[data-theme*="dark"] #priceCard .pc-t tbody tr:hover td,html[data-theme*="dark"] #gstCard .pc-t tbody tr:hover td{background:rgba(255,255,255,.04)}
+html[data-theme*="dark"] #festCard .fest-chip{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12)}
+html[data-theme*="dark"] #festCard .fest-chip.soon{background:rgba(201,138,18,.22)}
+html[data-theme*="dark"] #gstCard .gst-top{background:rgba(201,138,18,.12)}
+@media(max-width:700px){#retCard .ret-t th,#retCard .ret-t td,#priceCard .pc-t th,#priceCard .pc-t td,#gstCard .pc-t th,#gstCard .pc-t td{padding:10px 7px}}
+</style>
+<style id="step2gCss">
+/* ===== CRM restyle · Step 2g: Photo checklist, Data check, Loss ===== */
+#photoCard .ph-top,#lossCard .loss-top{padding:12px 14px;border-radius:14px;background:rgba(201,138,18,.08);border:1px solid rgba(201,138,18,.22)}
+#photoCard .ph-bar{border-radius:999px;overflow:hidden}
+#photoCard .ph-sel{border-radius:999px}
+#photoCard .ph-sel:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#photoCard .ph-h{padding:3px 10px;border-radius:999px;font-weight:700;white-space:nowrap}
+#photoCard .ph-more{border-radius:999px}
+#photoCard .attn-item,#dataCard .attn-item,#lossCard .attn-item{border-radius:14px;transition:transform .15s,background .15s}
+#photoCard .attn-item:hover,#dataCard .attn-item:hover,#lossCard .attn-item:hover{transform:translateX(2px)}
+#dataCard .dc-t th,#lossCard .loss-t th{background:rgba(15,61,46,.04);border-bottom:0;padding:11px 12px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+#dataCard .dc-t td,#lossCard .loss-t td{padding:12px;font-variant-numeric:tabular-nums}
+#dataCard .dc-t tbody tr:hover td,#lossCard .loss-t tbody tr:hover td{background:rgba(15,61,46,.04)}
+#dataCard .attn-badge{padding:4px 12px;font-weight:800}
+#dataCard .today-t b{font-family:var(--ff-num,inherit);font-weight:800}
+#lossCard .loss-t .neg{font-weight:800}
+html[data-theme*="dark"] #photoCard .ph-top,html[data-theme*="dark"] #lossCard .loss-top{background:rgba(201,138,18,.12)}
+html[data-theme*="dark"] #dataCard .dc-t th,html[data-theme*="dark"] #lossCard .loss-t th{background:rgba(255,255,255,.05)}
+html[data-theme*="dark"] #dataCard .dc-t tbody tr:hover td,html[data-theme*="dark"] #lossCard .loss-t tbody tr:hover td{background:rgba(255,255,255,.04)}
+@media(max-width:700px){#dataCard .dc-t th,#dataCard .dc-t td,#lossCard .loss-t th,#lossCard .loss-t td{padding:10px 7px}}
+</style>
+<style id="step2hCss">
+/* ===== CRM restyle · Step 2h: Expense breakdown, Stock, Reorder list ===== */
+#expCard .exp-li{padding:10px 12px;border-radius:12px;transition:background .15s}
+#expCard .exp-li:hover{background:rgba(15,61,46,.04)}
+#expCard .exp-li b{font-variant-numeric:tabular-nums;font-weight:800}
+#stockCard .attn-item,#expCard .attn-item,#reorderCard .attn-item{border-radius:14px;transition:transform .15s,background .15s}
+#stockCard .attn-item:hover,#reorderCard .attn-item:hover{transform:translateX(2px)}
+#stockCard .attn-go{border-radius:999px;transition:transform .15s}
+#stockCard .attn-go:hover{transform:translateX(2px)}
+#stockCard .attn-ic.red{box-shadow:0 0 0 3px rgba(229,72,77,.12)}
+#stockCard .attn-ic.amber{box-shadow:0 0 0 3px rgba(245,165,36,.16)}
+#reorderCard .ro-t th{background:rgba(15,61,46,.04);border-bottom:0;padding:11px 12px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+#reorderCard .ro-t td{padding:12px;font-variant-numeric:tabular-nums}
+#reorderCard .ro-t td:first-child{font-weight:700}
+#reorderCard .ro-t tbody tr{transition:background .15s}
+#reorderCard .ro-t tbody tr:hover td{background:rgba(15,61,46,.04)}
+#reorderCard .btn.small{border-radius:999px}
+html[data-theme*="dark"] #expCard .exp-li:hover,html[data-theme*="dark"] #reorderCard .ro-t tbody tr:hover td{background:rgba(255,255,255,.04)}
+html[data-theme*="dark"] #reorderCard .ro-t th{background:rgba(255,255,255,.05)}
+@media(max-width:700px){#reorderCard .ro-t th,#reorderCard .ro-t td{padding:10px 7px}#expCard .exp-li{padding:9px 8px}}
+</style>
+<style id="step2iCss">
+/* ===== CRM restyle · Step 2i: Order status, Top products, Net worth ===== */
+#statusCard .stat-body{gap:22px;align-items:center}
+#statusCard .stat-donut{filter:drop-shadow(0 8px 14px rgba(15,40,30,.14))}
+#statusCard .ctr-n{font-family:var(--ff-num,inherit);font-weight:800}
+#statusCard .ctr-l{font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:800}
+#statusCard .stat-row{padding:9px 12px;border-radius:12px;transition:background .15s}
+#statusCard .stat-row:hover{background:rgba(15,61,46,.04)}
+#statusCard .stat-row b{font-variant-numeric:tabular-nums;font-weight:800}
+#statusCard .stat-bar{border-radius:999px;overflow:hidden}
+#prodCard .tp-chips{gap:8px;flex-wrap:wrap}
+#prodCard .tp-chips button,#prodCard .tp-chips .chip{border-radius:999px;transition:transform .15s,box-shadow .15s}
+#prodCard .tp-chips button:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(15,40,30,.4)}
+#worthCard .pend-big{font-family:var(--ff-num,inherit);font-weight:800;letter-spacing:-.01em}
+#worthCard .loss-top{padding:12px 14px;border-radius:14px;background:rgba(201,138,18,.08);border:1px solid rgba(201,138,18,.22)}
+#worthCard .neg{font-weight:800}
+html[data-theme*="dark"] #statusCard .stat-row:hover{background:rgba(255,255,255,.04)}
+html[data-theme*="dark"] #statusCard .stat-donut{filter:drop-shadow(0 8px 14px rgba(0,0,0,.4))}
+html[data-theme*="dark"] #worthCard .loss-top{background:rgba(201,138,18,.12)}
+@media(max-width:700px){#statusCard .stat-body{gap:14px}#statusCard .stat-row{padding:8px 6px}}
+</style>
+<style id="step2jCss">
+/* ===== CRM restyle · Step 2j: To-do list, Weather ===== */
+#todoCard .td-i{border-radius:14px;transition:transform .15s,box-shadow .15s,background .15s}
+#todoCard .td-i:hover{transform:translateX(2px);box-shadow:0 8px 16px -12px rgba(15,40,30,.35)}
+#todoCard .td-i.done{opacity:.7}
+#todoCard .td-add .field-in{border-radius:999px}
+#todoCard .td-add .field-in:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#todoCard .td-add .btn{border-radius:999px}
+#wxCard{border-radius:20px}
+#wxCard .wx-loc{border-radius:999px;transition:transform .15s,box-shadow .15s}
+#wxCard .wx-loc:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(15,40,30,.4)}
+#wxCard .wx-btns button{border-radius:999px;transition:transform .15s}
+#wxCard .wx-btns button:hover{transform:translateY(-1px)}
+#wxCard .wx-pop{border-radius:16px;box-shadow:0 18px 36px -16px rgba(15,40,30,.4)}
+#wxCard .wx-pop .field-in{border-radius:999px}
+#wxCard .wx-pop .field-in:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#wxCard .wx-geo{border-radius:999px}
+#wxCard small{letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+#wxCard b{font-variant-numeric:tabular-nums}
+.wx-show{border-radius:999px;transition:transform .15s}
+.wx-show:hover{transform:translateY(-1px)}
+html[data-theme*="dark"] #wxCard .wx-pop{box-shadow:0 18px 36px -16px rgba(0,0,0,.6)}
+@media(max-width:700px){#wxCard{border-radius:16px}}
+</style>
+<style id="step2kCss">
+/* ===== CRM restyle · Step 2k: Dashboard period filter bar ===== */
+#dashBar{border-radius:18px}
+#dashBar .dfb-chips{gap:8px;flex-wrap:wrap}
+#dashBar .dfb-chips button{border-radius:999px;transition:transform .15s,box-shadow .15s}
+#dashBar .dfb-chips button:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(15,40,30,.4)}
+#dashBar .dfb-chips button[aria-pressed="true"]{box-shadow:0 4px 12px -4px rgba(15,74,56,.55)}
+#dashBar select,#dashBar input[type=date]{border-radius:999px}
+#dashBar select:focus,#dashBar input[type=date]:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#dashBar .dfb-cu{border-radius:14px}
+@media(max-width:700px){#dashBar{border-radius:14px}#dashBar .dfb-chips{gap:6px}}
+</style>
+<style id="step4aCss">
+/* ===== CRM restyle · Step 4a: Raw materials (stats, toolbar, form) ===== */
+html #view-rawmat .rm-tile{border-radius:16px;border-color:rgba(15,61,46,.1);background:radial-gradient(120% 110% at 100% 0%,rgba(15,110,80,.1),transparent 60%),#fff;box-shadow:0 1px 2px rgba(15,40,30,.05),0 10px 22px -14px rgba(15,40,30,.2);padding:14px 16px}
+html #view-rawmat .rm-tile.r{background:radial-gradient(120% 110% at 100% 0%,rgba(229,72,77,.12),transparent 60%),#fff}
+html #view-rawmat .rm-tile.y{background:radial-gradient(120% 110% at 100% 0%,rgba(245,165,36,.15),transparent 60%),#fff}
+html #view-rawmat .rm-tile.g{background:radial-gradient(120% 110% at 100% 0%,rgba(47,163,107,.13),transparent 60%),#fff}
+html #view-rawmat .rm-tile b{font-family:var(--ff-num,inherit);font-weight:800}
+html #view-rawmat .rm-tile span{text-transform:uppercase;letter-spacing:.06em;font-weight:800;font-size:.7rem}
+html #view-rawmat .rm-tools .btn,html #view-rawmat .rm-tools .field-in,html #view-rawmat .rm-tools input,html #view-rawmat .rm-tools select{border-radius:999px}
+html #view-rawmat .rm-tools .field-in:focus,html #view-rawmat .rm-tools input:focus,html #view-rawmat .rm-tools select:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+html #view-rawmat .rm-form{border-radius:18px;border-color:rgba(15,61,46,.1);background:rgba(15,61,46,.025);padding:18px}
+html #view-rawmat .rm-form label{text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;color:var(--ink-3)}
+html #view-rawmat .rm-form .field-in:focus,html #view-rawmat .rm-form input:focus,html #view-rawmat .rm-form select:focus,html #view-rawmat .rm-form textarea:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+html #view-rawmat .rm-pill{padding:3px 10px;letter-spacing:.02em}
+html[data-theme*="dark"] #view-rawmat .rm-tile{background:radial-gradient(120% 110% at 100% 0%,rgba(255,255,255,.07),transparent 60%),var(--glass,#10201a);border-color:rgba(255,255,255,.1)}
+html[data-theme*="dark"] #view-rawmat .rm-form{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+@media(max-width:700px){html #view-rawmat .rm-tile{padding:12px}html #view-rawmat .rm-form{padding:14px;border-radius:14px}}
+</style>
+<style id="step4bCss">
+/* ===== CRM restyle · Step 4b: Raw material cards and stock rows ===== */
+html #view-rawmat .rm-card{border-radius:20px;border-color:rgba(15,61,46,.1);background:#fff;box-shadow:0 1px 2px rgba(15,40,30,.05),0 10px 26px -14px rgba(15,40,30,.2);transition:transform .2s,box-shadow .2s}
+html #view-rawmat .rm-card:hover{transform:translateY(-3px);box-shadow:0 18px 36px -18px rgba(15,40,30,.35)}
+html #view-rawmat .rm-card .rm-row{padding:3px 0}
+html #view-rawmat .rm-card .rm-row b{font-variant-numeric:tabular-nums;font-weight:800}
+html #view-rawmat .rm-act .btn{border-radius:999px;transition:transform .15s,box-shadow .15s}
+html #view-rawmat .rm-act .btn:hover{transform:translateY(-1px);box-shadow:0 8px 16px -8px rgba(15,40,30,.4)}
+html #view-rawmat .rm-cat{padding:3px 11px;letter-spacing:.02em}
+html #view-rawmat .rm-sgrp{border-radius:12px;background:rgba(201,138,18,.1);border:1px solid rgba(201,138,18,.22);padding:7px 12px}
+html #view-rawmat .rm-srow{border-radius:12px;transition:background .15s}
+html #view-rawmat .rm-srow:hover{background:rgba(15,61,46,.04)}
+html #view-rawmat .rm-srow.rm-str{padding:11px 10px}
+html #view-rawmat .rm-sc b{font-variant-numeric:tabular-nums;font-weight:800}
+html #view-rawmat .rm-sctl .btn,html #view-rawmat .rm-sctl input,html #view-rawmat .rm-sctl select{border-radius:999px}
+html #view-rawmat .rm-pt button{box-shadow:0 2px 6px -1px rgba(0,0,0,.4)}
+html[data-theme*="dark"] #view-rawmat .rm-card{background:var(--glass,#10201a);border-color:rgba(255,255,255,.1)}
+html[data-theme*="dark"] #view-rawmat .rm-sgrp{background:rgba(201,138,18,.14)}
+html[data-theme*="dark"] #view-rawmat .rm-srow:hover{background:rgba(255,255,255,.04)}
+@media(max-width:700px){html #view-rawmat .rm-card{border-radius:16px}html #view-rawmat .rm-srow.rm-str{padding:9px 6px}}
+</style>
+<style id="step5aCss">
+/* ===== CRM restyle · Step 5a: Purchases ===== */
+#view-purchases .ptools{border-radius:18px}
+#view-purchases .ptools h3{font-family:var(--ff-head,inherit);font-weight:800;letter-spacing:-.01em}
+#view-purchases .pr-form{padding:16px;border-radius:18px;background:rgba(15,61,46,.03);border:1px solid rgba(15,61,46,.08)}
+#view-purchases .pr-form label{text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;color:var(--ink-3)}
+#view-purchases .field-in:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#view-purchases .pr-btns .btn,#view-purchases .ledger-tools .btn,#view-purchases .ledger-tools .field-in{border-radius:999px}
+#view-purchases .pr-btns .btn.primary{transition:transform .15s,box-shadow .15s}
+#view-purchases .pr-btns .btn.primary:hover{transform:translateY(-1px);box-shadow:0 8px 16px -8px rgba(15,74,56,.6)}
+#view-purchases .rt-card{background:radial-gradient(120% 110% at 100% 0%,rgba(15,110,80,.1),transparent 60%),#fff;box-shadow:0 1px 2px rgba(15,40,30,.05),0 10px 22px -14px rgba(15,40,30,.2)}
+#view-purchases .rt-card strong{font-family:var(--ff-num,inherit);font-weight:800}
+#view-purchases .tablewrap{border:1px solid var(--stroke-2);border-radius:16px;overflow-x:auto}
+#view-purchases #prTable th{background:rgba(15,61,46,.04);border-bottom:0;padding:11px 12px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+#view-purchases #prTable td{padding:12px}
+#view-purchases #prTable tbody tr{transition:background .15s}
+#view-purchases #prTable tbody tr:hover td{background:rgba(15,61,46,.04)}
+html[data-theme*="dark"] #view-purchases .pr-form{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
+html[data-theme*="dark"] #view-purchases .rt-card{background:radial-gradient(120% 110% at 100% 0%,rgba(255,255,255,.07),transparent 60%),var(--glass,#10201a)}
+html[data-theme*="dark"] #view-purchases #prTable th{background:rgba(255,255,255,.05)}
+html[data-theme*="dark"] #view-purchases #prTable tbody tr:hover td{background:rgba(255,255,255,.04)}
+@media(max-width:700px){#view-purchases .pr-form{padding:12px;border-radius:14px}#view-purchases #prTable th,#view-purchases #prTable td{padding:10px 7px}}
+</style>
+<style id="step6aCss">
+/* ===== CRM restyle · Step 6a: Tracker top (health, platforms, marketplace tabs) ===== */
+#view-tracker .tracker-subtabs{border-radius:18px!important}
+#view-tracker .tracker-subtab{border-radius:999px!important;transition:transform .15s,box-shadow .15s!important}
+#view-tracker .tracker-subtab:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(15,40,30,.4)}
+#view-tracker .tracker-subtab[aria-selected="true"]{box-shadow:0 0 0 2px #17956f inset,0 6px 14px -8px rgba(15,74,56,.5)!important}
+#trkHealth .loss-t th,#trkPlat table th{background:rgba(15,61,46,.04);border-bottom:0;padding:11px 12px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+#trkHealth .loss-t td,#trkPlat table td{padding:12px;font-variant-numeric:tabular-nums}
+#trkHealth .loss-t tbody tr:hover td,#trkPlat table tbody tr:hover td{background:rgba(15,61,46,.04)}
+#trkHealth .btn,#trkPlat .btn{border-radius:999px}
+#trkHealth .today-note,#trkPlat .today-note{padding:10px 14px;border-radius:12px;background:rgba(201,138,18,.07);border:1px solid rgba(201,138,18,.18)}
+html[data-theme*="dark"] #view-tracker .tracker-subtabs{background:rgba(255,255,255,.05)!important}
+html[data-theme*="dark"] #trkHealth .loss-t th,html[data-theme*="dark"] #trkPlat table th{background:rgba(255,255,255,.05)}
+html[data-theme*="dark"] #trkHealth .loss-t tbody tr:hover td,html[data-theme*="dark"] #trkPlat table tbody tr:hover td{background:rgba(255,255,255,.04)}
+@media(max-width:700px){#trkHealth .loss-t th,#trkHealth .loss-t td,#trkPlat table th,#trkPlat table td{padding:10px 7px}}
+</style>
+<style id="step6bCss">
+/* ===== CRM restyle · Step 6b: Tracker marketplace sheets ===== */
+#view-tracker .mpay-shell{border-radius:20px}
+#view-tracker .mf-title{font-family:var(--ff-head,inherit);font-weight:800;letter-spacing:-.01em}
+#view-tracker .mf-actions .btn,#view-tracker .mpay-tools .btn,#view-tracker .ws-actions .btn,#view-tracker .mf-toolbar .btn{border-radius:999px;transition:transform .15s,box-shadow .15s}
+#view-tracker .mf-actions .btn:hover,#view-tracker .mpay-tools .btn:hover,#view-tracker .ws-actions .btn:hover{transform:translateY(-1px);box-shadow:0 8px 16px -8px rgba(15,40,30,.4)}
+#view-tracker .mf-status{padding:10px 14px;border-radius:12px;background:rgba(201,138,18,.07);border:1px solid rgba(201,138,18,.18)}
+#view-tracker .mpay-stat{border-radius:16px;border-color:rgba(15,61,46,.1);background:radial-gradient(120% 110% at 100% 0%,rgba(15,110,80,.09),transparent 60%),#fff;box-shadow:0 1px 2px rgba(15,40,30,.05),0 10px 22px -14px rgba(15,40,30,.2)}
+#view-tracker .mpay-stat strong{font-family:var(--ff-num,inherit);font-weight:800}
+#view-tracker .mf-toolbar .field-in,#view-tracker .mf-period .field-in,#view-tracker .mpay-period-filters .field-in{border-radius:999px}
+#view-tracker .field-in:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#view-tracker .mf-wrap{border:1px solid var(--stroke-2);border-radius:16px}
+#view-tracker .mpay-table th{background:rgba(15,61,46,.04);border-bottom:0;padding:11px 12px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+#view-tracker .mpay-table td{padding:11px 12px;font-variant-numeric:tabular-nums}
+#view-tracker .mpay-table tbody tr{transition:background .15s}
+#view-tracker .mpay-table tbody tr:hover td{background:rgba(15,61,46,.04)}
+#view-tracker .ws-form{padding:16px;border-radius:18px;background:rgba(15,61,46,.03);border:1px solid rgba(15,61,46,.08)}
+#view-tracker .ws-form label{text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;color:var(--ink-3)}
+#view-tracker .ws-badge{border-radius:999px;padding:3px 11px}
+html[data-theme*="dark"] #view-tracker .mpay-stat{background:radial-gradient(120% 110% at 100% 0%,rgba(255,255,255,.07),transparent 60%),var(--glass,#10201a);border-color:rgba(255,255,255,.1)}
+html[data-theme*="dark"] #view-tracker .mpay-table th{background:rgba(255,255,255,.05)}
+html[data-theme*="dark"] #view-tracker .mpay-table tbody tr:hover td{background:rgba(255,255,255,.04)}
+html[data-theme*="dark"] #view-tracker .ws-form{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
+@media(max-width:700px){#view-tracker .mpay-shell{border-radius:16px}#view-tracker .mpay-table th,#view-tracker .mpay-table td{padding:9px 7px}#view-tracker .ws-form{padding:12px}}
+</style>
+<style id="step7aCss">
+/* ===== CRM restyle · Step 7a: Sale entries (upload box, filters, sale cards) ===== */
+#view-sales .upload{border-radius:20px}
+#view-sales .upload h3{font-family:var(--ff-head,inherit);font-weight:800;letter-spacing:-.01em}
+#view-sales .label-drop{border-radius:18px;border:2px dashed rgba(201,138,18,.45);background:rgba(201,138,18,.05);transition:background .15s,border-color .15s}
+#view-sales .label-drop:hover{background:rgba(201,138,18,.1);border-color:#c98a12}
+#view-sales .up-controls .btn,#view-sales .up-controls .field-in,#view-sales .up-controls select,#view-sales .ptools .btn,#view-sales .ptools .field-in{border-radius:999px}
+#view-sales .field-in:focus,#view-sales select:focus{outline:0;border-color:#c98a12;box-shadow:0 0 0 3px rgba(201,138,18,.2)}
+#view-sales .chip{transition:transform .15s,box-shadow .15s}
+#view-sales .chip:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(15,40,30,.4)}
+#view-sales .chip[aria-pressed="true"]{box-shadow:0 4px 12px -4px rgba(15,74,56,.55)}
+#view-sales .scard{border-radius:20px;box-shadow:0 1px 2px rgba(15,40,30,.05),0 10px 26px -14px rgba(15,40,30,.2);transition:transform .2s,box-shadow .2s}
+#view-sales .scard:hover{transform:translateY(-3px);box-shadow:0 18px 36px -18px rgba(15,40,30,.35)}
+#view-sales .scard .mpill,#view-sales .scard .status-pill,#view-sales .scard .pill{padding:3px 11px;letter-spacing:.02em;white-space:nowrap}
+#view-sales .scard .cust{font-family:var(--ff-head,inherit);font-weight:800}
+#view-sales .scard .sdl dt{font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;font-weight:800;color:var(--ink-3)}
+#view-sales .scard .sdl dd{font-variant-numeric:tabular-nums;font-weight:700}
+#view-sales .scard .scost{font-family:var(--ff-num,inherit);font-weight:800}
+#view-sales .scard .pact .btn{border-radius:999px;transition:transform .15s,box-shadow .15s}
+#view-sales .scard .pact .btn:hover{transform:translateY(-1px);box-shadow:0 8px 16px -8px rgba(15,40,30,.4)}
+html[data-theme*="dark"] #view-sales .label-drop{background:rgba(201,138,18,.08)}
+html[data-theme*="dark"] #view-sales .scard:hover{box-shadow:0 18px 36px -18px rgba(0,0,0,.6)}
+@media(max-width:700px){#view-sales .upload{border-radius:16px}#view-sales .scard{border-radius:16px}}
+</style>
